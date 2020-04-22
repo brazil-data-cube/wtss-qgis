@@ -1,0 +1,39 @@
+# This file contains metadata for your plugin. Since 
+# version 2.0 of QGIS this is the proper way to supply 
+# information about a plugin. The old method of 
+# embedding metadata in __init__.py will 
+# is no longer supported since version 2.0.
+
+# This file should be included when you package your plugin.# Mandatory items:
+
+[general]
+name=WTSS QGIS
+qgisMinimumVersion=2.0
+description=Web Time Series Service (WTSS)
+version=0.1
+author=INPE
+email=brazildatacube@dpi.inpe.br
+
+about=WTSS is a lightweight web service for handling time series data from remote sensing imagery. Given a location and a time interval you can retrieve the according time series as a JSON array of numbers. In WTSS a coverage is a three dimensional array associate to spatial and temporal reference systems. This implementation relies on the SpatioTemporal Asset Catalog specification. All the the coverages provided by the service are queried in STAC catalogs. Then the GDAL library is used to extract the time series for the specified location.
+
+tracker=https://github.com/brazil-data-cube/wtss-qgis/issues
+repository=https://github.com/brazil-data-cube/wtss-qgis
+# End of mandatory metadata
+
+# Recommended items:
+
+# Uncomment the following line and add your changelog:
+# changelog=
+
+# Tags are comma separated with spaces allowed
+tags=web
+
+homepage=https://github.com/brazil-data-cube
+category=Web
+icon=icon.png
+# experimental flag
+experimental=True
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
+
