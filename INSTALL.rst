@@ -12,7 +12,8 @@ Installation
 The Python QGIS Plugin for WTSS depends essentially on:
 
 - `QGIS version +2 <https://qgis.org/en/site/>`_
-- `QT Creator +4 <https://www.qt.io/download>`_
+- `QT Creator version +4 <https://www.qt.io/download>`_
+- `Python version +2 <https://www.python.org/>`_
 
 
 Development Installation
@@ -30,3 +31,17 @@ Go to the source code folder:
 .. code-block:: shell
 
     $ cd wtss-gis
+
+Install requirements:
+
+.. code-block:: shell
+
+    $ sudo apt-get install python-qt4
+    $ sudo apt install pyqt4-dev-tools
+    $ pip install pb_tool
+
+Compile:
+
+.. code-block:: shell
+
+    $ pb_tool compile
