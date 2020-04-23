@@ -127,3 +127,39 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# QGIS Compile
+.vscode/
+Backups/
+blob_storage/
+Cache/
+CachedData/
+CachedExtensions/
+Code Cache/
+GPUCache/
+logs/
+User/
+Cookies/
+Cookies-journal/
+languagepacks.json
+machineid
+Network Persistent State
+rapid_render.json
+storage.json
+*.zip
+
+# ignore swap files
+*swp
+plugin_template/*swp
+
+# ignore compiled python files
+*pyc
+plugin_template/*pyc
+.idea
+.coverage
+.noseids
+nohup.out
+resources.py
+
+# ignore the help build dir
+help/build
