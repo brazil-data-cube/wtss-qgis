@@ -27,7 +27,7 @@ import resources
 # Import the code for the dialog
 from wtss_dialog import wtss_clientDialog
 import os.path
-
+import wtss
 
 class wtss_client:
     """QGIS Plugin Implementation."""
