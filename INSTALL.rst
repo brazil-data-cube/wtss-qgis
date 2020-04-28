@@ -45,3 +45,9 @@ Compile:
 .. code-block:: shell
 
     $ pb_tool compile
+
+Deploy:
+
+.. code-block:: shell
+
+    $ make deploy QGISDIR=.qgis<version>
