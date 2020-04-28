@@ -163,3 +163,4 @@ resources.py
 
 # ignore the help build dir
 help/build
+wtss_qgis_plugin.egg-info/
