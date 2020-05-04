@@ -9,16 +9,16 @@
 """
 
 __author__ = 'brazildatacube@dpi.inpe.br'
-__date__ = '2020-04-22'
+__date__ = '2020-05-04'
 __copyright__ = 'Copyright 2020, INPE'
 
 import unittest
 
-from PyQt4.QtGui import QIcon
+from qgis.PyQt.QtGui import QIcon
 
 
 
-class wtss_clientDialogTest(unittest.TestCase):
+class wtss_qgisDialogTest(unittest.TestCase):
     """Test rerources work."""
 
     def setUp(self):
@@ -31,12 +31,12 @@ class wtss_clientDialogTest(unittest.TestCase):
 
     def test_icon_png(self):
         """Test we can click OK."""
-        path = ':/plugins/wtss_client/icon.png'
+        path = ':/plugins/wtss_qgis/icon.png'
         icon = QIcon(path)
         self.assertFalse(icon.isNull())
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(wtss_clientResourcesTest)
+    suite = unittest.makeSuite(wtss_qgisResourcesTest)
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
 

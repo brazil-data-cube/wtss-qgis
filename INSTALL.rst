@@ -50,4 +50,4 @@ Deploy:
 
 .. code-block:: shell
 
-    $ make deploy QGISDIR=.qgis<version>
+    $ make deploy QGISDIR=<qgis-home>
