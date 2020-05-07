@@ -126,7 +126,7 @@ deploy:
 	@echo
 	# The deploy  target only works on unix like operating system where
 	# the Python plugin directory is located at:
-	# $HOME/$(QGISDIR)/python/plugins
+	# $(QGISDIR)/python/plugins
 	mkdir -p $(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vf $(PY_FILES) $(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vf $(UI_FILES) $(QGISDIR)/python/plugins/$(PLUGINNAME)
@@ -134,8 +134,6 @@ deploy:
 	cp -vf $(EXTRAS) $(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vfr i18n $(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vfr $(HELP) $(QGISDIR)/python/plugins/$(PLUGINNAME)/help
-	# Copy extra directories if any
-	# (foreach EXTRA_DIR,(EXTRA_DIRS), cp -R (EXTRA_DIR) (HOME)/(QGISDIR)/python/plugins/(PLUGINNAME)/;)
 
 # The dclean target removes compiled python files from plugin directory
 # also deletes any .git entry
@@ -144,8 +142,8 @@ dclean:
 	@echo "-----------------------------------"
 	@echo "Removing any compiled python files."
 	@echo "-----------------------------------"
-	find $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME) -iname "*.pyc" -delete
-	find $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME) -iname ".git" -prune -exec rm -Rf {} \;
+	find $(QGISDIR)/python/plugins/$(PLUGINNAME) -iname "*.pyc" -delete
+	find $(QGISDIR)/python/plugins/$(PLUGINNAME) -iname ".git" -prune -exec rm -Rf {} \;
 
 
 derase:
@@ -153,7 +151,7 @@ derase:
 	@echo "-------------------------"
 	@echo "Removing deployed plugin."
 	@echo "-------------------------"
-	rm -Rf $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
+	rm -Rf $(QGISDIR)/python/plugins/$(PLUGINNAME)
 
 zip: deploy dclean
 	@echo
@@ -163,7 +161,7 @@ zip: deploy dclean
 	# The zip target deploys the plugin and creates a zip file with the deployed
 	# content. You can then upload the zip file on http://plugins.qgis.org
 	rm -f $(PLUGINNAME).zip
-	cd $(HOME)/$(QGISDIR)/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
+	cd $(QGISDIR)/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
 
 package: compile
 	# Create a zip package of the plugin named $(PLUGINNAME).zip.

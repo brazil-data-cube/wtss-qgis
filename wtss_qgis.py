@@ -34,7 +34,10 @@ from .wtss_qgis_dialog import wtss_qgisDialog
 import os.path
 
 import matplotlib.pyplot as plt
+import numpy as np
 from wtss import wtss
+from datetime import datetime, date, timedelta
+import requests
 
 
 class wtss_qgis:
@@ -184,18 +187,124 @@ class wtss_qgis:
                 action)
             self.iface.removeToolBarIcon(action)
 
+    def deleteService(self):
+        print("Delete")
+
+    def editService(self):
+        print("Edit")
+
+    def saveService(self):
+        host_to_save = str(self.dlg.service_host.text())
+
+        try:
+            response = requests.get(host_to_save)
+            status = int(response.status_code)
+        except AttributeError:
+            status = 404
+
+        if status != 404 or status != 500:
+            self.services.append(host_to_save)
+            self.dlg.services_list.clear()
+            self.dlg.services_list.addItems(self.services)
+            self.dlg.services_list.itemActivated.connect(self.selectService)
+
+    def plotTimeSeries(self):
+        self.client_wtss = wtss(self.selected_service)
+        time_series = self.client_wtss.time_series(
+            self.selected_coverage,
+            (self.selected_band),
+            self.selected_location.get('long', 0),
+            self.selected_location.get('lat', 0),
+            self.selected_start_date,
+            self.selected_end_date
+        )
+
+        # The x-axis will contain the time interval
+        x = [str(date) for date in time_series.timeline]
+
+        # The y-axis will contain the near-infra-red values
+        y = time_series.attributes[self.selected_band]
+
+        plt.title("Coverage " + self.selected_coverage, fontsize=18)
+
+        plt.xlabel("Date", fontsize=15)
+
+        plt.ylabel(self.selected_band, fontsize=15)
+
+        plt.scatter(x, y, color = "red", marker = ".", s = 100)
+        plt.plot(x, y, color = "red", linestyle = "--")
+        plt.xticks(np.arange(0, len(x), step=10.0))
+        plt.grid(b=True, color='gray', linestyle='--', linewidth=0.5)
+        plt.show()
+
+    def selectService(self, item):
+        self.selected_service = str(item.text())
+        # Selecting coverages
+        self.dlg.coverages_list.clear()
+        self.client_wtss = wtss(self.selected_service)
+        self.coverages = self.client_wtss.list_coverages().get('coverages',[])
+        self.dlg.coverages_list.addItems(self.coverages)
+        self.dlg.coverages_list.itemActivated.connect(self.selectCoverage)
+
+    def selectCoverage(self, item):
+        self.selected_coverage = str(item.text())
+        # Selecting bands
+        self.dlg.bands_list.clear()
+        self.client_wtss = wtss(self.selected_service)
+        self.bands = list(self.client_wtss.describe_coverage(self.selected_coverage).get("attributes", {}).keys())
+        self.dlg.bands_list.addItems(self.bands)
+        self.dlg.bands_list.itemActivated.connect(self.selectBand)
+
+    def selectBand(self, item):
+        self.selected_band = str(item.text())
+        # Selecting Start Dates
+        self.dlg.start_date_list.clear()
+        self.client_wtss = wtss(self.selected_service)
+        self.start_date_list = self.client_wtss.describe_coverage(self.selected_coverage).get("timeline", [])
+        self.dlg.start_date_list.addItems(self.start_date_list)
+        self.dlg.start_date_list.itemActivated.connect(self.selectStartDate)
+
+    def selectStartDate(self, item):
+        self.selected_start_date = str(item.text())
+        # Selecting End Dates
+        self.dlg.end_date_list.clear()
+        valid_dates = []
+        startDate = datetime.strptime(self.selected_start_date, '%Y-%m-%d')
+        limit_date = date(startDate.year, startDate.month, startDate.day)
+        limit_date += timedelta(days = 30)
+        for dat in self.start_date_list:
+            start = datetime.strptime(self.selected_start_date, '%Y-%m-%d')
+            end = datetime.strptime(dat, '%Y-%m-%d')
+            limit_date = datetime.combine(limit_date.today(), datetime.min.time())
+            if start < end < limit_date:
+                valid_dates.append(dat)
+        self.end_date_list = valid_dates
+        self.dlg.end_date_list.addItems(self.end_date_list)
+        self.dlg.end_date_list.itemActivated.connect(self.selectEndDate)
+
+    def selectEndDate(self, item):
+        self.selected_end_date = str(item.text())
+
+    def getFromHistory(self, item):
+        self.selected_location = self.locations.get(item.text(), {})
+
     def getLayers(self):
         self.layers = QgsProject.instance().layerTreeRoot().children()
-        # self.layer_names = [layer.name() for layer in layers] # Get all layer names
+        self.layer_names = [layer.name() for layer in self.layers] # Get all layer names
         self.layer = self.iface.activeLayer() # QVectorLayer QRasterFile
 
     def display_point(self, pointTool):
         try:
-            self.dlg.label.setText(
+            self.selected_location = {
+                'lat' : float(pointTool.x()),
+                'long' : float(pointTool.y()),
+                'crs' : str(self.layer.crs().authid())
+            }
+            history_key = str(
                 (
-                    "Layer name: {layer_name} \n" +
-                    "CRS: ({crs}) \n" +
-                    "Latitude: {lat:,.2f} Longitude: {long:,.2f}"
+                    "{layer_name} | " +
+                    "({crs}) | " +
+                    "Lat: {lat:,.2f} Long: {long:,.2f}"
                 ).format(
                     layer_name = str(self.layer.name()),
                     crs = str(self.layer.crs().authid()),
@@ -203,13 +312,12 @@ class wtss_qgis:
                     long = float(pointTool.y())
                 )
             )
-
+            self.locations[history_key] = self.selected_location
+            self.dlg.history_list.clear()
+            self.dlg.history_list.addItems(list(self.locations.keys()))
+            self.dlg.history_list.itemActivated.connect(self.getFromHistory)
         except AttributeError:
-            self.dlg.label.setText(
-                "Layer name: Null \n" +
-                "CRS: Null \n" +
-                "Latitude: 0 Longitude: 0"
-            )
+            pass
 
     def addCanvasControlPoint(self):
         self.canvas = self.iface.mapCanvas()
@@ -220,21 +328,63 @@ class wtss_qgis:
         self.canvas.setMapTool(self.point_tool)
         self.display_point(self.point_tool)
 
-
     def run(self):
         """Run method that performs all the real work"""
-
-        # Create the dialog with elements (after translation) and keep reference
-        # Only create GUI ONCE in callback, so that it will only load when the plugin is started
-        if self.first_start == True:
-            self.first_start = False
-            self.dlg = wtss_qgisDialog()
-            plot.clf()
-
+        # Declaring local variables
+        default_host = 'http://www.esensing.dpi.inpe.br/'
+        # Init Application
+        self.dlg = wtss_qgisDialog()
+        # Declaring global variables
+        self.client_wtss = wtss(default_host)
+        plt.clf()
+        # Adding function to services controll
+        # Services
+        self.dlg.services_list.clear()
+        self.services = [default_host]
+        self.selected_service = None
+        self.dlg.services_list.addItems(self.services)
+        self.dlg.services_list.itemActivated.connect(self.selectService)
+        # Coverages
+        self.dlg.coverages_list.clear()
+        self.selected_coverage = None
+        self.coverages = self.client_wtss.list_coverages().get('coverages',[])
+        self.dlg.coverages_list.addItems(self.coverages)
+        self.dlg.coverages_list.itemActivated.connect(self.selectCoverage)
+        # Bands
+        self.dlg.bands_list.clear()
+        self.bands = []
+        self.selected_band = None
+        self.dlg.bands_list.addItems(self.bands)
+        self.dlg.bands_list.itemActivated.connect(self.selectBand)
+        # Start Date
+        self.dlg.start_date_list.clear()
+        self.start_date_list = []
+        self.selected_start_date = None
+        self.dlg.start_date_list.addItems(self.start_date_list)
+        self.dlg.start_date_list.itemActivated.connect(self.selectStartDate)
+        # End Date
+        self.dlg.end_date_list.clear()
+        self.end_date_list = []
+        self.selected_end_date = None
+        self.dlg.end_date_list.addItems(self.end_date_list)
+        self.dlg.end_date_list.itemActivated.connect(self.selectEndDate)
+        # History
+        self.dlg.history_list.clear()
+        self.selected_location = None
+        try:
+            self.dlg.history_list.addItems(list(self.locations.keys()))
+        except AttributeError:
+            self.locations = {}
+        self.dlg.history_list.itemActivated.connect(self.getFromHistory)
         # Get all layers from QGIS project
         self.getLayers()
         # show coordinates from canvas
         self.addCanvasControlPoint()
+        # Add functions to buttons
+        self.dlg.save_service.clicked.connect(self.saveService)
+        self.dlg.delete_service.clicked.connect(self.deleteService)
+        self.dlg.edit_service.clicked.connect(self.editService)
+        self.dlg.plotTimeSeries.clicked.connect(self.plotTimeSeries)
         # show the dialog
         self.dlg.show()
         # Run the dialog event loop
