@@ -27,6 +27,9 @@ from qgis.PyQt.QtWidgets import QAction
 from qgis.core import QgsProject
 from qgis.gui import QgsMapToolEmitPoint
 
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+
 # Initialize Qt resources from file resources.py
 from .resources import *
 # Import the code for the dialog
@@ -36,8 +39,7 @@ import os.path
 import matplotlib.pyplot as plt
 import numpy as np
 from wtss import wtss
-from datetime import datetime, date, timedelta
-import requests
+from datetime import datetime
 
 
 class wtss_qgis:
@@ -187,6 +189,13 @@ class wtss_qgis:
                 action)
             self.iface.removeToolBarIcon(action)
 
+    def addItemsMenuServices(self, parent, elements):
+        for text, children in elements:
+            item = QStandardItem(text)
+            parent.appendRow(item)
+            if children:
+                self.addItemsMenuServices(item, children)
+
     def deleteService(self):
         print("Delete")
 
@@ -195,18 +204,34 @@ class wtss_qgis:
 
     def saveService(self):
         host_to_save = str(self.dlg.service_host.text())
-
         try:
             response = requests.get(host_to_save)
             status = int(response.status_code)
         except AttributeError:
             status = 404
-
         if status != 404 or status != 500:
             self.services.append(host_to_save)
             self.dlg.services_list.clear()
             self.dlg.services_list.addItems(self.services)
             self.dlg.services_list.itemActivated.connect(self.selectService)
+            servers = []
+            for server in self.services:
+                self.client_wtss = wtss(server)
+                coverage_tree = []
+                for coverage in self.client_wtss.list_coverages().get('coverages', []):
+                    band_list = []
+                    for band in list(self.client_wtss.describe_coverage(coverage).get("attributes", {}).keys()):
+                        band_list.append((
+                            band, []
+                        ))
+                    coverage_tree.append((
+                        coverage, band_list
+                    ))
+                servers.append((server, coverage_tree))
+            self.data = [("Services", servers)]
+            self.model = QStandardItemModel()
+            self.addItemsMenuServices(self.model, self.data)
+            self.dlg.data.setModel(self.model)
 
     def plotTimeSeries(self):
         self.client_wtss = wtss(self.selected_service)
@@ -218,23 +243,14 @@ class wtss_qgis:
             self.selected_start_date,
             self.selected_end_date
         )
-
-        # The x-axis will contain the time interval
         x = [str(date) for date in time_series.timeline]
-
-        # The y-axis will contain the near-infra-red values
         y = time_series.attributes[self.selected_band]
-
         plt.title("Coverage " + self.selected_coverage, fontsize=18)
-
         plt.xlabel("Date", fontsize=15)
-
         plt.ylabel(self.selected_band, fontsize=15)
-
-        plt.scatter(x, y, color = "red", marker = ".", s = 100)
-        plt.plot(x, y, color = "red", linestyle = "--")
-        plt.xticks(np.arange(0, len(x), step=10.0))
+        plt.xticks(np.arange(0, len(x), step=float(len(x) // 3)))
         plt.grid(b=True, color='gray', linestyle='--', linewidth=0.5)
+        plt.plot(x, y, color = "black")
         plt.show()
 
     def selectService(self, item):
@@ -245,6 +261,7 @@ class wtss_qgis:
         self.coverages = self.client_wtss.list_coverages().get('coverages',[])
         self.dlg.coverages_list.addItems(self.coverages)
         self.dlg.coverages_list.itemActivated.connect(self.selectCoverage)
+        self.coverage_tree = []
 
     def selectCoverage(self, item):
         self.selected_coverage = str(item.text())
@@ -270,13 +287,10 @@ class wtss_qgis:
         self.dlg.end_date_list.clear()
         valid_dates = []
         startDate = datetime.strptime(self.selected_start_date, '%Y-%m-%d')
-        limit_date = date(startDate.year, startDate.month, startDate.day)
-        limit_date += timedelta(days = 30)
         for dat in self.start_date_list:
             start = datetime.strptime(self.selected_start_date, '%Y-%m-%d')
             end = datetime.strptime(dat, '%Y-%m-%d')
-            limit_date = datetime.combine(limit_date.today(), datetime.min.time())
-            if start < end < limit_date:
+            if start < end:
                 valid_dates.append(dat)
         self.end_date_list = valid_dates
         self.dlg.end_date_list.addItems(self.end_date_list)
@@ -319,6 +333,7 @@ class wtss_qgis:
         except AttributeError:
             pass
 
+
     def addCanvasControlPoint(self):
         self.canvas = self.iface.mapCanvas()
 
@@ -331,17 +346,17 @@ class wtss_qgis:
     def run(self):
         """Run method that performs all the real work"""
         # Declaring local variables
-        default_host = 'http://www.esensing.dpi.inpe.br/'
+        self.default_host = 'http://www.esensing.dpi.inpe.br/'
         # Init Application
         self.dlg = wtss_qgisDialog()
         # Declaring global variables
-        self.client_wtss = wtss(default_host)
+        self.client_wtss = wtss(self.default_host)
         plt.clf()
         # Adding function to services controll
         # Services
         self.dlg.services_list.clear()
-        self.services = [default_host]
-        self.selected_service = None
+        self.services = [self.default_host]
+        self.selected_service = self.default_host
         self.dlg.services_list.addItems(self.services)
         self.dlg.services_list.itemActivated.connect(self.selectService)
         # Coverages
@@ -385,6 +400,23 @@ class wtss_qgis:
         self.dlg.delete_service.clicked.connect(self.deleteService)
         self.dlg.edit_service.clicked.connect(self.editService)
         self.dlg.plotTimeSeries.clicked.connect(self.plotTimeSeries)
+        # QTreeView Regitered Services
+        coverage_tree = []
+        for coverage in self.client_wtss.list_coverages().get('coverages', []):
+            band_list = []
+            for band in list(self.client_wtss.describe_coverage(coverage).get("attributes", {}).keys()):
+                band_list.append((
+                    band, []
+                ))
+            coverage_tree.append((
+                    coverage, band_list
+            ))
+        self.data = [("Services", [
+            (self.default_host, coverage_tree)
+        ])]
+        self.model = QStandardItemModel()
+        self.addItemsMenuServices(self.model, self.data)
+        self.dlg.data.setModel(self.model)
         # show the dialog
         self.dlg.show()
         # Run the dialog event loop

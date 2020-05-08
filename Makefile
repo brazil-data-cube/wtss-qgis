@@ -118,7 +118,7 @@ deploy:
 	@echo "Installing dependencies required by plugin to your .qgis2+ directory."
 	@echo "------------------------------------------"
 	@echo
-	python -m pip install -e .[all]
+	# python -m pip install -e .[all]
 	@echo
 	@echo "------------------------------------------"
 	@echo "Deploying plugin to your .qgis2+ directory."
