@@ -36,6 +36,7 @@ from .resources import *
 from .wtss_qgis_dialog import wtss_qgisDialog
 import os.path
 
+import requests
 import matplotlib.pyplot as plt
 import numpy as np
 from wtss import wtss
