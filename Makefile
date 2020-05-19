@@ -1,9 +1,9 @@
 #/***************************************************************************
-# wtss_client
+# wtss_qgis
 #
-# Web Time Series Service (WTSS)
+# Python Client Library for Web Time Series Service
 #							 -------------------
-#		begin				: 2020-04-22
+#		begin				: 2020-05-04
 #		git sha				: $Format:%H$
 #		copyright			: (C) 2020 by INPE
 #		email				: brazildatacube@dpi.inpe.br
@@ -23,25 +23,49 @@
 #################################################
 
 
+#Add iso code for any locales you want to support here (space separated)
+# default is no locales
+# LOCALES = af
+LOCALES =
+
+# If locales are enabled, set the name of the lrelease binary on your system. If
+# you have trouble compiling the translations, you may have to specify the full path to
+# lrelease
+#LRELEASE = lrelease
+#LRELEASE = lrelease-qt4
+
+
 # translation
 SOURCES = \
 	__init__.py \
-	wtss.py wtss_dialog.py
+	wtss_qgis.py wtss_qgis_dialog.py
 
-PLUGINNAME = wtss_client
+PLUGINNAME = wtss_qgis
 
 PY_FILES = \
 	__init__.py \
-	wtss.py wtss_dialog.py
+	wtss_qgis.py wtss_qgis_dialog.py
 
-UI_FILES = wtss_dialog_base.ui
+UI_FILES = wtss_qgis_dialog_base.ui
 
 EXTRAS = metadata.txt icon.png
 
+EXTRA_DIRS =
+
 COMPILED_RESOURCE_FILES = resources.py
 
-PEP8EXCLUDE = pydev,resources.py,conf.py,third_party,ui
+PEP8EXCLUDE=pydev,resources.py,conf.py,third_party,ui
 
+# QGISDIR points to the location where your plugin should be installed.
+# This varies by platform, relative to your HOME directory:
+#	* Linux:
+#	  .local/share/QGIS/QGIS3/profiles/default/python/plugins/
+#	* Mac OS X:
+#	  Library/Application Support/QGIS/QGIS3/profiles/default/python/plugins
+#	* Windows:
+#	  AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins'
+
+QGISDIR=/home/abner/.local/share/QGIS/QGIS3/profiles/default/python/plugins/
 
 #################################################
 # Normally you would not need to edit below here
@@ -51,25 +75,31 @@ HELP = help/build/html
 
 PLUGIN_UPLOAD = $(c)/plugin_upload.py
 
-RESOURCE_SRC = $(shell grep '^ *<file' resources.qrc | sed 's@</file>@@g;s/.*>//g' | tr '\n' ' ')
+RESOURCE_SRC=$(shell grep '^ *<file' resources.qrc | sed 's@</file>@@g;s/.*>//g' | tr '\n' ' ')
 
-QGISDIR = .qgis2
-
-default: compile
+.PHONY: default
+default:
+	@echo While you can use make to build and deploy your plugin, pb_tool
+	@echo is a much better solution.
+	@echo A Python script, pb_tool provides platform independent management of
+	@echo your plugins and runs anywhere.
+	@echo You can install pb_tool using: pip install pb_tool
+	@echo See https://g-sherman.github.io/plugin_build_tool/ for info.
 
 compile: $(COMPILED_RESOURCE_FILES)
 
 %.py : %.qrc $(RESOURCES_SRC)
-	pyrcc4 -o $*.py  $<
+	pyrcc5 -o $*.py  $<
 
 %.qm : %.ts
 	$(LRELEASE) $<
 
-test:
+test: compile transcompile
 	@echo
 	@echo "----------------------"
 	@echo "Regression Test Suite"
 	@echo "----------------------"
+
 	@# Preceding dash means that make will continue in case of errors
 	@-export PYTHONPATH=`pwd`:$(PYTHONPATH); \
 		export QGIS_DEBUG=0; \
@@ -88,44 +118,57 @@ deploy:
 	@echo "Installing dependencies required by plugin to your .qgis2+ directory."
 	@echo "------------------------------------------"
 	@echo
-	python -m pip install -e .[all]
+	# python -m pip install -e .[all]
 	@echo
 	@echo "------------------------------------------"
 	@echo "Deploying plugin to your .qgis2+ directory."
 	@echo "------------------------------------------"
 	@echo
-	mkdir -p $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vf $(PY_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vf $(UI_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vf $(COMPILED_RESOURCE_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vf $(EXTRAS) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vfr i18n $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vfr $(HELP) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/help
+	# The deploy  target only works on unix like operating system where
+	# the Python plugin directory is located at:
+	# $(QGISDIR)/python/plugins
+	mkdir -p $(QGISDIR)/python/plugins/$(PLUGINNAME)
+	cp -vf $(PY_FILES) $(QGISDIR)/python/plugins/$(PLUGINNAME)
+	cp -vf $(UI_FILES) $(QGISDIR)/python/plugins/$(PLUGINNAME)
+	cp -vf $(COMPILED_RESOURCE_FILES) $(QGISDIR)/python/plugins/$(PLUGINNAME)
+	cp -vf $(EXTRAS) $(QGISDIR)/python/plugins/$(PLUGINNAME)
+	cp -vfr i18n $(QGISDIR)/python/plugins/$(PLUGINNAME)
+	cp -vfr $(HELP) $(QGISDIR)/python/plugins/$(PLUGINNAME)/help
 
+# The dclean target removes compiled python files from plugin directory
+# also deletes any .git entry
 dclean:
 	@echo
 	@echo "-----------------------------------"
 	@echo "Removing any compiled python files."
 	@echo "-----------------------------------"
-	find $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME) -iname "*.pyc" -delete
-	find $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME) -iname ".git" -prune -exec rm -Rf {} \;
+	find $(QGISDIR)/python/plugins/$(PLUGINNAME) -iname "*.pyc" -delete
+	find $(QGISDIR)/python/plugins/$(PLUGINNAME) -iname ".git" -prune -exec rm -Rf {} \;
+
 
 derase:
 	@echo
 	@echo "-------------------------"
 	@echo "Removing deployed plugin."
 	@echo "-------------------------"
-	rm -Rf $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
+	rm -Rf $(QGISDIR)/python/plugins/$(PLUGINNAME)
 
-zip:
+zip: deploy dclean
 	@echo
 	@echo "---------------------------"
 	@echo "Creating plugin zip bundle."
 	@echo "---------------------------"
+	# The zip target deploys the plugin and creates a zip file with the deployed
+	# content. You can then upload the zip file on http://plugins.qgis.org
 	rm -f $(PLUGINNAME).zip
-	cd $(HOME)/$(QGISDIR)/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
+	cd $(QGISDIR)/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
 
-package:
+package: compile
+	# Create a zip package of the plugin named $(PLUGINNAME).zip.
+	# This requires use of git (your plugin development directory must be a
+	# git repository).
+	# To use, pass a valid commit or tag as follows:
+	#   make package VERSION=Version_0.3.2
 	@echo
 	@echo "------------------------------------"
 	@echo "Exporting plugin to zip package.	"
@@ -134,7 +177,7 @@ package:
 	git archive --prefix=$(PLUGINNAME)/ -o $(PLUGINNAME).zip $(VERSION)
 	echo "Created package: $(PLUGINNAME).zip"
 
-upload:
+upload: zip
 	@echo
 	@echo "-------------------------------------"
 	@echo "Uploading plugin to QGIS Plugin repo."
@@ -190,3 +233,16 @@ pylint:
 	@echo "the helper script we have provided first then run make pylint."
 	@echo "e.g. source run-env-linux.sh <path to qgis install>; make pylint"
 	@echo "----------------------"
+
+
+# Run pep8 style checking
+#http://pypi.python.org/pypi/pep8
+pep8:
+	@echo
+	@echo "-----------"
+	@echo "PEP8 issues"
+	@echo "-----------"
+	@pep8 --repeat --ignore=E203,E121,E122,E123,E124,E125,E126,E127,E128 --exclude $(PEP8EXCLUDE) . || true
+	@echo "-----------"
+	@echo "Ignored in PEP8 check:"
+	@echo $(PEP8EXCLUDE)
