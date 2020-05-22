@@ -36,11 +36,10 @@ from .resources import *
 from .wtss_qgis_dialog import wtss_qgisDialog
 import os.path
 
-import requests
 import matplotlib.pyplot as plt
 import numpy as np
 from wtss import wtss
-from datetime import datetime
+from datetime import datetime, date
 
 
 class wtss_qgis:
@@ -224,11 +223,6 @@ class wtss_qgis:
         if host_to_save == "":
             host_to_save = "http://www.esensing.dpi.inpe.br/"
         try:
-            response = requests.get(host_to_save)
-            status = int(response.status_code)
-        except AttributeError:
-            status = 404
-        if status != 404 or status != 500:
             self.services.append(host_to_save)
             servers = []
             for server in self.services:
@@ -249,6 +243,8 @@ class wtss_qgis:
                 "Host: " + host_to_save + "\n" +
                 "Active coverage: " + "MOD13Q1" + "\n"
             )
+        except AttributeError:
+            pass
 
     def plotTimeSeries(self):
         self.client_wtss = wtss(self.selected_service)
@@ -278,7 +274,7 @@ class wtss_qgis:
         plt.title("Coverage " + "MOD13Q1", fontsize=18)
         plt.xlabel("Date", fontsize=15)
         plt.ylabel("Value", fontsize=15)
-        x = [str(date) for date in time_series.timeline]
+        x = [str(date_str) for date_str in time_series.timeline]
         plt.xticks(np.arange(0, len(x), step=float(len(x) // 4)))
         plt.grid(b=True, color='gray', linestyle='--', linewidth=0.5)
         for band in bands:
@@ -306,7 +302,7 @@ class wtss_qgis:
             }
             history_key = str(
                 (
-                    "EPSG:{crs} ({lat:,.2f},{long:,.2f})"
+                    "({lat:,.2f},{long:,.2f}) EPSG:{crs}"
                 ).format(
                     crs = str(self.layer.crs().authid()),
                     lat = float(pointTool.x()),
