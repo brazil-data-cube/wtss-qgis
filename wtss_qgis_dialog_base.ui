@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>734</width>
+    <width>731</width>
     <height>510</height>
    </rect>
   </property>
@@ -166,26 +166,13 @@
     <attribute name="title">
      <string>Time Series</string>
     </attribute>
-    <widget class="QPushButton" name="plotTimeSeries">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>410</y>
-       <width>451</width>
-       <height>25</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Plot Time Series</string>
-     </property>
-    </widget>
     <widget class="QGroupBox" name="history">
      <property name="geometry">
       <rect>
        <x>480</x>
        <y>10</y>
        <width>241</width>
-       <height>431</height>
+       <height>381</height>
       </rect>
      </property>
      <property name="title">
@@ -197,80 +184,64 @@
         <x>10</x>
         <y>30</y>
         <width>221</width>
-        <height>391</height>
+        <height>341</height>
        </rect>
       </property>
      </widget>
     </widget>
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox" name="attribute_group">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>10</y>
+       <y>110</y>
        <width>451</width>
-       <height>391</height>
+       <height>331</height>
       </rect>
      </property>
      <property name="title">
-      <string>Attributes</string>
+      <string>Active Coverage</string>
      </property>
      <widget class="QGroupBox" name="bands_group">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>30</y>
+        <y>60</y>
         <width>431</width>
-        <height>221</height>
+        <height>141</height>
        </rect>
       </property>
       <property name="title">
-       <string>Bands:</string>
+       <string>Attributes</string>
       </property>
-      <widget class="QCheckBox" name="nir">
+      <widget class="QScrollArea" name="bands_scroll">
        <property name="geometry">
         <rect>
-         <x>10</x>
-         <y>30</y>
-         <width>92</width>
-         <height>23</height>
+         <x>0</x>
+         <y>20</y>
+         <width>431</width>
+         <height>121</height>
         </rect>
        </property>
-       <property name="text">
-        <string>NIR</string>
+       <property name="widgetResizable">
+        <bool>true</bool>
        </property>
-      </widget>
-      <widget class="QCheckBox" name="red">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>50</y>
-         <width>92</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>RED</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="ndvi">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>70</y>
-         <width>92</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>NDVI</string>
-       </property>
+       <widget class="QWidget" name="band_list">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>429</width>
+          <height>119</height>
+         </rect>
+        </property>
+       </widget>
       </widget>
      </widget>
      <widget class="QGroupBox" name="start_date_group">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>270</y>
+        <y>210</y>
         <width>431</width>
         <height>51</height>
        </rect>
@@ -306,7 +277,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>330</y>
+        <y>270</y>
         <width>431</width>
         <height>51</height>
        </rect>
@@ -338,6 +309,65 @@
        </property>
       </widget>
      </widget>
+     <widget class="QComboBox" name="coverage_selection">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>431</width>
+        <height>25</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="services_group">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>451</width>
+       <height>91</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Active Service</string>
+     </property>
+     <widget class="QComboBox" name="service_selection">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>40</y>
+        <width>431</width>
+        <height>25</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QPushButton" name="export_as_csv">
+     <property name="geometry">
+      <rect>
+       <x>490</x>
+       <y>410</y>
+       <width>101</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>CSV</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="export_as_python">
+     <property name="geometry">
+      <rect>
+       <x>610</x>
+       <y>410</y>
+       <width>101</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Python</string>
+     </property>
     </widget>
    </widget>
   </widget>
