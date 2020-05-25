@@ -54,7 +54,7 @@ EXTRA_DIRS =
 
 COMPILED_RESOURCE_FILES = resources.py
 
-PEP8EXCLUDE=pydev,resources.py,conf.py,third_party,ui
+PEP8EXCLUDE = pydev,resources.py,conf.py,third_party,ui
 
 # QGISDIR points to the location where your plugin should be installed.
 # This varies by platform, relative to your HOME directory:
@@ -65,7 +65,7 @@ PEP8EXCLUDE=pydev,resources.py,conf.py,third_party,ui
 #	* Windows:
 #	  AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins'
 
-QGISDIR=/home/abner/.local/share/QGIS/QGIS3/profiles/default/python/plugins/
+QGISDIR =
 
 #################################################
 # Normally you would not need to edit below here
@@ -113,16 +113,9 @@ test: compile transcompile
 	@echo "----------------------"
 
 deploy:
-	@echo
-	@echo "------------------------------------------"
-	@echo "Installing dependencies required by plugin to your .qgis2+ directory."
-	@echo "------------------------------------------"
-	@echo
-	python -m pip install -e .[all]
-	@echo
-	@echo "------------------------------------------"
+	@echo "-------------------------------------------"
 	@echo "Deploying plugin to your .qgis2+ directory."
-	@echo "------------------------------------------"
+	@echo "-------------------------------------------"
 	@echo
 	# The deploy  target only works on unix like operating system where
 	# the Python plugin directory is located at:

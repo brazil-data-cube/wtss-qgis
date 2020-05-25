@@ -305,11 +305,8 @@ class wtss_qgis:
         ).get("timeline",[])
         self.bands_checks = {}
         for band in list(bands.keys()):
-            self.bands_checks[bands.get(band).get("name")] = {
-                "check": QCheckBox(str(bands.get(band).get("name"))),
-                "color": "black"
-            }
-            self.vbox.addWidget(self.bands_checks.get(bands.get(band).get("name")).get("check"))
+            self.bands_checks[bands.get(band).get("name")] = QCheckBox(str(bands.get(band).get("name")))
+            self.vbox.addWidget(self.bands_checks.get(bands.get(band).get("name")))
         self.widget.setLayout(self.vbox)
         self.dlg.bands_scroll.setWidgetResizable(True)
         self.dlg.bands_scroll.setWidget(self.widget)
@@ -318,10 +315,23 @@ class wtss_qgis:
         self.dlg.end_date.setDate(self.formatForQDate(timeline[len(timeline) - 1]))
 
     def exportPython(self):
-        print()
+        print("Export as Python")
+
+    def exportCSV(self):
+        print("Export as CSV")
+
+    def getFromHistory(self, item):
+        self.selected_location = self.locations.get(item.text(), {})
+
+    def getLayers(self):
+        self.layers = QgsProject.instance().layerTreeRoot().children()
+        self.layer_names = [layer.name() for layer in self.layers] # Get all layer names
+        self.layer = self.iface.activeLayer() # QVectorLayer QRasterFile
+
+    def plotTimeSeries(self):
         selected_attributes = []
         for band in list(self.bands_checks.keys()):
-            if self.bands_checks.get(band).get("check").isChecked():
+            if self.bands_checks.get(band).isChecked():
                 selected_attributes.append(band)
         bands = tuple(selected_attributes)
         self.client_wtss = wtss(str(self.services.get(self.dlg.service_selection.currentText())))
@@ -341,20 +351,9 @@ class wtss_qgis:
         plt.grid(b=True, color='gray', linestyle='--', linewidth=0.5)
         for band in bands:
             y = time_series.attributes[band]
-            plt.plot(x, y, color=self.bands_checks.get(band).get("color"), label = band)
+            plt.plot(x, y, label = band)
         plt.legend()
         plt.show()
-
-    def exportCSV(self):
-        print("Export as CSV")
-
-    def getFromHistory(self, item):
-        self.selected_location = self.locations.get(item.text(), {})
-
-    def getLayers(self):
-        self.layers = QgsProject.instance().layerTreeRoot().children()
-        self.layer_names = [layer.name() for layer in self.layers] # Get all layer names
-        self.layer = self.iface.activeLayer() # QVectorLayer QRasterFile
 
     def display_point(self, pointTool):
         try:
@@ -366,7 +365,7 @@ class wtss_qgis:
             }
             history_key = str(
                 (
-                    "({lat:,.2f},{long:,.2f}) EPSG:{crs}"
+                    "({lat:,.2f},{long:,.2f}) {crs}"
                 ).format(
                     crs = str(self.layer.crs().authid()),
                     lat = float(pointTool.x()),
@@ -377,6 +376,7 @@ class wtss_qgis:
             self.dlg.history_list.clear()
             self.dlg.history_list.addItems(list(self.locations.keys()))
             self.dlg.history_list.itemActivated.connect(self.getFromHistory)
+            self.plotTimeSeries()
         except AttributeError:
             pass
 
