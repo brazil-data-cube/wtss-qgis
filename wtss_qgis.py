@@ -31,17 +31,17 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
+from pyproj import Proj, transform
+from datetime import datetime, date
+import matplotlib.pyplot as plt
+import numpy as np
+
 # Initialize Qt resources from file resources.py
 from .resources import *
 # Import the code for the dialog
 from .wtss_qgis_dialog import wtss_qgisDialog
+from .wtss_client import wtss
 import os.path
-
-import matplotlib.pyplot as plt
-import numpy as np
-from wtss import wtss
-from datetime import datetime, date
-
 
 class wtss_qgis:
     """QGIS Plugin Implementation."""
@@ -204,6 +204,19 @@ class wtss_qgis:
             int(date_string[8:])
         )
 
+    def transformProjection(self, projection, latitude, longitude):
+        # transform any projection to EPSG: 4326
+        lat, lon = transform(
+            Proj(init=projection),
+            Proj(init='epsg:4326'),
+            latitude, longitude
+        )
+        return {
+            "lat": lat,
+            "long": lon,
+            "crs": "EPSG: 4326"
+        }
+
     def changeDescription(self, name = "Null", host = "Null", coverage = "Null"):
         self.dlg.service_metadata.setText(
             "Service name: " + name + "\n" +
@@ -256,7 +269,6 @@ class wtss_qgis:
 
     def saveService(self):
         host_to_save = str(self.dlg.service_host.text())
-        self.dlg.service_host.clear()
         try:
             self.services[host_to_save] = host_to_save
             servers = []
@@ -273,7 +285,8 @@ class wtss_qgis:
             self.selected_service = host_to_save
             self.dlg.service_selection.addItems([host_to_save])
             self.dlg.service_selection.activated.connect(self.selectCoverage)
-        except AttributeError:
+            self.dlg.service_host.clear()
+        except (ValueError, AttributeError):
             pass
 
     def selectCoverage(self):
@@ -335,14 +348,24 @@ class wtss_qgis:
                 selected_attributes.append(band)
         bands = tuple(selected_attributes)
         self.client_wtss = wtss(str(self.services.get(self.dlg.service_selection.currentText())))
+        transformed = self.selected_location
+        if self.selected_location.get("crs"):
+            transformed = self.transformProjection(
+                self.selected_location.get("crs"),
+                self.selected_location.get("lat"),
+                self.selected_location.get("long")
+            )
         time_series = self.client_wtss.time_series(
             str(self.dlg.coverage_selection.currentText()),
             bands,
-            self.selected_location.get('long', 0),
-            self.selected_location.get('lat', 0),
+            transformed.get('long', 0),
+            transformed.get('lat', 0),
             str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
             str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
         )
+        plt.clf()
+        plt.cla()
+        plt.close()
         plt.title("Coverage " + str(self.dlg.coverage_selection.currentText()), fontsize=14)
         plt.xlabel("Date", fontsize=10)
         plt.ylabel("Value", fontsize=10)
@@ -376,7 +399,10 @@ class wtss_qgis:
             self.dlg.history_list.clear()
             self.dlg.history_list.addItems(list(self.locations.keys()))
             self.dlg.history_list.itemActivated.connect(self.getFromHistory)
-            self.plotTimeSeries()
+            try:
+                self.plotTimeSeries()
+            except:
+                pass
         except AttributeError:
             pass
 
@@ -391,9 +417,6 @@ class wtss_qgis:
         """Run method that performs all the real work"""
         # Init Application
         self.dlg = wtss_qgisDialog()
-        # Adding function to services controll
-        # Clean chart
-        plt.clf()
         # Description
         self.changeDescription()
         # Services
