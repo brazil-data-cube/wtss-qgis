@@ -44,7 +44,7 @@ PLUGINNAME = wtss_qgis
 
 PY_FILES = \
 	__init__.py \
-	wtss_qgis.py wtss_qgis_dialog.py
+	wtss_qgis.py wtss_qgis_dialog.py wtss_client.py
 
 UI_FILES = wtss_qgis_dialog_base.ui
 
