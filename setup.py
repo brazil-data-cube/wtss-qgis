@@ -1,10 +1,6 @@
 import os
 from setuptools import find_packages, setup
 
-install_requires = [
-    'matplotlib',
-    'wtss'
-]
 
 packages = find_packages()
 
@@ -26,7 +22,6 @@ setup(
     include_package_data=True,
     platforms='any',
     entry_points={},
-    install_requires=install_requires,
     classifiers=[
         'Development Status :: 1 - Planning',
         'Environment :: Web Environment',
