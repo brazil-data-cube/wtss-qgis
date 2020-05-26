@@ -36,7 +36,7 @@ Install requirements:
 
 .. code-block:: shell
 
-    $ pip install pb_tool wtss
+    $ pip install pb_tool
 
 Compile:
 
@@ -48,4 +48,4 @@ Deploy:
 
 .. code-block:: shell
 
-    $ sudo make deploy QGISDIR=<qgis-home>
+    $ make deploy QGISDIR=<qgis-home>
