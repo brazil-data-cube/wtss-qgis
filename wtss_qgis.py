@@ -247,15 +247,19 @@ class wtss_qgis:
             "Brasil Data Cube": "http://brazildatacube.dpi.inpe.br/",
             "E-sensing": "http://www.esensing.dpi.inpe.br/",
         }
-        self.dlg.service_selection.addItems(list(self.services.keys()))
-        self.dlg.service_selection.activated.connect(self.selectCoverage)
         servers = []
         for server in list(self.services.keys()):
-            self.client_wtss = wtss(self.services.get(server))
-            coverage_tree = []
-            for coverage in self.client_wtss.list_coverages().get('coverages', []):
-                coverage_tree.append((coverage, []))
-            servers.append((server, coverage_tree))
+            try:
+                self.client_wtss = wtss(self.services.get(server))
+                coverage_tree = []
+                for coverage in self.client_wtss.list_coverages().get('coverages', []):
+                    coverage_tree.append((coverage, []))
+                servers.append((server, coverage_tree))
+            except:
+                self.services.pop(server)
+                pass
+        self.dlg.service_selection.addItems(list(self.services.keys()))
+        self.dlg.service_selection.activated.connect(self.selectCoverage)
         self.data = [("Services", servers)]
         self.model = QStandardItemModel()
         self.addItemsMenuServices(self.model, self.data)
@@ -273,11 +277,15 @@ class wtss_qgis:
             self.services[host_to_save] = host_to_save
             servers = []
             for server in list(self.services.keys()):
-                self.client_wtss = wtss(self.services.get(server))
-                coverage_tree = []
-                for coverage in self.client_wtss.list_coverages().get('coverages', []):
-                    coverage_tree.append((coverage, []))
-                servers.append((server, coverage_tree))
+                try:
+                    self.client_wtss = wtss(self.services.get(server))
+                    coverage_tree = []
+                    for coverage in self.client_wtss.list_coverages().get('coverages', []):
+                        coverage_tree.append((coverage, []))
+                    servers.append((server, coverage_tree))
+                except:
+                    self.services.pop(server)
+                    pass
             self.data = [("Services", servers)]
             self.model = QStandardItemModel()
             self.addItemsMenuServices(self.model, self.data)
