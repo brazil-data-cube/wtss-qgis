@@ -31,17 +31,17 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
+from pyproj import Proj, transform
+from datetime import datetime, date
+import matplotlib.pyplot as plt
+import numpy as np
+
 # Initialize Qt resources from file resources.py
 from .resources import *
 # Import the code for the dialog
 from .wtss_qgis_dialog import wtss_qgisDialog
+from .wtss_client import wtss
 import os.path
-
-import matplotlib.pyplot as plt
-import numpy as np
-from wtss import wtss
-from datetime import datetime, date
-
 
 class wtss_qgis:
     """QGIS Plugin Implementation."""
@@ -204,6 +204,19 @@ class wtss_qgis:
             int(date_string[8:])
         )
 
+    def transformProjection(self, projection, latitude, longitude):
+        # transform any projection to EPSG: 4326
+        lat, lon = transform(
+            Proj(init=projection),
+            Proj(init='epsg:4326'),
+            latitude, longitude
+        )
+        return {
+            "lat": lat,
+            "long": lon,
+            "crs": "EPSG: 4326"
+        }
+
     def changeDescription(self, name = "Null", host = "Null", coverage = "Null"):
         self.dlg.service_metadata.setText(
             "Service name: " + name + "\n" +
@@ -234,15 +247,19 @@ class wtss_qgis:
             "Brasil Data Cube": "http://brazildatacube.dpi.inpe.br/",
             "E-sensing": "http://www.esensing.dpi.inpe.br/",
         }
-        self.dlg.service_selection.addItems(list(self.services.keys()))
-        self.dlg.service_selection.activated.connect(self.selectCoverage)
         servers = []
         for server in list(self.services.keys()):
-            self.client_wtss = wtss(self.services.get(server))
-            coverage_tree = []
-            for coverage in self.client_wtss.list_coverages().get('coverages', []):
-                coverage_tree.append((coverage, []))
-            servers.append((server, coverage_tree))
+            try:
+                self.client_wtss = wtss(self.services.get(server))
+                coverage_tree = []
+                for coverage in self.client_wtss.list_coverages().get('coverages', []):
+                    coverage_tree.append((coverage, []))
+                servers.append((server, coverage_tree))
+            except:
+                self.services.pop(server)
+                pass
+        self.dlg.service_selection.addItems(list(self.services.keys()))
+        self.dlg.service_selection.activated.connect(self.selectCoverage)
         self.data = [("Services", servers)]
         self.model = QStandardItemModel()
         self.addItemsMenuServices(self.model, self.data)
@@ -256,16 +273,19 @@ class wtss_qgis:
 
     def saveService(self):
         host_to_save = str(self.dlg.service_host.text())
-        self.dlg.service_host.clear()
         try:
             self.services[host_to_save] = host_to_save
             servers = []
             for server in list(self.services.keys()):
-                self.client_wtss = wtss(self.services.get(server))
-                coverage_tree = []
-                for coverage in self.client_wtss.list_coverages().get('coverages', []):
-                    coverage_tree.append((coverage, []))
-                servers.append((server, coverage_tree))
+                try:
+                    self.client_wtss = wtss(self.services.get(server))
+                    coverage_tree = []
+                    for coverage in self.client_wtss.list_coverages().get('coverages', []):
+                        coverage_tree.append((coverage, []))
+                    servers.append((server, coverage_tree))
+                except:
+                    self.services.pop(server)
+                    pass
             self.data = [("Services", servers)]
             self.model = QStandardItemModel()
             self.addItemsMenuServices(self.model, self.data)
@@ -273,7 +293,8 @@ class wtss_qgis:
             self.selected_service = host_to_save
             self.dlg.service_selection.addItems([host_to_save])
             self.dlg.service_selection.activated.connect(self.selectCoverage)
-        except AttributeError:
+            self.dlg.service_host.clear()
+        except (ValueError, AttributeError):
             pass
 
     def selectCoverage(self):
@@ -305,11 +326,8 @@ class wtss_qgis:
         ).get("timeline",[])
         self.bands_checks = {}
         for band in list(bands.keys()):
-            self.bands_checks[bands.get(band).get("name")] = {
-                "check": QCheckBox(str(bands.get(band).get("name"))),
-                "color": "black"
-            }
-            self.vbox.addWidget(self.bands_checks.get(bands.get(band).get("name")).get("check"))
+            self.bands_checks[bands.get(band).get("name")] = QCheckBox(str(bands.get(band).get("name")))
+            self.vbox.addWidget(self.bands_checks.get(bands.get(band).get("name")))
         self.widget.setLayout(self.vbox)
         self.dlg.bands_scroll.setWidgetResizable(True)
         self.dlg.bands_scroll.setWidget(self.widget)
@@ -318,32 +336,7 @@ class wtss_qgis:
         self.dlg.end_date.setDate(self.formatForQDate(timeline[len(timeline) - 1]))
 
     def exportPython(self):
-        print()
-        selected_attributes = []
-        for band in list(self.bands_checks.keys()):
-            if self.bands_checks.get(band).get("check").isChecked():
-                selected_attributes.append(band)
-        bands = tuple(selected_attributes)
-        self.client_wtss = wtss(str(self.services.get(self.dlg.service_selection.currentText())))
-        time_series = self.client_wtss.time_series(
-            str(self.dlg.coverage_selection.currentText()),
-            bands,
-            self.selected_location.get('long', 0),
-            self.selected_location.get('lat', 0),
-            str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
-            str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
-        )
-        plt.title("Coverage " + str(self.dlg.coverage_selection.currentText()), fontsize=14)
-        plt.xlabel("Date", fontsize=10)
-        plt.ylabel("Value", fontsize=10)
-        x = [str(date_str) for date_str in time_series.timeline]
-        plt.xticks(np.arange(0, len(x), step=float(len(x) // 4)))
-        plt.grid(b=True, color='gray', linestyle='--', linewidth=0.5)
-        for band in bands:
-            y = time_series.attributes[band]
-            plt.plot(x, y, color=self.bands_checks.get(band).get("color"), label = band)
-        plt.legend()
-        plt.show()
+        print("Export as Python")
 
     def exportCSV(self):
         print("Export as CSV")
@@ -356,6 +349,43 @@ class wtss_qgis:
         self.layer_names = [layer.name() for layer in self.layers] # Get all layer names
         self.layer = self.iface.activeLayer() # QVectorLayer QRasterFile
 
+    def plotTimeSeries(self):
+        selected_attributes = []
+        for band in list(self.bands_checks.keys()):
+            if self.bands_checks.get(band).isChecked():
+                selected_attributes.append(band)
+        bands = tuple(selected_attributes)
+        self.client_wtss = wtss(str(self.services.get(self.dlg.service_selection.currentText())))
+        transformed = self.selected_location
+        if self.selected_location.get("crs"):
+            transformed = self.transformProjection(
+                self.selected_location.get("crs"),
+                self.selected_location.get("lat"),
+                self.selected_location.get("long")
+            )
+        time_series = self.client_wtss.time_series(
+            str(self.dlg.coverage_selection.currentText()),
+            bands,
+            transformed.get('long', 0),
+            transformed.get('lat', 0),
+            str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
+            str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
+        )
+        plt.clf()
+        plt.cla()
+        plt.close()
+        plt.title("Coverage " + str(self.dlg.coverage_selection.currentText()), fontsize=14)
+        plt.xlabel("Date", fontsize=10)
+        plt.ylabel("Value", fontsize=10)
+        x = [str(date_str) for date_str in time_series.timeline]
+        plt.xticks(np.arange(0, len(x), step=float(len(x) // 4)))
+        plt.grid(b=True, color='gray', linestyle='--', linewidth=0.5)
+        for band in bands:
+            y = time_series.attributes[band]
+            plt.plot(x, y, label = band)
+        plt.legend()
+        plt.show()
+
     def display_point(self, pointTool):
         try:
             self.selected_location = {
@@ -366,7 +396,7 @@ class wtss_qgis:
             }
             history_key = str(
                 (
-                    "({lat:,.2f},{long:,.2f}) EPSG:{crs}"
+                    "({lat:,.2f},{long:,.2f}) {crs}"
                 ).format(
                     crs = str(self.layer.crs().authid()),
                     lat = float(pointTool.x()),
@@ -377,6 +407,10 @@ class wtss_qgis:
             self.dlg.history_list.clear()
             self.dlg.history_list.addItems(list(self.locations.keys()))
             self.dlg.history_list.itemActivated.connect(self.getFromHistory)
+            try:
+                self.plotTimeSeries()
+            except:
+                pass
         except AttributeError:
             pass
 
@@ -391,9 +425,6 @@ class wtss_qgis:
         """Run method that performs all the real work"""
         # Init Application
         self.dlg = wtss_qgisDialog()
-        # Adding function to services controll
-        # Clean chart
-        plt.clf()
         # Description
         self.changeDescription()
         # Services
