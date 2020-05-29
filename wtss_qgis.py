@@ -41,6 +41,8 @@ from .resources import *
 # Import the code for the dialog
 from .wtss_qgis_dialog import wtss_qgisDialog
 from .wtss_client import wtss
+from .files.python import PythonFile
+
 import os.path
 
 class wtss_qgis:
@@ -336,9 +338,50 @@ class wtss_qgis:
         self.dlg.end_date.setDate(self.formatForQDate(timeline[len(timeline) - 1]))
 
     def exportPython(self):
-        print("Export as Python")
+        name = QFileDialog.getSaveFileName(
+            parent=self.dlg,
+            caption='Save as python code',
+            directory='export.py',
+            filter='*.py'
+        )
+        try:
+            file = open(name[0], "w")
+            file.write('print("Hello World!")')
+            file.close()
+            print(name[0])
+            print("Export as Python")
+        except FileNotFoundError:
+            pass
 
     def exportCSV(self):
+        name = QFileDialog.getSaveFileName(
+            parent=self.dlg,
+            caption='Save as CSV',
+            directory='export.csv',
+            filter='*.csv'
+        )
+        try:
+            code = PythonFile().generateCode({
+                "host": "",
+                "coverage": "",
+                "bands": (0,0),
+                "coordinates": {
+                    "crs": "",
+                    "lat": 0,
+                    "long": 0
+                },
+                "time_interval": {
+                    "start": "",
+                    "end": ""
+                }
+            })
+            file = open(name[0], "w")
+            file.write(code)
+            file.close()
+            print(name[0])
+            print("Export as Python")
+        except FileNotFoundError:
+            pass
         print("Export as CSV")
 
     def getFromHistory(self, item):
@@ -378,7 +421,7 @@ class wtss_qgis:
         plt.xlabel("Date", fontsize=10)
         plt.ylabel("Value", fontsize=10)
         x = [str(date_str) for date_str in time_series.timeline]
-        plt.xticks(np.arange(0, len(x), step=float(len(x) // 4)))
+        plt.xticks(np.arange(0, len(x), step=float(len(x) // 5)))
         plt.grid(b=True, color='gray', linestyle='--', linewidth=0.5)
         for band in bands:
             y = time_series.attributes[band]
