@@ -38,7 +38,7 @@ LOCALES =
 # translation
 SOURCES = \
 	__init__.py \
-	wtss_qgis.py wtss_qgis_dialog.py
+		wtss_qgis.py wtss_qgis_dialog.py
 
 PLUGINNAME = wtss_qgis
 
@@ -137,7 +137,6 @@ dclean:
 	@echo "-----------------------------------"
 	find $(QGISDIR)/python/plugins/$(PLUGINNAME) -iname "*.pyc" -delete
 	find $(QGISDIR)/python/plugins/$(PLUGINNAME) -iname ".git" -prune -exec rm -Rf {} \;
-
 
 derase:
 	@echo
