@@ -35,13 +35,13 @@ from pyproj import Proj, transform
 from datetime import datetime, date
 import matplotlib.pyplot as plt
 import numpy as np
+import csv
 
 # Initialize Qt resources from file resources.py
 from .resources import *
 # Import the code for the dialog
 from .wtss_qgis_dialog import wtss_qgisDialog
 from .wtss_client import wtss
-from .files.python import PythonFile
 
 import os.path
 
@@ -337,19 +337,128 @@ class wtss_qgis:
         self.dlg.start_date.setDate(self.formatForQDate(timeline[0]))
         self.dlg.end_date.setDate(self.formatForQDate(timeline[len(timeline) - 1]))
 
+    def generateCode(self, attributes):
+        bands_string = "("
+        for band in attributes.get("bands"):
+            bands_string = bands_string + "'" + str(band) + "', "
+        bands_string = bands_string[:len(bands_string)-2] + ")"
+        lat = "{:,.2f}".format(attributes.get("coordinates").get("lat"))
+        lon = "{:,.2f}".format(attributes.get("coordinates").get("long"))
+        mapping = {
+            "service_host": attributes.get("host"),
+            "selected_coverage": attributes.get("coverage"),
+            "selected_bands": bands_string,
+            "latitude" : lat,
+            "longitude" : lon,
+            "start_date" : attributes.get("time_interval").get("start"),
+            "end_date" : attributes.get("time_interval").get("end")
+        }
+        code_to_save = self.defaultCode().format(**mapping)
+        return code_to_save
+
+    def defaultCode(self):
+        return ("""import matplotlib.pyplot as plt
+import numpy as np
+
+from wtss import wtss
+
+# Creating the client with selected service host
+client = wtss("{service_host}")
+
+##
+# Listing coverages
+# Listing the Available Data Products
+
+coverages = client.list_coverages().get("coverages")
+
+print(coverages)
+
+##
+# Getting coverage metadata
+# Retrieving the Metadata of a Data Product
+
+coverage_metadata = client.describe_coverage("{selected_coverage}")
+
+print(coverage_metadata["attributes"].keys())
+
+
+timeline = coverage_metadata['timeline']
+
+start = timeline[0]
+end = timeline[-1]
+
+print('Interval range: (' + start + ',' + end + ')')
+
+print(coverage_metadata['spatial_extent'])
+
+##
+# Time series
+# Retrieving the Time Series
+
+bands = {selected_bands}
+
+time_series = client.time_series("{selected_coverage}", bands, {longitude}, {latitude}, "{start_date}", "{end_date}")
+
+# The x-axis will contain the time interval
+x = [str(date) for date in time_series.timeline]
+
+plt.title("Coverage {selected_coverage}", fontsize=14)
+
+plt.xlabel("Date", fontsize=10)
+
+plt.ylabel("Value", fontsize=10)
+
+plt.xticks(np.arange(0, len(x), step=float(len(x) // 5)))
+
+plt.grid(b=True, color='gray', linestyle='--', linewidth=0.5)
+
+for band in bands:
+
+    # The y-axis will contain the values in each attribute
+    y = time_series.attributes[band]
+
+    plt.plot(x, y, label = band)
+
+plt.legend()
+
+plt.show()
+
+##
+#
+        """)
+
     def exportPython(self):
         name = QFileDialog.getSaveFileName(
             parent=self.dlg,
             caption='Save as python code',
-            directory='export.py',
+            directory=('{coverage}.{end}.py').format(
+                coverage=str(self.dlg.coverage_selection.currentText()),
+                end=str(self.dlg.end_date.date().toString('yyyy.MM.dd'))
+            ),
             filter='*.py'
         )
         try:
+            selected_attributes = []
+            for band in list(self.bands_checks.keys()):
+                if self.bands_checks.get(band).isChecked():
+                    selected_attributes.append(band)
+            code_to_save = self.generateCode({
+                "host": str(self.services.get(self.dlg.service_selection.currentText())),
+                "coverage": str(self.dlg.coverage_selection.currentText()),
+                "bands": tuple(selected_attributes),
+                "coordinates": {
+                    "crs": self.selected_location.get('crs'),
+                    "lat": self.selected_location.get('lat'),
+                    "long": self.selected_location.get('long')
+                },
+                "time_interval": {
+                    "start": str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
+                    "end": str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
+                }
+            })
             file = open(name[0], "w")
-            file.write('print("Hello World!")')
+            file.write(code_to_save)
             file.close()
-            print(name[0])
-            print("Export as Python")
         except FileNotFoundError:
             pass
 
@@ -357,32 +466,51 @@ class wtss_qgis:
         name = QFileDialog.getSaveFileName(
             parent=self.dlg,
             caption='Save as CSV',
-            directory='export.csv',
+            directory=('{coverage}.csv').format(
+                coverage=str(self.dlg.coverage_selection.currentText())
+            ),
             filter='*.csv'
         )
         try:
-            code = PythonFile().generateCode({
-                "host": "",
-                "coverage": "",
-                "bands": (0,0),
-                "coordinates": {
-                    "crs": "",
-                    "lat": 0,
-                    "long": 0
-                },
-                "time_interval": {
-                    "start": "",
-                    "end": ""
-                }
-            })
-            file = open(name[0], "w")
-            file.write(code)
-            file.close()
-            print(name[0])
-            print("Export as Python")
+            selected_attributes = []
+            for band in list(self.bands_checks.keys()):
+                if self.bands_checks.get(band).isChecked():
+                    selected_attributes.append(band)
+            bands = tuple(selected_attributes)
+            self.client_wtss = wtss(str(self.services.get(self.dlg.service_selection.currentText())))
+            transformed = self.selected_location
+            if self.selected_location.get("crs"):
+                transformed = self.transformProjection(
+                    self.selected_location.get("crs"),
+                    self.selected_location.get("lat"),
+                    self.selected_location.get("long")
+                )
+            time_series = self.client_wtss.time_series(
+                str(self.dlg.coverage_selection.currentText()),
+                bands,
+                transformed.get('long', 0),
+                transformed.get('lat', 0),
+                str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
+                str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
+            )
+            dates = [str(date_str) for date_str in time_series.timeline]
+            with open(name[0], 'w', newline='') as csvfile:
+                fieldnames = ['timeline']
+                for band in bands:
+                    fieldnames.append(band)
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
+                writer.writeheader()
+                ind = 0
+                for date in dates:
+                    line = {
+                        'timeline': date
+                    }
+                    for band in bands:
+                        line[band] = time_series.attributes[band][ind]
+                    ind += 1
+                    writer.writerow(line)
         except FileNotFoundError:
             pass
-        print("Export as CSV")
 
     def getFromHistory(self, item):
         self.selected_location = self.locations.get(item.text(), {})
@@ -441,9 +569,9 @@ class wtss_qgis:
                 (
                     "({lat:,.2f},{long:,.2f}) {crs}"
                 ).format(
-                    crs = str(self.layer.crs().authid()),
-                    lat = float(pointTool.x()),
-                    long = float(pointTool.y())
+                    crs = self.selected_location.get('crs'),
+                    lat = self.selected_location.get('lat'),
+                    long = self.selected_location.get('long')
                 )
             )
             self.locations[history_key] = self.selected_location
