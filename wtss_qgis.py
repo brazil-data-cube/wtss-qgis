@@ -495,7 +495,7 @@ plt.show()
             )
             dates = [str(date_str) for date_str in time_series.timeline]
             with open(name[0], 'w', newline='') as csvfile:
-                fieldnames = ['timeline']
+                fieldnames = ['timeline','latitude','longitude']
                 for band in bands:
                     fieldnames.append(band)
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
@@ -503,7 +503,9 @@ plt.show()
                 ind = 0
                 for date in dates:
                     line = {
-                        'timeline': date
+                        'timeline': date,
+                        'latitude': transformed.get('lat', 0),
+                        'longitude': transformed.get('long', 0)
                     }
                     for band in bands:
                         line[band] = time_series.attributes[band][ind]
