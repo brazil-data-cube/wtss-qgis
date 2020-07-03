@@ -204,6 +204,7 @@ class wtss_qgis:
         self.dlg.edit_service.clicked.connect(self.editService)
         self.dlg.export_as_python.clicked.connect(self.exportPython)
         self.dlg.export_as_csv.clicked.connect(self.exportCSV)
+        self.dlg.export_as_json.clicked.connect(self.exportJSON)
 
     def initHistory(self):
         self.dlg.history_list.clear()
@@ -310,42 +311,65 @@ class wtss_qgis:
         )
 
     def exportPython(self):
-        name = QFileDialog.getSaveFileName(
-            parent=self.dlg,
-            caption='Save as python code',
-            directory=('{coverage}.{end}.py').format(
-                coverage=str(self.dlg.coverage_selection.currentText()),
-                end=str(self.dlg.end_date.date().toString('yyyy.MM.dd'))
-            ),
-            filter='*.py'
-        )
-        attributes = {
-            "host": str(self.server_controlls.getServices().get(self.dlg.service_selection.currentText())),
-            "coverage": str(self.dlg.coverage_selection.currentText()),
-            "bands": tuple(self.loadAtributtes()),
-            "coordinates": {
-                "crs": self.selected_location.get('crs'),
-                "lat": self.selected_location.get('lat'),
-                "long": self.selected_location.get('long')
-            },
-            "time_interval": {
-                "start": str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
-                "end": str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
+        try:
+            name = QFileDialog.getSaveFileName(
+                parent=self.dlg,
+                caption='Save as python code',
+                directory=('{coverage}.{end}.py').format(
+                    coverage=str(self.dlg.coverage_selection.currentText()),
+                    end=str(self.dlg.end_date.date().toString('yyyy.MM.dd'))
+                ),
+                filter='*.py'
+            )
+            attributes = {
+                "host": str(self.server_controlls.getServices().get(self.dlg.service_selection.currentText())),
+                "coverage": str(self.dlg.coverage_selection.currentText()),
+                "bands": tuple(self.loadAtributtes()),
+                "coordinates": {
+                    "crs": self.selected_location.get('crs'),
+                    "lat": self.selected_location.get('lat'),
+                    "long": self.selected_location.get('long')
+                },
+                "time_interval": {
+                    "start": str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
+                    "end": str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
+                }
             }
-        }
-        self.files_controlls.generateCode(name[0], attributes)
+            self.files_controlls.generateCode(name[0], attributes)
+        except AttributeError:
+            pass
 
     def exportCSV(self):
-        name = QFileDialog.getSaveFileName(
-            parent=self.dlg,
-            caption='Save as CSV',
-            directory=('{coverage}.csv').format(
-                coverage=str(self.dlg.coverage_selection.currentText())
-            ),
-            filter='*.csv'
-        )
-        time_series = self.loadTimeSeries()
-        self.files_controlls.generateCSV(name[0], time_series)
+        try:
+            name = QFileDialog.getSaveFileName(
+                parent=self.dlg,
+                caption='Save as CSV',
+                directory=('{coverage}.{end}.csv').format(
+                    coverage=str(self.dlg.coverage_selection.currentText()),
+                    end=str(self.dlg.end_date.date().toString('yyyy.MM.dd'))
+                ),
+                filter='*.csv'
+            )
+            time_series = self.loadTimeSeries()
+            self.files_controlls.generateCSV(name[0], time_series)
+        except AttributeError:
+            pass
+
+    def exportJSON(self):
+        try:
+            name = QFileDialog.getSaveFileName(
+                parent=self.dlg,
+                caption='Save as JSON',
+                directory=('{coverage}.{end}.json').format(
+                    coverage=str(self.dlg.coverage_selection.currentText()),
+                    end=str(self.dlg.end_date.date().toString('yyyy.MM.dd'))
+                ),
+                filter='*.json'
+            )
+            time_series = self.loadTimeSeries()
+            self.files_controlls.generateJSON(name[0], time_series)
+        except AttributeError:
+            pass
 
     def plotTimeSeries(self):
         time_series = self.loadTimeSeries()
