@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>731</width>
-    <height>510</height>
+    <width>748</width>
+    <height>536</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,8 +17,8 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>480</y>
-     <width>721</width>
+     <y>500</y>
+     <width>731</width>
      <height>31</height>
     </rect>
    </property>
@@ -37,8 +37,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>731</width>
-     <height>481</height>
+     <width>741</width>
+     <height>501</height>
     </rect>
    </property>
    <property name="tabPosition">
@@ -60,7 +60,7 @@
        <x>10</x>
        <y>10</y>
        <width>401</width>
-       <height>421</height>
+       <height>451</height>
       </rect>
      </property>
      <property name="title">
@@ -72,7 +72,7 @@
         <x>10</x>
         <y>30</y>
         <width>381</width>
-        <height>341</height>
+        <height>371</height>
        </rect>
       </property>
      </widget>
@@ -80,7 +80,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>380</y>
+        <y>410</y>
         <width>261</width>
         <height>31</height>
        </rect>
@@ -90,7 +90,7 @@
       <property name="geometry">
        <rect>
         <x>280</x>
-        <y>380</y>
+        <y>410</y>
         <width>111</width>
         <height>29</height>
        </rect>
@@ -137,8 +137,8 @@
       <rect>
        <x>420</x>
        <y>10</y>
-       <width>301</width>
-       <height>421</height>
+       <width>311</width>
+       <height>451</height>
       </rect>
      </property>
      <property name="title">
@@ -149,8 +149,8 @@
        <rect>
         <x>10</x>
         <y>30</y>
-        <width>281</width>
-        <height>381</height>
+        <width>291</width>
+        <height>411</height>
        </rect>
       </property>
       <property name="text">
@@ -171,7 +171,7 @@
       <rect>
        <x>480</x>
        <y>10</y>
-       <width>241</width>
+       <width>251</width>
        <height>381</height>
       </rect>
      </property>
@@ -183,7 +183,7 @@
        <rect>
         <x>10</x>
         <y>30</y>
-        <width>221</width>
+        <width>231</width>
         <height>341</height>
        </rect>
       </property>
@@ -195,7 +195,7 @@
        <x>10</x>
        <y>110</y>
        <width>451</width>
-       <height>331</height>
+       <height>351</height>
       </rect>
      </property>
      <property name="title">
@@ -207,7 +207,7 @@
         <x>10</x>
         <y>60</y>
         <width>431</width>
-        <height>141</height>
+        <height>161</height>
        </rect>
       </property>
       <property name="title">
@@ -219,7 +219,7 @@
          <x>0</x>
          <y>20</y>
          <width>431</width>
-         <height>121</height>
+         <height>141</height>
         </rect>
        </property>
        <property name="widgetResizable">
@@ -231,7 +231,7 @@
           <x>0</x>
           <y>0</y>
           <width>429</width>
-          <height>119</height>
+          <height>139</height>
          </rect>
         </property>
        </widget>
@@ -241,7 +241,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>210</y>
+        <y>230</y>
         <width>431</width>
         <height>51</height>
        </rect>
@@ -277,7 +277,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>270</y>
+        <y>290</y>
         <width>431</width>
         <height>51</height>
        </rect>
@@ -343,41 +343,72 @@
       </property>
      </widget>
     </widget>
-    <widget class="QPushButton" name="export_as_csv">
+    <widget class="QGroupBox" name="exporting_files">
      <property name="geometry">
       <rect>
-       <x>490</x>
-       <y>410</y>
-       <width>101</width>
-       <height>25</height>
+       <x>480</x>
+       <y>400</y>
+       <width>251</width>
+       <height>61</height>
       </rect>
      </property>
-     <property name="font">
-      <font>
-       <pointsize>9</pointsize>
-      </font>
+     <property name="title">
+      <string>Export data as</string>
      </property>
-     <property name="text">
-      <string>Export as CSV</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="export_as_python">
-     <property name="geometry">
-      <rect>
-       <x>610</x>
-       <y>410</y>
-       <width>101</width>
-       <height>25</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>9</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>Export as Python</string>
-     </property>
+     <widget class="QPushButton" name="export_as_csv">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>30</y>
+        <width>71</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>CSV</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="export_as_python">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>30</y>
+        <width>71</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Python</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="export_as_json">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>71</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>JSON</string>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>
