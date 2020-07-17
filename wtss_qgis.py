@@ -228,27 +228,47 @@ class wtss_qgis:
         self.dlg.data.setModel(self.model)
 
     def saveService(self):
+        name_to_save = str(self.dlg.service_name.text())
         host_to_save = str(self.dlg.service_host.text())
         try:
-            self.server_controlls.addService(host_to_save)
-            self.data = self.server_controlls.loadServices()
-            self.model = QStandardItemModel()
-            self.basic_controlls.addItemsMenuServices(self.model, self.data)
-            self.dlg.data.setModel(self.model)
+            self.server_controlls.editService({
+                name_to_save: host_to_save
+            })
             self.selected_service = host_to_save
-            self.dlg.service_selection.addItems([host_to_save])
-            self.dlg.service_selection.activated.connect(self.selectCoverage)
+            self.dlg.service_name.clear()
             self.dlg.service_host.clear()
+            self.updateServicesList()
         except (ValueError, AttributeError):
             pass
 
     def deleteService(self):
-        # self.server_controlls.deleteService(host_to_delete)
-        pass
+        host_to_delete = self.dlg.service_selection.currentText()
+        try:
+            self.server_controlls.deleteService(host_to_delete)
+            self.updateServicesList()
+        except (ValueError, AttributeError):
+            pass
 
     def editService(self):
-        # self.server_controlls.editService()
-        pass
+        # text, ok = QInputDialog().getText(QWidget(), "Edit Service", "Service", QLineEdit.Normal, "")
+        # if ok and text:
+        #     # self.server_controlls.editService()
+        #     print(text)
+        self.dlg.service_name.setText(self.dlg.service_selection.currentText())
+        self.dlg.service_host.setText(
+            self.server_controlls.getServices().get(self.dlg.service_selection.currentText())
+        )
+
+    def updateServicesList(self):
+        self.data = self.server_controlls.loadServices()
+        self.model = QStandardItemModel()
+        self.basic_controlls.addItemsMenuServices(self.model, self.data)
+        self.dlg.data.setModel(self.model)
+        self.dlg.service_selection.clear()
+        self.dlg.service_selection.addItems(
+            list(self.server_controlls.getServices().keys())
+        )
+        self.dlg.service_selection.activated.connect(self.selectCoverage)
 
     def selectCoverage(self):
         self.dlg.service_metadata.setText(

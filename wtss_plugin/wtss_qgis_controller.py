@@ -78,16 +78,25 @@ class Services:
         client_wtss = wtss(self.services.get(str(service_name)))
         return client_wtss.time_series(product, bands, lon, lat, start_date, end_date)
 
-    def addService(self, host):
+    def addService(self, name, host):
         try:
             client_wtss = wtss(host)
-            self.services[host] = host
+            self.services[name] = host
             return host
         except:
             return None
 
-    def deleteService(self, host):
-        services.pop(host)
+    def deleteService(self, server_name):
+        try:
+            return self.services.pop(server_name)
+        except:
+            return None
 
-    def editService(self):
-        pass
+    def editService(self, server):
+        try:
+            service_name = list(server.keys())[0]
+            service_host = server.get(service_name)
+            service_deleted = self.deleteService(service_name)
+            return self.addService(service_name, service_host)
+        except:
+            return None
