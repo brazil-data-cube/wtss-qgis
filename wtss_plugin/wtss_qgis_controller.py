@@ -3,8 +3,17 @@ from .wtss_client.wtss_client import wtss
 
 from PyQt5.QtGui import QStandardItem
 from PyQt5.QtCore import QDate
+from PyQt5.QtWidgets import QMessageBox
 
 class Controlls:
+
+    def alert(self, title, text):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setWindowTitle(title)
+        msg.setText(text)
+        msg.setStandardButtons(QMessageBox.Ok)
+        retval = msg.exec_()
 
     def addItemsMenuServices(self, parent, elements):
         for text, children in elements:
@@ -87,10 +96,7 @@ class Services:
             return None
 
     def deleteService(self, server_name):
-        try:
-            return self.services.pop(server_name)
-        except:
-            return None
+        return self.services.pop(server_name)
 
     def editService(self, server):
         try:

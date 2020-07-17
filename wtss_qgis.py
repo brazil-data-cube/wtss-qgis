@@ -238,22 +238,18 @@ class wtss_qgis:
             self.dlg.service_name.clear()
             self.dlg.service_host.clear()
             self.updateServicesList()
-        except (ValueError, AttributeError):
-            pass
+        except (ValueError, AttributeError) as error:
+            self.basic_controlls.alert("(ValueError, AttributeError)", str(error))
 
     def deleteService(self):
         host_to_delete = self.dlg.service_selection.currentText()
         try:
             self.server_controlls.deleteService(host_to_delete)
             self.updateServicesList()
-        except (ValueError, AttributeError):
-            pass
+        except (ValueError, AttributeError) as error:
+            self.basic_controlls.alert("(ValueError, AttributeError)", str(error))
 
     def editService(self):
-        # text, ok = QInputDialog().getText(QWidget(), "Edit Service", "Service", QLineEdit.Normal, "")
-        # if ok and text:
-        #     # self.server_controlls.editService()
-        #     print(text)
         self.dlg.service_name.setText(self.dlg.service_selection.currentText())
         self.dlg.service_host.setText(
             self.server_controlls.getServices().get(self.dlg.service_selection.currentText())
@@ -356,8 +352,8 @@ class wtss_qgis:
                 }
             }
             self.files_controlls.generateCode(name[0], attributes)
-        except AttributeError:
-            pass
+        except AttributeError as error:
+            self.basic_controlls.alert("AttributeError", str(error))
 
     def exportCSV(self):
         try:
@@ -372,8 +368,8 @@ class wtss_qgis:
             )
             time_series = self.loadTimeSeries()
             self.files_controlls.generateCSV(name[0], time_series)
-        except AttributeError:
-            pass
+        except AttributeError as error:
+            self.basic_controlls.alert("AttributeError", str(error))
 
     def exportJSON(self):
         try:
@@ -388,8 +384,8 @@ class wtss_qgis:
             )
             time_series = self.loadTimeSeries()
             self.files_controlls.generateJSON(name[0], time_series)
-        except AttributeError:
-            pass
+        except AttributeError as error:
+            self.basic_controlls.alert("AttributeError", str(error))
 
     def plotTimeSeries(self):
         time_series = self.loadTimeSeries()
