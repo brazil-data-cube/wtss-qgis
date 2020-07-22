@@ -43,6 +43,8 @@ from .wtss_plugin.wtss_qgis_controller import Services, Controlls
 # Import files exporting controlls
 from .wtss_plugin.files_export import FilesExport
 
+from .wtss_plugin.config import Config
+
 import os.path
 from datetime import datetime, date
 
@@ -218,9 +220,7 @@ class wtss_qgis:
         self.addCanvasControlPoint()
 
     def initServices(self):
-        self.dlg.service_selection.addItems(list(
-            self.server_controlls.getServices().keys()
-        ))
+        self.dlg.service_selection.addItems(self.server_controlls.getServiceNames())
         self.dlg.service_selection.activated.connect(self.selectCoverage)
         self.data = self.server_controlls.loadServices()
         self.model = QStandardItemModel()
@@ -231,14 +231,12 @@ class wtss_qgis:
         name_to_save = str(self.dlg.service_name.text())
         host_to_save = str(self.dlg.service_host.text())
         try:
-            self.server_controlls.editService({
-                name_to_save: host_to_save
-            })
+            self.server_controlls.editService(name_to_save, host_to_save)
             self.selected_service = host_to_save
             self.dlg.service_name.clear()
             self.dlg.service_host.clear()
             self.updateServicesList()
-        except (ValueError, AttributeError) as error:
+        except (ValueError, AttributeError, ConnectionRefusedError) as error:
             self.basic_controlls.alert("(ValueError, AttributeError)", str(error))
 
     def deleteService(self):
@@ -252,7 +250,7 @@ class wtss_qgis:
     def editService(self):
         self.dlg.service_name.setText(self.dlg.service_selection.currentText())
         self.dlg.service_host.setText(
-            self.server_controlls.getServices().get(self.dlg.service_selection.currentText())
+            self.server_controlls.findServiceByName(self.dlg.service_selection.currentText()).get("host")
         )
 
     def updateServicesList(self):
@@ -261,16 +259,16 @@ class wtss_qgis:
         self.basic_controlls.addItemsMenuServices(self.model, self.data)
         self.dlg.data.setModel(self.model)
         self.dlg.service_selection.clear()
-        self.dlg.service_selection.addItems(
-            list(self.server_controlls.getServices().keys())
-        )
+        self.dlg.service_selection.addItems(self.server_controlls.getServiceNames())
         self.dlg.service_selection.activated.connect(self.selectCoverage)
 
     def selectCoverage(self):
         self.dlg.service_metadata.setText(
             self.basic_controlls.getDescription(
-                name=self.dlg.service_selection.currentText(),
-                host=str(self.server_controlls.getServices().get(self.dlg.service_selection.currentText())),
+                name=str(self.dlg.service_selection.currentText()),
+                host=str(self.server_controlls.findServiceByName(
+                    self.dlg.service_selection.currentText()
+                ).get("host")),
             )
         )
         self.dlg.coverage_selection.clear()
@@ -285,7 +283,9 @@ class wtss_qgis:
         self.dlg.service_metadata.setText(
             self.basic_controlls.getDescription(
                 name=self.dlg.service_selection.currentText(),
-                host=str(self.server_controlls.getServices().get(self.dlg.service_selection.currentText())),
+                host=str(self.server_controlls.findServiceByName(
+                    self.dlg.service_selection.currentText()
+                ).get("host")),
                 coverage=str(self.dlg.coverage_selection.currentText())
             )
         )
