@@ -1,0 +1,12 @@
+{
+    "services": [
+        {
+            "name": "Brasil Data Cube",
+            "host": "http://brazildatacube.dpi.inpe.br/"
+        },
+        {
+            "name": "E-sensing",
+            "host": "http://www.esensing.dpi.inpe.br/"
+        }
+    ]
+}
