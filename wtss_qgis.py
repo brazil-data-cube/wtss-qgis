@@ -46,6 +46,7 @@ from .wtss_plugin.files_export import FilesExport
 from .wtss_plugin.config import Config
 
 import os.path
+from pathlib import Path
 from datetime import datetime, date
 
 class wtss_qgis:
@@ -176,7 +177,7 @@ class wtss_qgis:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/wtss_qgis/icon.png'
+        icon_path = str(Path(Config.BASE_DIR) / 'icon.png')
         self.add_action(
             icon_path,
             text=self.tr(u'WTSS'),
@@ -338,7 +339,9 @@ class wtss_qgis:
                 filter='*.py'
             )
             attributes = {
-                "host": str(self.server_controlls.getServices().get(self.dlg.service_selection.currentText())),
+                "host": str(self.server_controlls.findServiceByName(
+                    self.dlg.service_selection.currentText()
+                ).get("host")),
                 "coverage": str(self.dlg.coverage_selection.currentText()),
                 "bands": tuple(self.loadAtributtes()),
                 "coordinates": {
