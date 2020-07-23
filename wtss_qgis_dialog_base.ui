@@ -11,7 +11,13 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>WTSS</string>
+   <string>WTSS - Web Time Series Service</string>
+  </property>
+  <property name="sizeGripEnabled">
+   <bool>false</bool>
+  </property>
+  <property name="modal">
+   <bool>false</bool>
   </property>
   <widget class="QDialogButtonBox" name="dialogButtonBox">
    <property name="geometry">
@@ -236,9 +242,9 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>110</y>
+       <y>80</y>
        <width>451</width>
-       <height>361</height>
+       <height>391</height>
       </rect>
      </property>
      <property name="title">
@@ -248,9 +254,9 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>60</y>
+        <y>70</y>
         <width>431</width>
-        <height>171</height>
+        <height>191</height>
        </rect>
       </property>
       <property name="title">
@@ -262,7 +268,7 @@
          <x>0</x>
          <y>20</y>
          <width>431</width>
-         <height>151</height>
+         <height>171</height>
         </rect>
        </property>
        <property name="widgetResizable">
@@ -274,7 +280,7 @@
           <x>0</x>
           <y>0</y>
           <width>429</width>
-          <height>149</height>
+          <height>169</height>
          </rect>
         </property>
        </widget>
@@ -284,7 +290,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>240</y>
+        <y>270</y>
         <width>431</width>
         <height>51</height>
        </rect>
@@ -320,7 +326,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>300</y>
+        <y>330</y>
         <width>431</width>
         <height>51</height>
        </rect>
@@ -369,7 +375,7 @@
        <x>10</x>
        <y>10</y>
        <width>451</width>
-       <height>91</height>
+       <height>61</height>
       </rect>
      </property>
      <property name="title">
@@ -379,7 +385,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>40</y>
+        <y>30</y>
         <width>431</width>
         <height>25</height>
        </rect>
