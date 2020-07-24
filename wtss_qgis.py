@@ -392,7 +392,10 @@ class wtss_qgis:
 
     def plotTimeSeries(self):
         time_series = self.loadTimeSeries()
-        self.files_controlls.generatePlotFig(time_series)
+        if time_series != None:
+            self.files_controlls.generatePlotFig(time_series)
+        else:
+            self.basic_controlls.alert("AttributeError", "The times series service returns empty, no data to show!")
 
     def getLayers(self):
         self.layers = QgsProject.instance().layerTreeRoot().children()

@@ -1,7 +1,7 @@
 {
     "services": [
         {
-            "name": "Brasil Data Cube",
+            "name": "Brazil Data Cube",
             "host": "http://brazildatacube.dpi.inpe.br/"
         },
         {

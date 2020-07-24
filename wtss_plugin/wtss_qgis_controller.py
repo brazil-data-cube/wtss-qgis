@@ -118,7 +118,11 @@ class Services:
     def productTimeSeries(self, service_name, product, bands, lon, lat, start_date, end_date):
         try:
             client_wtss = wtss(self.findServiceByName(service_name).get('host'))
-            return client_wtss.time_series(product, bands, lon, lat, start_date, end_date)
+            time_series = client_wtss.time_series(product, bands, lon, lat, start_date, end_date)
+            if len(time_series.doc.get("result").get("attributes")[0].get("values")):
+                return time_series
+            else:
+                return None
         except (ConnectionRefusedError, RuntimeError):
             return {}
 

@@ -29,7 +29,7 @@
                     "title": "Service name",
                     "default": "",
                     "examples": [
-                        "Brasil Data Cube"
+                        "Brazil Data Cube"
                     ],
                     "pattern": "^(.*)$"
                 },
