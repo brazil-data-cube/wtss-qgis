@@ -15,7 +15,7 @@ __copyright__ = 'Copyright 2020, INPE'
 import unittest
 
 from qgis.PyQt.QtGui import QIcon
-
+from wtss_plugin.wtss_qgis_controller import Services
 
 
 class wtss_qgisDialogTest(unittest.TestCase):
@@ -34,6 +34,14 @@ class wtss_qgisDialogTest(unittest.TestCase):
         path = ':/plugins/wtss_qgis/icon.png'
         icon = QIcon(path)
         self.assertFalse(icon.isNull())
+
+    def list_of_services(self):
+        """Test list of services"""
+        services_controlls = Services()
+        list_services_names = services_controlls.getServiceNames()
+        self.assertIn('Brazil Data Cube 123', list_services_names)
+        self.assertIn('E-sensing', list_services_names)
+
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(wtss_qgisResourcesTest)
