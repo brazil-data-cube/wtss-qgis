@@ -6,7 +6,7 @@ import numpy as np
 from json import loads as json_loads
 from pathlib import Path
 
-from ...wtss_plugin.config import Config
+from .config import Config
 
 class FilesExport:
     def defaultCode(self):
