@@ -39,7 +39,7 @@ class wtss_qgisDialogTest(unittest.TestCase):
         """Test list of services"""
         services_controlls = Services()
         list_services_names = services_controlls.getServiceNames()
-        self.assertIn('Brazil Data Cube 123', list_services_names)
+        self.assertIn('Brazil Data Cube', list_services_names)
         self.assertIn('E-sensing', list_services_names)
 
 
