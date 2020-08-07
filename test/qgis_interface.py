@@ -24,9 +24,8 @@ __copyright__ = (
 )
 
 import logging
-from qgis.PyQt.QtCore import QObject, pyqtSlot, pyqtSignal
-from qgis.core import QgsMapLayerRegistry
-from qgis.gui import QgsMapCanvasLayer
+from PyQt5.QtCore import QObject, pyqtSlot, pyqtSignal
+from qgis.core import QgsProject
 LOGGER = logging.getLogger('QGIS')
 
 
@@ -37,7 +36,7 @@ class QgisInterface(QObject):
     This class is here for enabling us to run unit tests only,
     so most methods are simply stubs.
     """
-    currentLayerChanged = pyqtSignal(QgsMapCanvasLayer)
+    currentLayerChanged = pyqtSignal(QgsProject)
 
     def __init__(self, canvas):
         """Constructor
@@ -48,12 +47,12 @@ class QgisInterface(QObject):
         # Set up slots so we can mimic the behaviour of QGIS when layers
         # are added.
         LOGGER.debug('Initialising canvas...')
-        # noinspection PyArgumentList
-        QgsMapLayerRegistry.instance().layersAdded.connect(self.addLayers)
-        # noinspection PyArgumentList
-        QgsMapLayerRegistry.instance().layerWasAdded.connect(self.addLayer)
-        # noinspection PyArgumentList
-        QgsMapLayerRegistry.instance().removeAll.connect(self.removeAllLayers)
+        # # noinspection PyArgumentList
+        # QgsProject.instance().layersAdded.connect(self.addLayers)
+        # # noinspection PyArgumentList
+        # QgsProject.instance().layerWasAdded.connect(self.addLayer)
+        # # noinspection PyArgumentList
+        # QgsProject.instance().removeAll.connect(self.removeAllLayers)
 
         # For processing module
         self.destCrs = None
@@ -102,7 +101,7 @@ class QgisInterface(QObject):
     def newProject(self):
         """Create new project."""
         # noinspection PyArgumentList
-        QgsMapLayerRegistry.instance().removeAllMapLayers()
+        QgsProject.instance().removeAllMapLayers()
 
     # ---------------- API Mock for QgsInterface follows -------------------
 
@@ -150,7 +149,7 @@ class QgisInterface(QObject):
     def activeLayer(self):
         """Get pointer to the active layer (layer selected in the legend)."""
         # noinspection PyArgumentList
-        layers = QgsMapLayerRegistry.instance().mapLayers()
+        layers = QgsProject.instance().mapLayers()
         for item in layers:
             return layers[item]
 

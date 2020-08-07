@@ -14,11 +14,12 @@ __copyright__ = 'Copyright 2020, INPE'
 
 import unittest
 
-from qgis.PyQt.QtGui import QDialogButtonBox, QDialog
+from qgis.PyQt.QtWidgets import QDialogButtonBox, QDialog
 
 from wtss_qgis_dialog import wtss_qgisDialog
+from wtss_plugin import Services
 
-from utilities import get_qgis_app
+from .utilities import get_qgis_app
 QGIS_APP = get_qgis_app()
 
 
@@ -35,21 +36,28 @@ class wtss_qgisDialogTest(unittest.TestCase):
 
     def test_dialog_ok(self):
         """Test we can click OK."""
-
-        button = self.dialog.button_box.button(QDialogButtonBox.Ok)
+        button = self.dialog.dialogButtonBox.button(QDialogButtonBox.Ok)
         button.click()
         result = self.dialog.result()
         self.assertEqual(result, QDialog.Accepted)
 
     def test_dialog_cancel(self):
         """Test we can click cancel."""
-        button = self.dialog.button_box.button(QDialogButtonBox.Cancel)
+        button = self.dialog.dialogButtonBox.button(QDialogButtonBox.Cancel)
         button.click()
         result = self.dialog.result()
         self.assertEqual(result, QDialog.Rejected)
+
+    def test_comboBox_select_services(self):
+        """Test we can select a service from WTSS available servers."""
+        self.server_controlls = Services()
+        comboBox = self.dialog.service_selection
+        comboBox.addItems(self.server_controlls.getServiceNames())
+        allItems = [comboBox.itemText(i) for i in range(comboBox.count())]
+        data_exists = len(allItems) > 0
+        self.assertEqual(data_exists, True)
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(wtss_qgisDialogTest)
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
-

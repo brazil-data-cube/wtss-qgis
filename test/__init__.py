@@ -3,16 +3,5 @@
 
 from qgis.core import *
 from qgis.gui import *
-
-from PyQt5 import QtCore, QtGui, QtTest
-
-import unittest
-
-QgsApplication.setPrefixPath("/usr/local", True)
-
-QgsApplication.initQgis()
-
-if len(QgsProviderRegistry.instance().providerList()) == 0:
-    raise RuntimeError('No data providers available.')
-
-QgsApplication.exitQgis()
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *

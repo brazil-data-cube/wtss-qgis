@@ -24,11 +24,11 @@ Install `pb_tool <https://pypi.org/project/pb-tool/>`_ to deploy and publish QGI
 
     $ pip install pb_tool
 
-Install `nose <https://pypi.org/project/nose2/>`_ to run unit test with WTSS plugin.
+Install `pytest <https://pypi.org/project/pytest/>`_ to run unit test with WTSS plugin.
 
 .. code-block:: shell
 
-    $ pip install nose
+    $ pip install pytest
 
 Development Plugin Installation
 -------------------------------

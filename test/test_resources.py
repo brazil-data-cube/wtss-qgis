@@ -12,13 +12,18 @@ __author__ = 'brazildatacube@dpi.inpe.br'
 __date__ = '2020-05-04'
 __copyright__ = 'Copyright 2020, INPE'
 
+from json import loads as json_loads
+from jsonschema import validate
+from pathlib import Path
 import unittest
 
 from qgis.PyQt.QtGui import QIcon
 from wtss_plugin.wtss_qgis_controller import Services
+from wtss_plugin.schemas import services_storage_schema
+from wtss_plugin.config import Config
 
 
-class wtss_qgisDialogTest(unittest.TestCase):
+class wtss_qgisResourcesTest(unittest.TestCase):
     """Test rerources work."""
 
     def setUp(self):
@@ -31,11 +36,17 @@ class wtss_qgisDialogTest(unittest.TestCase):
 
     def test_icon_png(self):
         """Test we can click OK."""
-        path = ':/plugins/wtss_qgis/icon.png'
+        path = str(Path(Config.BASE_DIR) / 'icon.png')
         icon = QIcon(path)
         self.assertFalse(icon.isNull())
 
-    def list_of_services(self):
+    def test_services_storage_JSON(self):
+        """Test storage of services in JSON File"""
+        services_controlls = Services()
+        services_storage = services_controlls.getServices()
+        validate(instance = services_storage, schema = services_storage_schema)
+
+    def test_list_of_services(self):
         """Test list of services"""
         services_controlls = Services()
         list_services_names = services_controlls.getServiceNames()
@@ -47,6 +58,4 @@ if __name__ == "__main__":
     suite = unittest.makeSuite(wtss_qgisResourcesTest)
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
-
-
 
