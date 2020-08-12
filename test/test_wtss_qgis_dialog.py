@@ -48,9 +48,9 @@ class wtss_qgisDialogTest(unittest.TestCase):
         result = self.dialog.result()
         self.assertEqual(result, QDialog.Rejected)
 
-    def test_comboBox_select_services(self):
+    def test_01_comboBox_select_services(self):
         """Test we can select a service from WTSS available servers."""
-        self.server_controlls = Services()
+        self.server_controlls = Services(user = "test")
         comboBox = self.dialog.service_selection
         comboBox.addItems(self.server_controlls.getServiceNames())
         allItems = [comboBox.itemText(i) for i in range(comboBox.count())]
