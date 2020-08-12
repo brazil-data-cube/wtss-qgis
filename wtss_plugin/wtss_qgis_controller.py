@@ -57,12 +57,35 @@ class Controlls:
 
 class Services:
 
+    def __init__(self, user):
+        try:
+            self.user = user
+            services = self.getServices()
+        except FileNotFoundError:
+            self.resetAvailableServices()
+
     def getPath(self):
         return (
             Path(Config.BASE_DIR)
                 / 'json-schemas'
-                    / 'services_storage.json'
+                    / ('services_storage_user_' + self.user +'.json')
         )
+
+    def resetAvailableServices(self):
+        services = {
+                "services" :[
+                    {
+                        "name": "Brazil Data Cube",
+                        "host": "http://brazildatacube.dpi.inpe.br/"
+                    },
+                    {
+                        "name": "E-sensing",
+                        "host": "http://www.esensing.dpi.inpe.br/"
+                    }
+                ]
+            }
+        with open(str(self.getPath()), 'w') as outfile:
+            json.dump(services, outfile)
 
     def getServices(self):
         with self.getPath().open() as f:
