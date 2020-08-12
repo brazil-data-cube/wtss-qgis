@@ -164,3 +164,6 @@ resources.py
 # ignore the help build dir
 help/build
 wtss_qgis_plugin.egg-info/
+
+# ignore services storage
+services_storage_user_**.json

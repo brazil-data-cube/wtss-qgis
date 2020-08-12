@@ -198,7 +198,7 @@ class wtss_qgis:
     def initControlls(self):
         # Init Controlls
         self.basic_controlls = Controlls()
-        self.server_controlls = Services()
+        self.server_controlls = Services(user = "application")
         self.files_controlls = FilesExport()
 
     def initButtons(self):
