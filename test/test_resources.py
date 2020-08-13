@@ -24,7 +24,7 @@ from wtss_plugin.config import Config
 
 
 class wtss_qgisResourcesTest(unittest.TestCase):
-    """Test rerources work."""
+    """Test resources work."""
 
     def setUp(self):
         """Runs before each test."""
@@ -54,6 +54,7 @@ class wtss_qgisResourcesTest(unittest.TestCase):
         self.assertIn('E-sensing', list_services_names)
 
     def test_03_remove_an_existent_service(self):
+        """Test if the controll is able to remove an existent service"""
         services_controlls = Services(user = "test")
         services_controlls.deleteService('E-sensing')
         list_services_names = services_controlls.getServiceNames()
@@ -72,7 +73,7 @@ class wtss_qgisResourcesTest(unittest.TestCase):
         self.assertIn('New E-sensing', list_services_names)
 
     def test_05_edit_an_existent_service(self):
-        """Test if the controll is able to save a new service"""
+        """Test if the controll is able to edit an existent service"""
         services_controlls = Services(user = "test")
         services_controlls.deleteService('New E-sensing')
         services_controlls.addService(
