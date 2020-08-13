@@ -1,3 +1,4 @@
+import requests
 import json
 from json import loads as json_loads
 from pathlib import Path
@@ -71,19 +72,27 @@ class Services:
                     / ('services_storage_user_' + self.user +'.json')
         )
 
+    def testServiceConnection(self, host):
+        try:
+            requests.get(host)
+            return True
+        except:
+            return False
+
     def resetAvailableServices(self):
         services = {
-                "services" :[
-                    {
-                        "name": "Brazil Data Cube",
-                        "host": "http://brazildatacube.dpi.inpe.br/"
-                    },
-                    {
-                        "name": "E-sensing",
-                        "host": "http://www.esensing.dpi.inpe.br/"
-                    }
-                ]
-            }
+            "services" : []
+        }
+        if self.testServiceConnection("http://brazildatacube.dpi.inpe.br/"):
+            services.get("services").append({
+                "name": "Brazil Data Cube",
+                "host": "http://brazildatacube.dpi.inpe.br/"
+            })
+        if self.testServiceConnection("http://www.esensing.dpi.inpe.br/"):
+            services.get("services").append({
+                "name": "E-sensing",
+                "host": "http://www.esensing.dpi.inpe.br/"
+            })
         with open(str(self.getPath()), 'w') as outfile:
             json.dump(services, outfile)
 
@@ -151,14 +160,14 @@ class Services:
 
     def addService(self, name, host):
         try:
-            client_wtss = wtss(host).list_coverages()
             server_to_save = self.findServiceByName(name)
-            if server_to_save == None:
+            if self.testServiceConnection(host) and server_to_save == None:
                 to_save = self.getServices()
-                to_save.get('services').append({
+                server_to_save = {
                     "name": str(name),
                     "host": str(host)
-                })
+                }
+                to_save.get('services').append(server_to_save)
                 with open(str(self.getPath()), 'w') as outfile:
                     json.dump(to_save, outfile)
             return server_to_save
