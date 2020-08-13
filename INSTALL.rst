@@ -18,17 +18,11 @@ The Python QGIS Plugin for WTSS depends essentially on:
 Install Requirements
 --------------------
 
-Install `pb_tool <https://pypi.org/project/pb-tool/>`_ to deploy and publish QGIS Python plugin:
+Install `pb_tool <https://pypi.org/project/pb-tool/>`_ to deploy and publish QGIS Python plugin and `pytest <https://pypi.org/project/pytest/>`_ to run unit test with WTSS plugin.
 
 .. code-block:: shell
 
-    $ pip install pb_tool
-
-Install `pytest <https://pypi.org/project/pytest/>`_ to run unit test with WTSS plugin.
-
-.. code-block:: shell
-
-    $ pip install pytest
+    $ pip install -r requirements.txt
 
 Development Plugin Installation
 -------------------------------
