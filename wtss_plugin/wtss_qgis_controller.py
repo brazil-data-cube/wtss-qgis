@@ -61,7 +61,7 @@ class Services:
     def __init__(self, user):
         try:
             self.user = user
-            services = self.getServices()
+            self.services = self.getServices()
         except FileNotFoundError:
             self.resetAvailableServices()
 
@@ -69,7 +69,7 @@ class Services:
         return (
             Path(Config.BASE_DIR)
                 / 'json-schemas'
-                    / ('services_storage_user_' + self.user +'.json')
+                    / ('services_storage_user_' + self.user + '.json')
         )
 
     def testServiceConnection(self, host):
