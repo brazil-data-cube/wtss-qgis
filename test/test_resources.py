@@ -12,7 +12,6 @@ __author__ = 'brazildatacube@dpi.inpe.br'
 __date__ = '2020-05-04'
 __copyright__ = 'Copyright 2020, INPE'
 
-from json import loads as json_loads
 from jsonschema import validate
 from pathlib import Path
 import unittest

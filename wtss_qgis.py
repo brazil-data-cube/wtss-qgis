@@ -27,7 +27,6 @@ from qgis.PyQt.QtWidgets import QAction
 from qgis.core import QgsProject
 from qgis.gui import QgsMapToolEmitPoint
 
-from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
@@ -47,7 +46,6 @@ from .wtss_plugin.config import Config
 
 import os.path
 from pathlib import Path
-from datetime import datetime, date
 
 class wtss_qgis:
     """QGIS Plugin Implementation."""
