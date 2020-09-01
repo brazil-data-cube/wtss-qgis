@@ -43,7 +43,10 @@ from .wtss_plugin.wtss_qgis_controller import Services, Controlls
 # Import files exporting controlls
 from .wtss_plugin.files_export import FilesExport
 
+from .wtss_plugin.config import Config
+
 import os.path
+from pathlib import Path
 from datetime import datetime, date
 
 class wtss_qgis:
@@ -174,7 +177,7 @@ class wtss_qgis:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/wtss_qgis/icon.png'
+        icon_path = str(Path(Config.BASE_DIR) / 'icon.png')
         self.add_action(
             icon_path,
             text=self.tr(u'WTSS'),
@@ -218,9 +221,7 @@ class wtss_qgis:
         self.addCanvasControlPoint()
 
     def initServices(self):
-        self.dlg.service_selection.addItems(list(
-            self.server_controlls.getServices().keys()
-        ))
+        self.dlg.service_selection.addItems(self.server_controlls.getServiceNames())
         self.dlg.service_selection.activated.connect(self.selectCoverage)
         self.data = self.server_controlls.loadServices()
         self.model = QStandardItemModel()
@@ -231,32 +232,26 @@ class wtss_qgis:
         name_to_save = str(self.dlg.service_name.text())
         host_to_save = str(self.dlg.service_host.text())
         try:
-            self.server_controlls.editService({
-                name_to_save: host_to_save
-            })
+            self.server_controlls.editService(name_to_save, host_to_save)
             self.selected_service = host_to_save
             self.dlg.service_name.clear()
             self.dlg.service_host.clear()
             self.updateServicesList()
-        except (ValueError, AttributeError):
-            pass
+        except (ValueError, AttributeError, ConnectionRefusedError) as error:
+            self.basic_controlls.alert("(ValueError, AttributeError)", str(error))
 
     def deleteService(self):
         host_to_delete = self.dlg.service_selection.currentText()
         try:
             self.server_controlls.deleteService(host_to_delete)
             self.updateServicesList()
-        except (ValueError, AttributeError):
-            pass
+        except (ValueError, AttributeError) as error:
+            self.basic_controlls.alert("(ValueError, AttributeError)", str(error))
 
     def editService(self):
-        # text, ok = QInputDialog().getText(QWidget(), "Edit Service", "Service", QLineEdit.Normal, "")
-        # if ok and text:
-        #     # self.server_controlls.editService()
-        #     print(text)
         self.dlg.service_name.setText(self.dlg.service_selection.currentText())
         self.dlg.service_host.setText(
-            self.server_controlls.getServices().get(self.dlg.service_selection.currentText())
+            self.server_controlls.findServiceByName(self.dlg.service_selection.currentText()).get("host")
         )
 
     def updateServicesList(self):
@@ -265,16 +260,16 @@ class wtss_qgis:
         self.basic_controlls.addItemsMenuServices(self.model, self.data)
         self.dlg.data.setModel(self.model)
         self.dlg.service_selection.clear()
-        self.dlg.service_selection.addItems(
-            list(self.server_controlls.getServices().keys())
-        )
+        self.dlg.service_selection.addItems(self.server_controlls.getServiceNames())
         self.dlg.service_selection.activated.connect(self.selectCoverage)
 
     def selectCoverage(self):
         self.dlg.service_metadata.setText(
             self.basic_controlls.getDescription(
-                name=self.dlg.service_selection.currentText(),
-                host=str(self.server_controlls.getServices().get(self.dlg.service_selection.currentText())),
+                name=str(self.dlg.service_selection.currentText()),
+                host=str(self.server_controlls.findServiceByName(
+                    self.dlg.service_selection.currentText()
+                ).get("host")),
             )
         )
         self.dlg.coverage_selection.clear()
@@ -289,7 +284,9 @@ class wtss_qgis:
         self.dlg.service_metadata.setText(
             self.basic_controlls.getDescription(
                 name=self.dlg.service_selection.currentText(),
-                host=str(self.server_controlls.getServices().get(self.dlg.service_selection.currentText())),
+                host=str(self.server_controlls.findServiceByName(
+                    self.dlg.service_selection.currentText()
+                ).get("host")),
                 coverage=str(self.dlg.coverage_selection.currentText())
             )
         )
@@ -342,7 +339,9 @@ class wtss_qgis:
                 filter='*.py'
             )
             attributes = {
-                "host": str(self.server_controlls.getServices().get(self.dlg.service_selection.currentText())),
+                "host": str(self.server_controlls.findServiceByName(
+                    self.dlg.service_selection.currentText()
+                ).get("host")),
                 "coverage": str(self.dlg.coverage_selection.currentText()),
                 "bands": tuple(self.loadAtributtes()),
                 "coordinates": {
@@ -356,8 +355,8 @@ class wtss_qgis:
                 }
             }
             self.files_controlls.generateCode(name[0], attributes)
-        except AttributeError:
-            pass
+        except AttributeError as error:
+            self.basic_controlls.alert("AttributeError", str(error))
 
     def exportCSV(self):
         try:
@@ -372,8 +371,8 @@ class wtss_qgis:
             )
             time_series = self.loadTimeSeries()
             self.files_controlls.generateCSV(name[0], time_series)
-        except AttributeError:
-            pass
+        except AttributeError as error:
+            self.basic_controlls.alert("AttributeError", str(error))
 
     def exportJSON(self):
         try:
@@ -388,12 +387,15 @@ class wtss_qgis:
             )
             time_series = self.loadTimeSeries()
             self.files_controlls.generateJSON(name[0], time_series)
-        except AttributeError:
-            pass
+        except AttributeError as error:
+            self.basic_controlls.alert("AttributeError", str(error))
 
     def plotTimeSeries(self):
         time_series = self.loadTimeSeries()
-        self.files_controlls.generatePlotFig(time_series)
+        if time_series != None:
+            self.files_controlls.generatePlotFig(time_series)
+        else:
+            self.basic_controlls.alert("AttributeError", "The times series service returns empty, no data to show!")
 
     def getLayers(self):
         self.layers = QgsProject.instance().layerTreeRoot().children()

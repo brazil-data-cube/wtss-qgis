@@ -62,6 +62,11 @@ Installation
 
 See `INSTALL.rst <./INSTALL.rst>`_.
 
+Unit Tests
+============
+
+See `TESTS.rst <./TESTS.rst>`_.
+
 
 License
 =======

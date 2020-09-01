@@ -178,7 +178,7 @@ htmlhelp_basename = 'TemplateClassdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'wtss_qgis.tex', u'wtss_qgis Documentation',
+  ('index', 'install', 'wtss_qgis.tex', u'wtss_qgis Documentation',
    u'INPE', 'manual'),
 ]
 
@@ -211,6 +211,6 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'TemplateClass', u'wtss_qgis Documentation',
+    ('index', 'install', 'TemplateClass', u'wtss_qgis Documentation',
      [u'INPE'], 1)
 ]

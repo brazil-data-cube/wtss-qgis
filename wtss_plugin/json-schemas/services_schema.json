@@ -1,0 +1,49 @@
+{
+    "definitions": {},
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/brazil-data-cube/wtss-qgis/json-schemas/services_schema.json",
+    "type": "object",
+    "title": "QGIS Pluin Services Storage",
+    "description": "List of services available",
+    "required": [
+        "services"
+    ],
+    "properties": {
+        "services": {
+            "$id": "#/properties/services",
+            "type": "array",
+            "title": "Service List Schema",
+            "items": {
+                "$id": "#/properties/services/items",
+                "type": "object",
+                "title": "The Items Schema",
+                "required": [
+                    "name",
+                    "host"
+                ]
+            },
+            "properties": {
+                "name": {
+                    "$id": "#/properties/services/items/name",
+                    "type": "string",
+                    "title": "Service name",
+                    "default": "",
+                    "examples": [
+                        "Brazil Data Cube"
+                    ],
+                    "pattern": "^(.*)$"
+                },
+                "host": {
+                    "$id": "#/properties/services/items/host",
+                    "type": "string",
+                    "title": "Service host",
+                    "default": "",
+                    "examples": [
+                        "http://brazildatacube.dpi.inpe.br/"
+                    ],
+                    "pattern": "^(.*)$"
+                }
+            }
+        }
+    }
+}
