@@ -27,7 +27,6 @@ from qgis.PyQt.QtWidgets import QAction
 from qgis.core import QgsProject
 from qgis.gui import QgsMapToolEmitPoint
 
-from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
@@ -47,7 +46,6 @@ from .wtss_plugin.config import Config
 
 import os.path
 from pathlib import Path
-from datetime import datetime, date
 
 class wtss_qgis:
     """QGIS Plugin Implementation."""
@@ -198,7 +196,7 @@ class wtss_qgis:
     def initControlls(self):
         # Init Controlls
         self.basic_controlls = Controlls()
-        self.server_controlls = Services()
+        self.server_controlls = Services(user = "application")
         self.files_controlls = FilesExport()
 
     def initButtons(self):
