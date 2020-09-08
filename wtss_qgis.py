@@ -36,10 +36,10 @@ from .resources import *
 # Import the code for the dialog
 from .wtss_qgis_dialog import wtss_qgisDialog
 
-# Import the controlls for the plugin
-from .wtss_plugin.wtss_qgis_controller import Services, Controlls
+# Import the controls for the plugin
+from .wtss_plugin.wtss_qgis_controller import Services, Controls
 
-# Import files exporting controlls
+# Import files exporting controls
 from .wtss_plugin.files_export import FilesExport
 
 from .wtss_plugin.config import Config
@@ -193,11 +193,11 @@ class wtss_qgis:
                 action)
             self.iface.removeToolBarIcon(action)
 
-    def initControlls(self):
-        # Init Controlls
-        self.basic_controlls = Controlls()
-        self.server_controlls = Services(user = "application")
-        self.files_controlls = FilesExport()
+    def initControls(self):
+        # Init Controls
+        self.basic_controls = Controls()
+        self.server_controls = Services(user = "application")
+        self.files_controls = FilesExport()
 
     def initButtons(self):
         self.dlg.save_service.clicked.connect(self.saveService)
@@ -219,60 +219,60 @@ class wtss_qgis:
         self.addCanvasControlPoint()
 
     def initServices(self):
-        self.dlg.service_selection.addItems(self.server_controlls.getServiceNames())
+        self.dlg.service_selection.addItems(self.server_controls.getServiceNames())
         self.dlg.service_selection.activated.connect(self.selectCoverage)
-        self.data = self.server_controlls.loadServices()
+        self.data = self.server_controls.loadServices()
         self.model = QStandardItemModel()
-        self.basic_controlls.addItemsMenuServices(self.model, self.data)
+        self.basic_controls.addItemsTreeView(self.model, self.data)
         self.dlg.data.setModel(self.model)
 
     def saveService(self):
         name_to_save = str(self.dlg.service_name.text())
         host_to_save = str(self.dlg.service_host.text())
         try:
-            self.server_controlls.editService(name_to_save, host_to_save)
+            self.server_controls.editService(name_to_save, host_to_save)
             self.selected_service = host_to_save
             self.dlg.service_name.clear()
             self.dlg.service_host.clear()
             self.updateServicesList()
         except (ValueError, AttributeError, ConnectionRefusedError) as error:
-            self.basic_controlls.alert("(ValueError, AttributeError)", str(error))
+            self.basic_controls.alert("(ValueError, AttributeError)", str(error))
 
     def deleteService(self):
         host_to_delete = self.dlg.service_selection.currentText()
         try:
-            self.server_controlls.deleteService(host_to_delete)
+            self.server_controls.deleteService(host_to_delete)
             self.updateServicesList()
         except (ValueError, AttributeError) as error:
-            self.basic_controlls.alert("(ValueError, AttributeError)", str(error))
+            self.basic_controls.alert("(ValueError, AttributeError)", str(error))
 
     def editService(self):
         self.dlg.service_name.setText(self.dlg.service_selection.currentText())
         self.dlg.service_host.setText(
-            self.server_controlls.findServiceByName(self.dlg.service_selection.currentText()).get("host")
+            self.server_controls.findServiceByName(self.dlg.service_selection.currentText()).get("host")
         )
 
     def updateServicesList(self):
-        self.data = self.server_controlls.loadServices()
+        self.data = self.server_controls.loadServices()
         self.model = QStandardItemModel()
-        self.basic_controlls.addItemsMenuServices(self.model, self.data)
+        self.basic_controls.addItemsTreeView(self.model, self.data)
         self.dlg.data.setModel(self.model)
         self.dlg.service_selection.clear()
-        self.dlg.service_selection.addItems(self.server_controlls.getServiceNames())
+        self.dlg.service_selection.addItems(self.server_controls.getServiceNames())
         self.dlg.service_selection.activated.connect(self.selectCoverage)
 
     def selectCoverage(self):
         self.dlg.service_metadata.setText(
-            self.basic_controlls.getDescription(
+            self.basic_controls.getDescription(
                 name=str(self.dlg.service_selection.currentText()),
-                host=str(self.server_controlls.findServiceByName(
+                host=str(self.server_controls.findServiceByName(
                     self.dlg.service_selection.currentText()
                 ).get("host")),
             )
         )
         self.dlg.coverage_selection.clear()
         self.dlg.coverage_selection.addItems(
-            self.server_controlls.listProducts(
+            self.server_controls.listProducts(
                 str(self.dlg.service_selection.currentText())
             )
         )
@@ -280,9 +280,9 @@ class wtss_qgis:
 
     def selectAtributtes(self):
         self.dlg.service_metadata.setText(
-            self.basic_controlls.getDescription(
+            self.basic_controls.getDescription(
                 name=self.dlg.service_selection.currentText(),
-                host=str(self.server_controlls.findServiceByName(
+                host=str(self.server_controls.findServiceByName(
                     self.dlg.service_selection.currentText()
                 ).get("host")),
                 coverage=str(self.dlg.coverage_selection.currentText())
@@ -290,7 +290,7 @@ class wtss_qgis:
         )
         self.widget = QWidget()
         self.vbox = QVBoxLayout()
-        description = self.server_controlls.productDescription(
+        description = self.server_controls.productDescription(
             str(self.dlg.service_selection.currentText()),
             str(self.dlg.coverage_selection.currentText())
         )
@@ -304,8 +304,8 @@ class wtss_qgis:
         self.dlg.bands_scroll.setWidgetResizable(True)
         self.dlg.bands_scroll.setWidget(self.widget)
         # Update dates for start and end to coverage selection
-        self.dlg.start_date.setDate(self.basic_controlls.formatForQDate(timeline[0]))
-        self.dlg.end_date.setDate(self.basic_controlls.formatForQDate(timeline[len(timeline) - 1]))
+        self.dlg.start_date.setDate(self.basic_controls.formatForQDate(timeline[0]))
+        self.dlg.end_date.setDate(self.basic_controls.formatForQDate(timeline[len(timeline) - 1]))
 
     def loadAtributtes(self):
         selected_attributes = []
@@ -315,7 +315,7 @@ class wtss_qgis:
         return selected_attributes
 
     def loadTimeSeries(self):
-        return self.server_controlls.productTimeSeries(
+        return self.server_controls.productTimeSeries(
             str(self.dlg.service_selection.currentText()),
             str(self.dlg.coverage_selection.currentText()),
             tuple(self.loadAtributtes()),
@@ -337,7 +337,7 @@ class wtss_qgis:
                 filter='*.py'
             )
             attributes = {
-                "host": str(self.server_controlls.findServiceByName(
+                "host": str(self.server_controls.findServiceByName(
                     self.dlg.service_selection.currentText()
                 ).get("host")),
                 "coverage": str(self.dlg.coverage_selection.currentText()),
@@ -352,9 +352,9 @@ class wtss_qgis:
                     "end": str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
                 }
             }
-            self.files_controlls.generateCode(name[0], attributes)
+            self.files_controls.generateCode(name[0], attributes)
         except AttributeError as error:
-            self.basic_controlls.alert("AttributeError", str(error))
+            self.basic_controls.alert("AttributeError", str(error))
 
     def exportCSV(self):
         try:
@@ -368,9 +368,9 @@ class wtss_qgis:
                 filter='*.csv'
             )
             time_series = self.loadTimeSeries()
-            self.files_controlls.generateCSV(name[0], time_series)
+            self.files_controls.generateCSV(name[0], time_series)
         except AttributeError as error:
-            self.basic_controlls.alert("AttributeError", str(error))
+            self.basic_controls.alert("AttributeError", str(error))
 
     def exportJSON(self):
         try:
@@ -384,16 +384,16 @@ class wtss_qgis:
                 filter='*.json'
             )
             time_series = self.loadTimeSeries()
-            self.files_controlls.generateJSON(name[0], time_series)
+            self.files_controls.generateJSON(name[0], time_series)
         except AttributeError as error:
-            self.basic_controlls.alert("AttributeError", str(error))
+            self.basic_controls.alert("AttributeError", str(error))
 
     def plotTimeSeries(self):
         time_series = self.loadTimeSeries()
         if time_series != None:
-            self.files_controlls.generatePlotFig(time_series)
+            self.files_controls.generatePlotFig(time_series)
         else:
-            self.basic_controlls.alert("AttributeError", "The times series service returns empty, no data to show!")
+            self.basic_controls.alert("AttributeError", "The times series service returns empty, no data to show!")
 
     def getLayers(self):
         self.layers = QgsProject.instance().layerTreeRoot().children()
@@ -438,7 +438,7 @@ class wtss_qgis:
     def transformSelectedLocation(self):
         transformed = self.selected_location
         if self.selected_location.get("crs"):
-            transformed = self.basic_controlls.transformProjection(
+            transformed = self.basic_controls.transformProjection(
                 self.selected_location.get("crs"),
                 self.selected_location.get("lat"),
                 self.selected_location.get("long")
@@ -449,10 +449,10 @@ class wtss_qgis:
         """Run method that performs all the real work"""
         # Init Application
         self.dlg = wtss_qgisDialog()
-        # Init Controlls
-        self.initControlls()
+        # Init Controls
+        self.initControls()
         # Description
-        self.dlg.service_metadata.setText(self.basic_controlls.getDescription())
+        self.dlg.service_metadata.setText(self.basic_controls.getDescription())
         # Services
         self.initServices()
         # History
