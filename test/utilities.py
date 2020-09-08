@@ -1,14 +1,16 @@
 # coding=utf-8
 """Common functionality used by regression tests."""
 
-import sys, os
 import logging
+import os
+import sys
 
-from qgis.core import *
-from qgis.gui import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+from qgis.core import *
+from qgis.gui import *
+
 from .qgis_interface import QgisInterface
 
 LOGGER = logging.getLogger('QGIS')
