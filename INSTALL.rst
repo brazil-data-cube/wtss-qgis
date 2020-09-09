@@ -37,7 +37,7 @@ Go to the source code folder:
 
 .. code-block:: shell
 
-    $ cd wtss-gis
+    $ cd wtss-qgis
 
 Deploy:
 
