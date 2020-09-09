@@ -12,14 +12,15 @@ __author__ = 'brazildatacube@dpi.inpe.br'
 __date__ = '2020-05-04'
 __copyright__ = 'Copyright 2020, INPE'
 
-from jsonschema import validate
-from pathlib import Path
 import unittest
+from pathlib import Path
 
+from jsonschema import validate
 from qgis.PyQt.QtGui import QIcon
-from wtss_plugin.wtss_qgis_controller import Services
-from wtss_plugin.schemas import services_storage_schema
+
 from wtss_plugin.config import Config
+from wtss_plugin.schemas import services_storage_schema
+from wtss_plugin.wtss_qgis_controller import Services
 
 
 class wtss_qgisResourcesTest(unittest.TestCase):

@@ -14,12 +14,13 @@ __copyright__ = 'Copyright 2020, INPE'
 
 import unittest
 
-from qgis.PyQt.QtWidgets import QDialogButtonBox, QDialog
+from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox
 
-from wtss_qgis_dialog import wtss_qgisDialog
 from wtss_plugin import Services
+from wtss_qgis_dialog import wtss_qgisDialog
 
 from .utilities import get_qgis_app
+
 QGIS_APP = get_qgis_app()
 
 
