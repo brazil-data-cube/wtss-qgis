@@ -194,12 +194,13 @@ class wtss_qgis:
             self.iface.removeToolBarIcon(action)
 
     def initControls(self):
-        # Init Controls
+        """Init basic controls to generate files and manage services"""
         self.basic_controls = Controls()
         self.server_controls = Services(user = "application")
         self.files_controls = FilesExport()
 
     def initButtons(self):
+        """Init the main buttons to manage services and the results"""
         self.dlg.save_service.clicked.connect(self.saveService)
         self.dlg.delete_service.clicked.connect(self.deleteService)
         self.dlg.edit_service.clicked.connect(self.editService)
@@ -208,6 +209,7 @@ class wtss_qgis:
         self.dlg.export_as_json.clicked.connect(self.exportJSON)
 
     def initHistory(self):
+        """Init and update location history"""
         self.dlg.history_list.clear()
         self.selected_location = None
         try:
@@ -219,6 +221,7 @@ class wtss_qgis:
         self.addCanvasControlPoint()
 
     def initServices(self):
+        """Load the registered services based on JSON file"""
         self.dlg.service_selection.addItems(self.server_controls.getServiceNames())
         self.dlg.service_selection.activated.connect(self.selectCoverage)
         self.data = self.server_controls.loadServices()
@@ -227,6 +230,7 @@ class wtss_qgis:
         self.dlg.data.setModel(self.model)
 
     def saveService(self):
+        """Save the service based on name and host input"""
         name_to_save = str(self.dlg.service_name.text())
         host_to_save = str(self.dlg.service_host.text())
         try:
@@ -239,6 +243,7 @@ class wtss_qgis:
             self.basic_controls.alert("(ValueError, AttributeError)", str(error))
 
     def deleteService(self):
+        """Delete the selected active service"""
         host_to_delete = self.dlg.service_selection.currentText()
         try:
             self.server_controls.deleteService(host_to_delete)
@@ -247,12 +252,14 @@ class wtss_qgis:
             self.basic_controls.alert("(ValueError, AttributeError)", str(error))
 
     def editService(self):
+        """Edit the selected service"""
         self.dlg.service_name.setText(self.dlg.service_selection.currentText())
         self.dlg.service_host.setText(
             self.server_controls.findServiceByName(self.dlg.service_selection.currentText()).get("host")
         )
 
     def updateServicesList(self):
+        """Update the service list when occurs some change in JSON file"""
         self.data = self.server_controls.loadServices()
         self.model = QStandardItemModel()
         self.basic_controls.addItemsTreeView(self.model, self.data)
@@ -262,6 +269,7 @@ class wtss_qgis:
         self.dlg.service_selection.activated.connect(self.selectCoverage)
 
     def selectCoverage(self):
+        """Fill the blank spaces with coverage metadata for selection"""
         self.dlg.service_metadata.setText(
             self.basic_controls.getDescription(
                 name=str(self.dlg.service_selection.currentText()),
@@ -279,6 +287,7 @@ class wtss_qgis:
         self.dlg.coverage_selection.activated.connect(self.selectAtributtes)
 
     def selectAtributtes(self):
+        """Get attributes based on coverage metadata and create the check list"""
         self.dlg.service_metadata.setText(
             self.basic_controls.getDescription(
                 name=self.dlg.service_selection.currentText(),
@@ -308,6 +317,7 @@ class wtss_qgis:
         self.dlg.end_date.setDate(self.basic_controls.formatForQDate(timeline[len(timeline) - 1]))
 
     def loadAtributtes(self):
+        """Verify the selected attributes in check list and save in array"""
         selected_attributes = []
         for band in list(self.bands_checks.keys()):
             if self.bands_checks.get(band).isChecked():
@@ -315,6 +325,7 @@ class wtss_qgis:
         return selected_attributes
 
     def loadTimeSeries(self):
+        """Load time series product data from selected values"""
         return self.server_controls.productTimeSeries(
             str(self.dlg.service_selection.currentText()),
             str(self.dlg.coverage_selection.currentText()),
@@ -326,6 +337,7 @@ class wtss_qgis:
         )
 
     def exportPython(self):
+        """Export python code to file system filling blank spaces with coverage metadata"""
         try:
             name = QFileDialog.getSaveFileName(
                 parent=self.dlg,
@@ -357,6 +369,7 @@ class wtss_qgis:
             self.basic_controls.alert("AttributeError", str(error))
 
     def exportCSV(self):
+        """Export to file system times series data in CSV"""
         try:
             name = QFileDialog.getSaveFileName(
                 parent=self.dlg,
@@ -373,6 +386,7 @@ class wtss_qgis:
             self.basic_controls.alert("AttributeError", str(error))
 
     def exportJSON(self):
+        """Export the response of WTSS data"""
         try:
             name = QFileDialog.getSaveFileName(
                 parent=self.dlg,
@@ -389,6 +403,7 @@ class wtss_qgis:
             self.basic_controls.alert("AttributeError", str(error))
 
     def plotTimeSeries(self):
+        """Generate the plot image with time series data"""
         time_series = self.loadTimeSeries()
         if time_series != None:
             self.files_controls.generatePlotFig(time_series)
@@ -396,14 +411,17 @@ class wtss_qgis:
             self.basic_controls.alert("AttributeError", "The times series service returns empty, no data to show!")
 
     def getLayers(self):
+        """Storage the layers in QGIS project"""
         self.layers = QgsProject.instance().layerTreeRoot().children()
         self.layer_names = [layer.name() for layer in self.layers] # Get all layer names
         self.layer = self.iface.activeLayer() # QVectorLayer QRasterFile
 
     def getFromHistory(self, item):
+        """Select location from history storage as selected location"""
         self.selected_location = self.locations.get(item.text(), {})
 
     def display_point(self, pointTool):
+        """Get the mouse possition and storage as selected location"""
         try:
             self.selected_location = {
                 'layer_name' : str(self.layer.name()),
@@ -429,6 +447,7 @@ class wtss_qgis:
             pass
 
     def addCanvasControlPoint(self):
+        """Generate a canvas area to get mouse position"""
         self.canvas = self.iface.mapCanvas()
         self.point_tool = QgsMapToolEmitPoint(self.canvas)
         self.point_tool.canvasClicked.connect(self.display_point)
@@ -436,6 +455,7 @@ class wtss_qgis:
         self.display_point(self.point_tool)
 
     def transformSelectedLocation(self):
+        """Use basic controls to transform any selected projection to EPSG:4326"""
         transformed = self.selected_location
         if self.selected_location.get("crs"):
             transformed = self.basic_controls.transformProjection(
