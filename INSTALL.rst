@@ -33,30 +33,35 @@ Install `pb_tool <https://pypi.org/project/pb-tool/>`_ to deploy and publish QGI
 Development Plugin Installation
 -------------------------------
 
-Linux Environment
-_________________
-
-
 Go to the source code folder:
 
 .. code-block:: shell
 
     $ cd wtss-gis
 
-Compile:
-
-.. code-block:: shell
-
-    $ pb_tool compile
-
 Deploy:
 
 .. code-block:: shell
 
-    $ make deploy QGISDIR=<qgis-home>
+    $ pb_tool deploy --plugin_path /home/{USER}/.local/share/QGIS/QGIS3/profiles/default/python/plugins
 
 
-Windows Environment
-___________________
+.. note::
 
-TODO
+    If you want to create a new *Python Virtual Environment*, please, follow this instruction:
+
+    *1.* Create a new virtual environment linked to Python +3::
+
+        python3 -m venv venv
+
+
+    **2.** Activate the new environment::
+
+        source venv/bin/activate
+
+
+    **3.** Update pip and install requirements::
+
+        pip3 install --upgrade pip
+
+        pip3 install -r requirements.txt
