@@ -11,15 +11,15 @@
  ***************************************************************************/
 """
 
-import json
 import csv
-import matplotlib.pyplot as plt
-import numpy as np
-
+import json
+import os
 from json import loads as json_loads
 from pathlib import Path
 
-from .config import Config
+import matplotlib.pyplot as plt
+import numpy as np
+
 
 class FilesExport:
     """
@@ -38,10 +38,9 @@ class FilesExport:
         Returns a default python code with blank WTSS parameters
         """
         template = (
-            Path(Config.BASE_DIR)
-                / 'files_export'
-                    / 'examples'
-                        / 'times_series_export_template.py'
+            Path(os.path.abspath(os.path.dirname(__file__)))
+                / 'examples'
+                    / 'times_series_export_template.py'
         )
         return open(template, 'r').read()
 

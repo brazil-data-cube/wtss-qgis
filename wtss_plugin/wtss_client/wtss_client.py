@@ -19,8 +19,8 @@
 #  e-sensing team at <esensing-team@dpi.inpe.br>.
 #
 
-from datetime import datetime
 import json
+from datetime import datetime
 
 try:
     # For Python 3.0 and later

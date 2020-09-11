@@ -20,5 +20,4 @@
 #
 
 """Python Client API for Web Time Series Services (WTSS)."""
-from .wtss_client import wtss
-from .wtss_client import time_series
+from .wtss_client import time_series, wtss
