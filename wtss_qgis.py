@@ -21,31 +21,27 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
-from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction
-from qgis.core import QgsProject
-from qgis.gui import QgsMapToolEmitPoint
+import os.path
+from pathlib import Path
 
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+from qgis.core import QgsProject
+from qgis.gui import QgsMapToolEmitPoint
+from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QAction
 
 # Initialize Qt resources from file resources.py
 from .resources import *
-
+from .wtss_plugin.config import Config
+# Import files exporting controls
+from .wtss_plugin.files_export import FilesExport
+# Import the controls for the plugin
+from .wtss_plugin.wtss_qgis_controller import Controls, Services
 # Import the code for the dialog
 from .wtss_qgis_dialog import wtss_qgisDialog
 
-# Import the controls for the plugin
-from .wtss_plugin.wtss_qgis_controller import Services, Controls
-
-# Import files exporting controls
-from .wtss_plugin.files_export import FilesExport
-
-from .wtss_plugin.config import Config
-
-import os.path
-from pathlib import Path
 
 class wtss_qgis:
     """QGIS Plugin Implementation."""

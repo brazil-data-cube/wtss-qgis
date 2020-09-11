@@ -11,18 +11,19 @@
  ***************************************************************************/
 """
 
-import requests
 import json
 from json import loads as json_loads
 from pathlib import Path
-from pyproj import Proj, transform
 
-from PyQt5.QtGui import QStandardItem
+import requests
+from pyproj import Proj, transform
 from PyQt5.QtCore import QDate
+from PyQt5.QtGui import QStandardItem
 from PyQt5.QtWidgets import QMessageBox
 
-from .wtss_client.wtss_client import wtss
 from .config import Config
+from .wtss_client.wtss_client import wtss
+
 
 class Controls:
     """
