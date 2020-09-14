@@ -15,23 +15,14 @@ The Python QGIS Plugin for WTSS depends essentially on:
 - `QT Creator version +5 <https://www.qt.io/download>`_
 - `Python version +3 <https://www.python.org/>`_
 
-Install Requirements
---------------------
+Development Plugin Installation
+-------------------------------
 
 Clone the software repository:
 
 .. code-block:: shell
 
-    $ git clone https://github.com/brazil-data-cube/wtss-qgis
-
-Install `pb_tool <https://pypi.org/project/pb-tool/>`_ to deploy and publish QGIS Python plugin and `pytest <https://pypi.org/project/pytest/>`_ to run unit test with WTSS plugin.
-
-.. code-block:: shell
-
-    $ pip install -r requirements.txt
-
-Development Plugin Installation
--------------------------------
+    git clone https://github.com/brazil-data-cube/wtss-qgis
 
 Go to the source code folder:
 
@@ -39,18 +30,47 @@ Go to the source code folder:
 
     $ cd wtss-qgis
 
-Deploy:
+Install requirements `pb_tool <https://pypi.org/project/pb-tool/>`_ to deploy and publish QGIS Python plugin and `pytest <https://pypi.org/project/pytest/>`_ to run unit test with WTSS plugin.
+
+.. code-block:: shell
+
+    pip install -r requirements.txt
+
+Linux
+*****
+
+Use ``pb_tool`` to compile and deploy the plugin in Linux OS:
 
 .. code-block:: shell
 
     $ pb_tool deploy --plugin_path /home/{USER}/.local/share/QGIS/QGIS3/profiles/default/python/plugins
 
+Windows
+*******
+
+To deploy the plugin in Windows OS add Python and QGIS Python Scripts to the **PATH** environmental variable such as:
+
+.. code-block:: text
+
+    C:\Users\user\AppData\Local\Programs\Python\Python{version}\Scripts
+    C:\Program Files\QGIS {version}\apps\Python37\Scripts
+
+Now you can work from the command line.
+
+On prompt use ``pb_tool`` to compile and deploy WLTS-QGIS plugin:
+
+.. code-block:: text
+
+   > pb_tool deploy --plugin_path C:\Users\user\AppData\Roaming\QGIS\QGIS{version}\profiles\default\python\plugins
+
+
+Run QGIS and open the Plugin Manager and enable the WLTS-QGIS.
 
 .. note::
 
     If you want to create a new *Python Virtual Environment*, please, follow this instruction:
 
-    *1.* Create a new virtual environment linked to Python +3::
+    **1.** Create a new virtual environment linked to Python +3::
 
         python3 -m venv venv
 

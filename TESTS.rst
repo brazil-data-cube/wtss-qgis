@@ -10,4 +10,4 @@ Unit Test
 
 .. code-block:: shell
 
-    $ make test
+    $ pytest
