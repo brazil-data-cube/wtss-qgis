@@ -6,13 +6,7 @@
     You can redistribute it and/or modify it under the terms of the MIT License;
 
 
-==============================================
-Python QGIS Plugin for Web Time Series Service
-==============================================
+Usage
+=====
 
-.. toctree::
-   :maxdepth: 3
-
-   ./about.rst
-   ./install.rst
-   ./usage.rst
+**Under Development!**
