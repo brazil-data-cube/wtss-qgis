@@ -51,17 +51,6 @@ For more information on WTSS, see:
 
 - `WTSS Specification <https://github.com/brazil-data-cube/wtss-spec>`_: the WTSS specification using `OpenAPI 3.0 <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md>`_ notation.
 
-
-Installation
-============
-
-See `install.html <./install.html>`_.
-
-Usage
-=====
-
-See `usage.html <./usage.html>`_.
-
 References
 ==========
 
