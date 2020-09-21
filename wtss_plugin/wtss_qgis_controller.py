@@ -15,7 +15,6 @@ import json
 from json import loads as json_loads
 from pathlib import Path
 
-import requests
 from pyproj import Proj, transform
 from PyQt5.QtCore import QDate
 from PyQt5.QtGui import QStandardItem
@@ -163,7 +162,8 @@ class Services:
             host<string>: the service host string
         """
         try:
-            requests.get(host)
+            client_wtss = wtss(host)
+            client_wtss.list_coverages()
             return True
         except:
             return False

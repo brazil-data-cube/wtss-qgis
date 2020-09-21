@@ -14,7 +14,6 @@
 import csv
 import json
 import os
-from json import loads as json_loads
 from pathlib import Path
 
 import matplotlib.pyplot as plt
