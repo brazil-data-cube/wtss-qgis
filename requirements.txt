@@ -1,5 +1,5 @@
 pyqt5-tools==5.15.0.1.7.1
 pb-tool==3.1.0
-matplotlib==2.1.1
-numpy==1.13.3
+matplotlib==3.3.2
+numpy==1.19.2
 pytest==6.0.1
