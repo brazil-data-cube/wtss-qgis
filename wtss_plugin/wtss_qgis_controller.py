@@ -283,10 +283,7 @@ class Services:
         try:
             client_wtss = wtss(self.findServiceByName(service_name).get('host'))
             time_series = client_wtss.time_series(product, bands, lon, lat, start_date, end_date)
-            if len(time_series.doc.get("result").get("attributes")[0].get("values")):
-                return time_series
-            else:
-                return None
+            return time_series
         except (ConnectionRefusedError, RuntimeError):
             return {}
 
