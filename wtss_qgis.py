@@ -326,8 +326,8 @@ class wtss_qgis:
             str(self.dlg.service_selection.currentText()),
             str(self.dlg.coverage_selection.currentText()),
             tuple(self.loadAtributtes()),
-            self.transformSelectedLocation().get('long', 0),
             self.transformSelectedLocation().get('lat', 0),
+            self.transformSelectedLocation().get('long', 0),
             str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
             str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
         )
@@ -421,10 +421,11 @@ class wtss_qgis:
         try:
             self.selected_location = {
                 'layer_name' : str(self.layer.name()),
-                'lat' : float(pointTool.x()),
-                'long' : float(pointTool.y()),
+                'lat' : float(pointTool.y()),
+                'long' : float(pointTool.x()),
                 'crs' : str(self.layer.crs().authid())
             }
+            print(self.selected_location)
             history_key = str(
                 (
                     "({lat:,.2f},{long:,.2f}) {crs}"

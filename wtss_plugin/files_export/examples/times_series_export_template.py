@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from wtss import wtss
+from wtss import WTSS
 
 # Creating the client with selected service host
-client = wtss("{service_host}")
+client = WTSS("{service_host}")
 
 ##
 # Listing coverages

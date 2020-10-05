@@ -15,6 +15,7 @@ import json
 from json import loads as json_loads
 from pathlib import Path
 
+import requests
 from pyproj import Proj, transform
 from PyQt5.QtCore import QDate
 from PyQt5.QtGui import QStandardItem
@@ -267,7 +268,7 @@ class Services:
         except (ConnectionRefusedError, RuntimeError):
             return {}
 
-    def productTimeSeries(self, service_name, product, bands, lon, lat, start_date, end_date):
+    def productTimeSeries(self, service_name, product, bands, lat, lon, start_date, end_date):
         """
         Return a dictionary with product time series data
 
@@ -282,10 +283,29 @@ class Services:
         """
         try:
             client_wtss = wtss(self.findServiceByName(service_name).get('host'))
-            time_series = client_wtss.time_series(product, bands, lon, lat, start_date, end_date)
-            return time_series
-        except (ConnectionRefusedError, RuntimeError):
-            return {}
+            time_series = client_wtss.time_series(product, bands, lat, lon, start_date, end_date)
+            return time_series.doc
+        except (ValueError, ConnectionRefusedError, RuntimeError):
+            response = requests.get(
+                "http://localhost:5000/wtss/time_series",
+                {
+                    "coverage": product,
+                    "attributes": ",".join(list(bands)),
+                    "latitude": lat,
+                    "longitude": lon,
+                    "start_date": start_date,
+                    "end_date": end_date
+                },
+                timeout=100
+            )
+            if response.status_code == 200:
+                response = response.json()
+                tl = response["result"]["timeline"]
+                tl = wtss._timeline(tl, "%Y-%m-%d")
+                response["result"]["timeline"] = tl
+                return response
+            else:
+                return {}
 
     def addService(self, name, host):
         """
