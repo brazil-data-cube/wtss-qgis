@@ -401,7 +401,7 @@ class wtss_qgis:
     def plotTimeSeries(self):
         """Generate the plot image with time series data"""
         time_series = self.loadTimeSeries()
-        if time_series != None:
+        if time_series.get('result').get("timeline") != []:
             self.files_controls.generatePlotFig(time_series)
         else:
             self.basic_controls.alert("AttributeError", "The times series service returns empty, no data to show!")
