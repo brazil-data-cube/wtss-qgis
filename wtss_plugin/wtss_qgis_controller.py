@@ -203,7 +203,8 @@ class Services:
         try:
             service_names = []
             for server in self.getServices().get('services'):
-                service_names.append(server.get('name'))
+                if self.testServiceConnection(server.get('host')):
+                    service_names.append(server.get('name'))
             return service_names
         except (FileNotFoundError, FileExistsError):
             return None
