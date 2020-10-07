@@ -425,7 +425,6 @@ class wtss_qgis:
                 'long' : float(pointTool.x()),
                 'crs' : str(self.layer.crs().authid())
             }
-            print(self.selected_location)
             history_key = str(
                 (
                     "({lat:,.2f},{long:,.2f}) {crs}"
