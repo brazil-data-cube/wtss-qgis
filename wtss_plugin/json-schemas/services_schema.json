@@ -18,11 +18,22 @@
                 "type": "object",
                 "title": "The Items Schema",
                 "required": [
+                    "index",
                     "name",
                     "host"
                 ]
             },
             "properties": {
+                "index": {
+                    "$id": "#/properties/services/items/index",
+                    "type": "number",
+                    "title": "Service ID",
+                    "default": "",
+                    "examples": [
+                        0,1,2
+                    ],
+                    "pattern": "^(.*)$"
+                },
                 "name": {
                     "$id": "#/properties/services/items/name",
                     "type": "string",

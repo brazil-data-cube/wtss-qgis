@@ -251,7 +251,7 @@ class wtss_qgis:
         """Edit the selected service"""
         self.dlg.service_name.setText(self.dlg.service_selection.currentText())
         self.dlg.service_host.setText(
-            self.server_controls.findServiceByName(self.dlg.service_selection.currentText()).get("host")
+            self.server_controls.findServiceByName(self.dlg.service_selection.currentText()).host
         )
 
     def updateServicesList(self):
@@ -271,7 +271,7 @@ class wtss_qgis:
                 name=str(self.dlg.service_selection.currentText()),
                 host=str(self.server_controls.findServiceByName(
                     self.dlg.service_selection.currentText()
-                ).get("host")),
+                ).host),
             )
         )
         self.dlg.coverage_selection.clear()
@@ -289,7 +289,7 @@ class wtss_qgis:
                 name=self.dlg.service_selection.currentText(),
                 host=str(self.server_controls.findServiceByName(
                     self.dlg.service_selection.currentText()
-                ).get("host")),
+                ).host),
                 coverage=str(self.dlg.coverage_selection.currentText())
             )
         )
@@ -347,7 +347,7 @@ class wtss_qgis:
             attributes = {
                 "host": str(self.server_controls.findServiceByName(
                     self.dlg.service_selection.currentText()
-                ).get("host")),
+                ).host),
                 "coverage": str(self.dlg.coverage_selection.currentText()),
                 "bands": tuple(self.loadAtributtes()),
                 "coordinates": {
