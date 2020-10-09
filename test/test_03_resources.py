@@ -40,17 +40,16 @@ class wtss_qgisResourcesTest(unittest.TestCase):
         icon = QIcon(path)
         self.assertFalse(icon.isNull())
 
-    def test_services_storage_JSON(self):
+    def test_01_services_storage_JSON(self):
         """Test storage of services in JSON File"""
         services_controlls = Services(user = "test")
-        services_storage = services_controlls.getServices()
+        services_storage = services_controlls.getServicesDict()
         validate(instance = services_storage, schema = services_storage_schema)
 
     def test_02_list_of_services(self):
         """Test list of services"""
         services_controlls = Services(user = "test")
         list_services_names = services_controlls.getServiceNames()
-        self.assertIn('Brazil Data Cube', list_services_names)
         self.assertIn('E-sensing', list_services_names)
 
     def test_03_remove_an_existent_service(self):
@@ -58,30 +57,21 @@ class wtss_qgisResourcesTest(unittest.TestCase):
         services_controlls = Services(user = "test")
         services_controlls.deleteService('E-sensing')
         list_services_names = services_controlls.getServiceNames()
-        self.assertIn('Brazil Data Cube', list_services_names)
         self.assertNotIn('E-sensing', list_services_names)
 
     def test_04_save_a_new_service(self):
         """Test if the controll is able to save a new service"""
         services_controlls = Services(user = "test")
-        services_controlls.addService(
-            name = "New E-sensing",
-            host = "http://www.esensing.dpi.inpe.br/"
-        )
+        services_controlls.addService("New E-sensing", "http://www.esensing.dpi.inpe.br/")
         list_services_names = services_controlls.getServiceNames()
-        self.assertIn('Brazil Data Cube', list_services_names)
         self.assertIn('New E-sensing', list_services_names)
 
     def test_05_edit_an_existent_service(self):
         """Test if the controll is able to edit an existent service"""
         services_controlls = Services(user = "test")
         services_controlls.deleteService('New E-sensing')
-        services_controlls.addService(
-            name = "E-sensing",
-            host = "http://www.esensing.dpi.inpe.br/"
-        )
+        services_controlls.editService("E-sensing","http://www.esensing.dpi.inpe.br/")
         list_services_names = services_controlls.getServiceNames()
-        self.assertIn('Brazil Data Cube', list_services_names)
         self.assertIn('E-sensing', list_services_names)
 
 if __name__ == "__main__":
