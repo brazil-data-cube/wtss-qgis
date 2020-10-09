@@ -18,13 +18,13 @@
                 "type": "object",
                 "title": "The Items Schema",
                 "required": [
-                    "index",
+                    "id",
                     "name",
                     "host"
                 ]
             },
             "properties": {
-                "index": {
+                "id": {
                     "$id": "#/properties/services/items/index",
                     "type": "number",
                     "title": "Service ID",

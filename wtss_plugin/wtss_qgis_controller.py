@@ -219,21 +219,32 @@ class Services:
         except (FileNotFoundError, FileExistsError):
             return None
 
+    def getServicesDict(self):
+        """
+        Returns the services object like dict
+        """
+        serviceList = self.getServices()
+        for i in range(len(serviceList.services)):
+            serviceList.services[i] = json_loads(
+                json.dumps(serviceList.services[i].__dict__)
+            )
+        serviceList = json_loads(json.dumps(serviceList.__dict__))
+        return serviceList
+
     def loadServices(self):
         """
         Returns the services in a data struct based on QGIS Tree View
         """
         servers = []
         for server in self.getServices().services:
-            try:
+            if self.testServiceConnection(server.host):
                 client_wtss = wtss(server.host)
                 coverage_tree = []
                 for coverage in client_wtss.list_coverages().get('coverages', []):
                     coverage_tree.append((coverage, []))
                 servers.append((server.name, coverage_tree))
-            except (ConnectionRefusedError, RuntimeError):
+            else:
                 self.deleteService(server.name)
-                pass
         return [('Services', servers)]
 
     def findServiceByName(self, service_name):
@@ -259,10 +270,11 @@ class Services:
         Args:
             service_name<string>: the service registered name
         """
-        try:
-            client_wtss = wtss(self.findServiceByName(service_name).host)
+        host = self.findServiceByName(service_name).host
+        if self.testServiceConnection(host):
+            client_wtss = wtss(host)
             return client_wtss.list_coverages().get('coverages',[])
-        except (ConnectionRefusedError, RuntimeError):
+        else:
             return []
 
     def productDescription(self, service_name, product):
@@ -273,10 +285,11 @@ class Services:
             service_name<string>: the service registered name
             product<string>: the product name
         """
-        try:
-            client_wtss = wtss(self.findServiceByName(service_name).host)
+        host = self.findServiceByName(service_name).host
+        if self.testServiceConnection(host):
+            client_wtss = wtss(host)
             return client_wtss.describe_coverage(product)
-        except (ConnectionRefusedError, RuntimeError):
+        else:
             return {}
 
     def productTimeSeries(self, service_name, product, bands, lat, lon, start_date, end_date):
@@ -292,11 +305,12 @@ class Services:
             start_date<string>: start date string with 'yyyy-mm-dd' format
             end_date<string>: end date string with 'yyyy-mm-dd' format
         """
-        try:
-            client_wtss = wtss(self.findServiceByName(service_name).host)
+        host = self.findServiceByName(service_name).host
+        if self.testServiceConnection(host):
+            client_wtss = wtss(host)
             time_series = client_wtss.time_series(product, bands, lat, lon, start_date, end_date)
             return time_series.doc
-        except (ValueError, ConnectionRefusedError, RuntimeError):
+        else:
             response = requests.get(
                 ("{}/wtss/time_series").format(
                     self.findServiceByName(service_name).host
@@ -334,7 +348,7 @@ class Services:
                 try:
                     to_save = self.getServices()
                     index = to_save.services[len(to_save.services) - 1].id + 1
-                except (FileNotFoundError, FileExistsError):
+                except (IndexError, FileNotFoundError, FileExistsError):
                     to_save = ServiceList([])
                     index = 0
                 server_to_save = Service(index, str(name), str(host))
@@ -344,10 +358,11 @@ class Services:
                         json.dumps(to_save.services[i].__dict__)
                     )
                 to_save = json_loads(json.dumps(to_save.__dict__))
+                print(to_save)
                 with open(str(self.getPath()), 'w') as outfile:
                     json.dump(to_save, outfile)
             return server_to_save
-        except (ConnectionRefusedError, FileNotFoundError, FileExistsError):
+        except (FileNotFoundError, FileExistsError):
             return None
 
     def deleteService(self, server_name):
