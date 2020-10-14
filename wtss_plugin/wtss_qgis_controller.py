@@ -358,7 +358,6 @@ class Services:
                         json.dumps(to_save.services[i].__dict__)
                     )
                 to_save = json_loads(json.dumps(to_save.__dict__))
-                print(to_save)
                 with open(str(self.getPath()), 'w') as outfile:
                     json.dump(to_save, outfile)
             return server_to_save

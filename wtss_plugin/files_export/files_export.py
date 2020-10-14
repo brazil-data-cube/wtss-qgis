@@ -111,7 +111,7 @@ class FilesExport:
                         'longitude': time_series.get('query').get('longitude')
                     }
                     for result in time_series.get('result').get('attributes'):
-                        line[result.get('attribute')] = result.get('values')
+                        line[result.get('attribute')] = result.get('values')[ind]
                     ind += 1
                     writer.writerow(line)
         except FileNotFoundError:
