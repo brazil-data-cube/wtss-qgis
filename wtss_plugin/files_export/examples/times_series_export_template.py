@@ -44,8 +44,6 @@ plt.xlabel("Date", fontsize=10)
 
 plt.ylabel("Value", fontsize=10)
 
-plt.xticks(np.arange(0, len(x), step=float(len(x) // 5)))
-
 plt.grid(b=True, color='gray', linestyle='--', linewidth=0.5)
 
 for band in bands:

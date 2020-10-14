@@ -147,10 +147,15 @@ class FilesExport:
             plt.title("Coverage " + str(time_series.get('query').get('coverage')), fontsize=14)
             plt.xlabel("Date", fontsize=10)
             plt.ylabel("Value", fontsize=10)
+            plt.grid(b=True, color='gray', linestyle='--', linewidth=0.5)
             x = [str(date_str) for date_str in time_series.get('result').get("timeline")]
             if len(x) > 5:
-                plt.xticks(np.arange(0, len(x), step=float(len(x) // 5)))
-            plt.grid(b=True, color='gray', linestyle='--', linewidth=0.5)
+                steps = np.arange(0, len(x), step=float(len(x) // 5))
+                x_axis_label = []
+                for i in range(len(x)):
+                    if i in steps:
+                        x_axis_label.append(x[i])
+                plt.xticks(steps, x_axis_label)
             for result in time_series.get('result').get('attributes'):
                 y = result.get('values')
                 plt.plot(x, y, label = result.get('attribute'))
