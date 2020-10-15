@@ -144,7 +144,14 @@ class FilesExport:
             plt.clf()
             plt.cla()
             plt.close()
-            plt.title("Coverage " + str(time_series.get('query').get('coverage')), fontsize=14)
+            plt.title(
+                ("Coverage {name}\n({lat:,.2f},{lng:,.2f})").format(
+                    name=str(time_series.get('query').get('coverage')),
+                    lat=time_series.get('query').get('latitude'),
+                    lng=time_series.get('query').get('longitude')
+                ),
+                fontsize=14
+            )
             plt.xlabel("Date", fontsize=10)
             plt.ylabel("Value", fontsize=10)
             plt.grid(b=True, color='gray', linestyle='--', linewidth=0.5)
