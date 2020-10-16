@@ -98,7 +98,7 @@ class FilesExport:
         try:
             dates = [str(date_str) for date_str in time_series.get('result').get("timeline")]
             with open(file_name, 'w', newline='') as csvfile:
-                fieldnames = ['timeline','latitude','longitude']
+                fieldnames = ['coverage','latitude','longitude','timeline']
                 for result in time_series.get('result').get('attributes'):
                     fieldnames.append(result.get('attribute'))
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
@@ -106,9 +106,10 @@ class FilesExport:
                 ind = 0
                 for date in dates:
                     line = {
-                        'timeline': date,
+                        'coverage': time_series.get('query').get('coverage'),
                         'latitude': time_series.get('query').get('latitude'),
-                        'longitude': time_series.get('query').get('longitude')
+                        'longitude': time_series.get('query').get('longitude'),
+                        'timeline': date
                     }
                     for result in time_series.get('result').get('attributes'):
                         line[result.get('attribute')] = result.get('values')[ind]
