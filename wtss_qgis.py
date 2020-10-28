@@ -316,7 +316,7 @@ class wtss_qgis:
         """Verify the selected attributes in check list and save in array"""
         selected_attributes = []
         for band in list(self.bands_checks.keys()):
-            if self.bands_checks.get(band).isChecked():
+            if self.bands_checks and self.bands_checks.get(band).isChecked():
                 selected_attributes.append(band)
         return selected_attributes
 
@@ -483,4 +483,5 @@ class wtss_qgis:
         if result:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
+            self.plotTimeSeries()
             pass

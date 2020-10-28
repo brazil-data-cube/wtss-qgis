@@ -17,7 +17,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import requests
-from pyproj import Proj, transform
+from pyproj import CRS, Proj, transform
 from PyQt5.QtCore import QDate
 from PyQt5.QtGui import QStandardItem
 from PyQt5.QtWidgets import QMessageBox
@@ -81,24 +81,24 @@ class Controls:
         )
 
     def transformProjection(self, projection, latitude, longitude):
-        # transform any projection to EPSG: 4326
+        # transform any projection to EPSG:4326
         """
-        Transform any projection to EPSG: 4326
+        Transform any projection to EPSG:4326
 
         Args:
-            projection<string>: string format 'EPSG: 4326'
+            projection<string>: string format 'EPSG:4326'
             latitude<float>: the point latitude
             longitude<float>: the point longitude
         """
         lat, lon = transform(
-            Proj(init=projection),
-            Proj(init='epsg:4326'),
+            Proj(init=CRS.from_string(projection)),
+            Proj(init=CRS.from_string("EPSG:4326")),
             latitude, longitude
         )
         return {
             "lat": lat,
             "long": lon,
-            "crs": "EPSG: 4326"
+            "crs": "EPSG:4326"
         }
 
     def getDescription(self, name = "Null", host = "Null", coverage = "Null"):

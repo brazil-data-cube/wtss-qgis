@@ -146,7 +146,7 @@ class FilesExport:
             plt.cla()
             plt.close()
             plt.title(
-                ("Coverage {name}\n({lat:,.2f},{lng:,.2f})").format(
+                ("Coverage {name}\nEPSG:4326 ({lat:,.2f},{lng:,.2f})").format(
                     name=str(time_series.get('query').get('coverage')),
                     lat=time_series.get('query').get('latitude'),
                     lng=time_series.get('query').get('longitude')
