@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from wtss import wtss
+from wtss import WTSS
 
 # Creating the client with selected service host
-client = wtss("{service_host}")
+client = WTSS("{service_host}")
 
 ##
 # Listing coverages
@@ -43,8 +43,6 @@ plt.title("Coverage {selected_coverage}", fontsize=14)
 plt.xlabel("Date", fontsize=10)
 
 plt.ylabel("Value", fontsize=10)
-
-plt.xticks(np.arange(0, len(x), step=float(len(x) // 5)))
 
 plt.grid(b=True, color='gray', linestyle='--', linewidth=0.5)
 

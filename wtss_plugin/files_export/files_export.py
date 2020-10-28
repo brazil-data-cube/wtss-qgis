@@ -14,7 +14,6 @@
 import csv
 import json
 import os
-from json import loads as json_loads
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -97,22 +96,23 @@ class FilesExport:
             time_series<dict>: the time series service reponse dictionary
         """
         try:
-            dates = [str(date_str) for date_str in time_series.timeline]
+            dates = [str(date_str) for date_str in time_series.get('result').get("timeline")]
             with open(file_name, 'w', newline='') as csvfile:
-                fieldnames = ['timeline','latitude','longitude']
-                for band in list(time_series.attributes.keys()):
-                    fieldnames.append(band)
+                fieldnames = ['coverage','latitude','longitude','timeline']
+                for result in time_series.get('result').get('attributes'):
+                    fieldnames.append(result.get('attribute'))
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
                 writer.writeheader()
                 ind = 0
                 for date in dates:
                     line = {
-                        'timeline': date,
-                        'latitude': time_series.doc.get('query').get('latitude'),
-                        'longitude': time_series.doc.get('query').get('longitude')
+                        'coverage': time_series.get('query').get('coverage'),
+                        'latitude': time_series.get('query').get('latitude'),
+                        'longitude': time_series.get('query').get('longitude'),
+                        'timeline': date
                     }
-                    for band in list(time_series.attributes.keys()):
-                        line[band] = time_series.attributes[band][ind]
+                    for result in time_series.get('result').get('attributes'):
+                        line[result.get('attribute')] = result.get('values')[ind]
                     ind += 1
                     writer.writerow(line)
         except FileNotFoundError:
@@ -127,8 +127,8 @@ class FilesExport:
             time_series<dict>: the time series service reponse dictionary
         """
         try:
-            data = time_series.doc.get('result')
-            data['timeline'] = [str(date_str) for date_str in time_series.timeline]
+            data = time_series
+            data.get('result')['timeline'] = [str(date_str) for date_str in time_series.get('result').get("timeline")]
             with open(file_name, 'w') as outfile:
                 json.dump(data, outfile)
         except FileNotFoundError:
@@ -145,15 +145,28 @@ class FilesExport:
             plt.clf()
             plt.cla()
             plt.close()
-            plt.title("Coverage " + str(time_series.doc.get('query').get('coverage')), fontsize=14)
+            plt.title(
+                ("Coverage {name}\nEPSG:4326 ({lat:,.2f},{lng:,.2f})").format(
+                    name=str(time_series.get('query').get('coverage')),
+                    lat=time_series.get('query').get('latitude'),
+                    lng=time_series.get('query').get('longitude')
+                ),
+                fontsize=14
+            )
             plt.xlabel("Date", fontsize=10)
             plt.ylabel("Value", fontsize=10)
-            x = [str(date_str) for date_str in time_series.timeline]
-            plt.xticks(np.arange(0, len(x), step=float(len(x) // 5)))
             plt.grid(b=True, color='gray', linestyle='--', linewidth=0.5)
-            for band in list(time_series.attributes.keys()):
-                y = time_series.attributes[band]
-                plt.plot(x, y, label = band)
+            x = [str(date_str) for date_str in time_series.get('result').get("timeline")]
+            if len(x) > 5:
+                steps = np.arange(0, len(x), step=float(len(x) // 5))
+                x_axis_label = []
+                for i in range(len(x)):
+                    if i in steps:
+                        x_axis_label.append(x[i])
+                plt.xticks(steps, x_axis_label)
+            for result in time_series.get('result').get('attributes'):
+                y = result.get('values')
+                plt.plot(x, y, label = result.get('attribute'))
             plt.legend()
             plt.show()
         except:

@@ -14,7 +14,7 @@
 import os
 
 
-# Class to configure global varibles used in source code
+# Class to configure global variables used in source code
 class Config:
     """
     Base configuration for global variables

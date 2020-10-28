@@ -251,7 +251,7 @@ class wtss_qgis:
         """Edit the selected service"""
         self.dlg.service_name.setText(self.dlg.service_selection.currentText())
         self.dlg.service_host.setText(
-            self.server_controls.findServiceByName(self.dlg.service_selection.currentText()).get("host")
+            self.server_controls.findServiceByName(self.dlg.service_selection.currentText()).host
         )
 
     def updateServicesList(self):
@@ -271,7 +271,7 @@ class wtss_qgis:
                 name=str(self.dlg.service_selection.currentText()),
                 host=str(self.server_controls.findServiceByName(
                     self.dlg.service_selection.currentText()
-                ).get("host")),
+                ).host),
             )
         )
         self.dlg.coverage_selection.clear()
@@ -289,7 +289,7 @@ class wtss_qgis:
                 name=self.dlg.service_selection.currentText(),
                 host=str(self.server_controls.findServiceByName(
                     self.dlg.service_selection.currentText()
-                ).get("host")),
+                ).host),
                 coverage=str(self.dlg.coverage_selection.currentText())
             )
         )
@@ -316,7 +316,7 @@ class wtss_qgis:
         """Verify the selected attributes in check list and save in array"""
         selected_attributes = []
         for band in list(self.bands_checks.keys()):
-            if self.bands_checks.get(band).isChecked():
+            if self.bands_checks and self.bands_checks.get(band).isChecked():
                 selected_attributes.append(band)
         return selected_attributes
 
@@ -326,8 +326,8 @@ class wtss_qgis:
             str(self.dlg.service_selection.currentText()),
             str(self.dlg.coverage_selection.currentText()),
             tuple(self.loadAtributtes()),
-            self.transformSelectedLocation().get('long', 0),
             self.transformSelectedLocation().get('lat', 0),
+            self.transformSelectedLocation().get('long', 0),
             str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
             str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
         )
@@ -347,7 +347,7 @@ class wtss_qgis:
             attributes = {
                 "host": str(self.server_controls.findServiceByName(
                     self.dlg.service_selection.currentText()
-                ).get("host")),
+                ).host),
                 "coverage": str(self.dlg.coverage_selection.currentText()),
                 "bands": tuple(self.loadAtributtes()),
                 "coordinates": {
@@ -401,7 +401,7 @@ class wtss_qgis:
     def plotTimeSeries(self):
         """Generate the plot image with time series data"""
         time_series = self.loadTimeSeries()
-        if time_series != None:
+        if time_series.get('result').get("timeline") != []:
             self.files_controls.generatePlotFig(time_series)
         else:
             self.basic_controls.alert("AttributeError", "The times series service returns empty, no data to show!")
@@ -421,8 +421,8 @@ class wtss_qgis:
         try:
             self.selected_location = {
                 'layer_name' : str(self.layer.name()),
-                'lat' : float(pointTool.x()),
-                'long' : float(pointTool.y()),
+                'lat' : float(pointTool.y()),
+                'long' : float(pointTool.x()),
                 'crs' : str(self.layer.crs().authid())
             }
             history_key = str(
@@ -483,4 +483,5 @@ class wtss_qgis:
         if result:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
+            self.plotTimeSeries()
             pass
