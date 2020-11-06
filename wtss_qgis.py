@@ -24,6 +24,7 @@
 import os.path
 from pathlib import Path
 
+import qgis.utils
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from qgis.core import QgsProject
@@ -189,6 +190,9 @@ class wtss_qgis:
                 action)
             self.iface.removeToolBarIcon(action)
 
+    def showHelp(self):
+        qgis.utils.showPluginHelp(packageName="wtss-qgis", filename="index", section="about")
+
     def initControls(self):
         """Init basic controls to generate files and manage services"""
         self.basic_controls = Controls()
@@ -197,6 +201,7 @@ class wtss_qgis:
 
     def initButtons(self):
         """Init the main buttons to manage services and the results"""
+        self.dlg.show_help_button.clicked.connect(self.showHelp)
         self.dlg.save_service.clicked.connect(self.saveService)
         self.dlg.delete_service.clicked.connect(self.deleteService)
         self.dlg.edit_service.clicked.connect(self.editService)
