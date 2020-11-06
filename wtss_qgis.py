@@ -191,7 +191,14 @@ class wtss_qgis:
             self.iface.removeToolBarIcon(action)
 
     def showHelp(self):
-        qgis.utils.showPluginHelp(packageName="wtss-qgis", filename="index", section="about")
+        helpfile = (
+            Path(os.path.abspath(os.path.dirname(__file__)))
+                / 'help' / 'build' / 'html' / 'about.html'
+        )
+        if os.path.exists(helpfile):
+            url = "file://" + str(helpfile)
+            self.iface.openURL(url, False)
+        qgis.utils.showPluginHelp(packageName="wtss_qgis", filename="index", section="about")
 
     def initControls(self):
         """Init basic controls to generate files and manage services"""
