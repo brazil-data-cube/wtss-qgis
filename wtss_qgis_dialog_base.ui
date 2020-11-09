@@ -363,9 +363,22 @@
        <rect>
         <x>10</x>
         <y>30</y>
-        <width>431</width>
+        <width>391</width>
         <height>25</height>
        </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="show_coverage_description">
+      <property name="geometry">
+       <rect>
+        <x>410</x>
+        <y>30</y>
+        <width>31</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
       </property>
      </widget>
     </widget>
@@ -401,7 +414,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>?</string>
+       <string/>
       </property>
      </widget>
     </widget>

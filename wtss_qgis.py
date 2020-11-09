@@ -172,7 +172,7 @@ class wtss_qgis:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = str(Path(Config.BASE_DIR) / 'icon.png')
+        icon_path = str(Path(Config.BASE_DIR) / 'assets' / 'icon.png')
         self.add_action(
             icon_path,
             text=self.tr(u'WTSS'),
@@ -206,9 +206,16 @@ class wtss_qgis:
         self.server_controls = Services(user = "application")
         self.files_controls = FilesExport()
 
+    def initIcons(self):
+        icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'interrogation-icon.png'))
+        self.dlg.show_help_button.setIcon(icon)
+        icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'info-icon.png'))
+        self.dlg.show_coverage_description.setIcon(icon)
+
     def initButtons(self):
         """Init the main buttons to manage services and the results"""
         self.dlg.show_help_button.clicked.connect(self.showHelp)
+        self.dlg.show_coverage_description.clicked.connect(self.showCoverageDescription)
         self.dlg.save_service.clicked.connect(self.saveService)
         self.dlg.delete_service.clicked.connect(self.deleteService)
         self.dlg.edit_service.clicked.connect(self.editService)
@@ -230,7 +237,10 @@ class wtss_qgis:
 
     def initServices(self):
         """Load the registered services based on JSON file"""
-        self.dlg.service_selection.addItems(self.server_controls.getServiceNames())
+        service_names = self.server_controls.getServiceNames()
+        if not service_names:
+            self.basic_controls.alert("error","502 Error", "The main services are not available!")
+        self.dlg.service_selection.addItems(service_names)
         self.dlg.service_selection.activated.connect(self.selectCoverage)
         self.data = self.server_controls.loadServices()
         self.model = QStandardItemModel()
@@ -248,7 +258,7 @@ class wtss_qgis:
             self.dlg.service_host.clear()
             self.updateServicesList()
         except (ValueError, AttributeError, ConnectionRefusedError) as error:
-            self.basic_controls.alert("(ValueError, AttributeError)", str(error))
+            self.basic_controls.alert("error", "(ValueError, AttributeError)", str(error))
 
     def deleteService(self):
         """Delete the selected active service"""
@@ -257,7 +267,7 @@ class wtss_qgis:
             self.server_controls.deleteService(host_to_delete)
             self.updateServicesList()
         except (ValueError, AttributeError) as error:
-            self.basic_controls.alert("(ValueError, AttributeError)", str(error))
+            self.basic_controls.alert("error", "(ValueError, AttributeError)", str(error))
 
     def editService(self):
         """Edit the selected service"""
@@ -293,6 +303,21 @@ class wtss_qgis:
             )
         )
         self.dlg.coverage_selection.activated.connect(self.selectAtributtes)
+
+    def showCoverageDescription(self):
+        if str(self.dlg.coverage_selection.currentText()):
+            description = self.basic_controls.getDescription(
+                name=self.dlg.service_selection.currentText(),
+                host=str(self.server_controls.findServiceByName(
+                    self.dlg.service_selection.currentText()
+                ).host),
+                coverage=str(self.dlg.coverage_selection.currentText())
+            )
+            self.basic_controls.alert(
+                "info",
+                "Coverage Description",
+                str(self.dlg.coverage_selection.currentText())
+            )
 
     def selectAtributtes(self):
         """Get attributes based on coverage metadata and create the check list"""
@@ -374,7 +399,7 @@ class wtss_qgis:
             }
             self.files_controls.generateCode(name[0], attributes)
         except AttributeError as error:
-            self.basic_controls.alert("AttributeError", str(error))
+            self.basic_controls.alert("warning", "AttributeError", str(error))
 
     def exportCSV(self):
         """Export to file system times series data in CSV"""
@@ -391,7 +416,7 @@ class wtss_qgis:
             time_series = self.loadTimeSeries()
             self.files_controls.generateCSV(name[0], time_series)
         except AttributeError as error:
-            self.basic_controls.alert("AttributeError", str(error))
+            self.basic_controls.alert("warning", "AttributeError", str(error))
 
     def exportJSON(self):
         """Export the response of WTSS data"""
@@ -408,7 +433,7 @@ class wtss_qgis:
             time_series = self.loadTimeSeries()
             self.files_controls.generateJSON(name[0], time_series)
         except AttributeError as error:
-            self.basic_controls.alert("AttributeError", str(error))
+            self.basic_controls.alert("warning", "AttributeError", str(error))
 
     def plotTimeSeries(self):
         """Generate the plot image with time series data"""
@@ -416,7 +441,7 @@ class wtss_qgis:
         if time_series.get('result').get("timeline") != []:
             self.files_controls.generatePlotFig(time_series)
         else:
-            self.basic_controls.alert("AttributeError", "The times series service returns empty, no data to show!")
+            self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
 
     def getLayers(self):
         """Storage the layers in QGIS project"""
@@ -485,6 +510,8 @@ class wtss_qgis:
         self.initServices()
         # History
         self.initHistory()
+        # Add icons to buttons
+        self.initIcons()
         # Add functions to buttons
         self.initButtons()
         # show the dialog
