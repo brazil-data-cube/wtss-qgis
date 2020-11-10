@@ -43,6 +43,17 @@ from .wtss_plugin.wtss_qgis_controller import Controls, Services
 # Import the code for the dialog
 from .wtss_qgis_dialog import wtss_qgisDialog
 
+class color:
+    PURPLE = '\033[95m'
+    CYAN = '\033[96m'
+    DARKCYAN = '\033[36m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    END = '\033[0m'
 
 class wtss_qgis:
     """QGIS Plugin Implementation."""
@@ -246,6 +257,9 @@ class wtss_qgis:
         self.model = QStandardItemModel()
         self.basic_controls.addItemsTreeView(self.model, self.data)
         self.dlg.data.setModel(self.model)
+        self.dlg.data.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        index = self.dlg.data.selectedIndexes()[0]
+        selected = index.model().itemFromIndex(index).text()
 
     def saveService(self):
         """Save the service based on name and host input"""
@@ -306,17 +320,22 @@ class wtss_qgis:
 
     def showCoverageDescription(self):
         if str(self.dlg.coverage_selection.currentText()):
-            description = self.basic_controls.getDescription(
-                name=self.dlg.service_selection.currentText(),
-                host=str(self.server_controls.findServiceByName(
-                    self.dlg.service_selection.currentText()
-                ).host),
-                coverage=str(self.dlg.coverage_selection.currentText())
+            description = self.server_controls.productDescription(
+                str(self.dlg.service_selection.currentText()),
+                str(self.dlg.coverage_selection.currentText())
             )
             self.basic_controls.alert(
                 "info",
-                "Coverage Description",
-                str(self.dlg.coverage_selection.currentText())
+                "Coverage {}".format(str(self.dlg.coverage_selection.currentText())),
+                "{description}\n\n{spatial}".format(
+                    description=description.get("description"),
+                    spatial= "Dimensions\n\nXmin: {xmin:,.2f}\nXmax: {xmax:,.2f}\nYmin: {ymin:,.2f}\nYmax: {ymax:,.2f}".format(
+                        xmin=description.get("spatial_extent").get("xmin"),
+                        xmax=description.get("spatial_extent").get("xmax"),
+                        ymin=description.get("spatial_extent").get("ymin"),
+                        ymax=description.get("spatial_extent").get("ymax")
+                    )
+                )
             )
 
     def selectAtributtes(self):
