@@ -258,8 +258,8 @@ class wtss_qgis:
         self.basic_controls.addItemsTreeView(self.model, self.data)
         self.dlg.data.setModel(self.model)
         self.dlg.data.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        index = self.dlg.data.selectedIndexes()[0]
-        selected = index.model().itemFromIndex(index).text()
+        self.dlg.data.doubleClicked.connect(self.updateDescription)
+        self.updateDescription()
 
     def saveService(self):
         """Save the service based on name and host input"""
@@ -302,14 +302,6 @@ class wtss_qgis:
 
     def selectCoverage(self):
         """Fill the blank spaces with coverage metadata for selection"""
-        self.dlg.service_metadata.setText(
-            self.basic_controls.getDescription(
-                name=str(self.dlg.service_selection.currentText()),
-                host=str(self.server_controls.findServiceByName(
-                    self.dlg.service_selection.currentText()
-                ).host),
-            )
-        )
         self.dlg.coverage_selection.clear()
         self.dlg.coverage_selection.addItems(
             self.server_controls.listProducts(
@@ -319,36 +311,20 @@ class wtss_qgis:
         self.dlg.coverage_selection.activated.connect(self.selectAtributtes)
 
     def showCoverageDescription(self):
+        """Show a information coverage window"""
         if str(self.dlg.coverage_selection.currentText()):
-            description = self.server_controls.productDescription(
-                str(self.dlg.service_selection.currentText()),
-                str(self.dlg.coverage_selection.currentText())
-            )
             self.basic_controls.alert(
                 "info",
                 "Coverage {}".format(str(self.dlg.coverage_selection.currentText())),
-                "{description}\n\n{spatial}".format(
-                    description=description.get("description"),
-                    spatial= "Dimensions\n\nXmin: {xmin:,.2f}\nXmax: {xmax:,.2f}\nYmin: {ymin:,.2f}\nYmax: {ymax:,.2f}".format(
-                        xmin=description.get("spatial_extent").get("xmin"),
-                        xmax=description.get("spatial_extent").get("xmax"),
-                        ymin=description.get("spatial_extent").get("ymin"),
-                        ymax=description.get("spatial_extent").get("ymax")
-                    )
+                self.basic_controls.getCoverageDescription(
+                    self.server_controls,
+                    str(self.dlg.service_selection.currentText()),
+                    str(self.dlg.coverage_selection.currentText())
                 )
             )
 
     def selectAtributtes(self):
         """Get attributes based on coverage metadata and create the check list"""
-        self.dlg.service_metadata.setText(
-            self.basic_controls.getDescription(
-                name=self.dlg.service_selection.currentText(),
-                host=str(self.server_controls.findServiceByName(
-                    self.dlg.service_selection.currentText()
-                ).host),
-                coverage=str(self.dlg.coverage_selection.currentText())
-            )
-        )
         self.widget = QWidget()
         self.vbox = QVBoxLayout()
         description = self.server_controls.productDescription(
@@ -517,14 +493,37 @@ class wtss_qgis:
             )
         return transformed
 
+    def updateDescription(self):
+        try:
+            index = self.dlg.data.selectedIndexes()[0]
+            selected = index.model().itemFromIndex(index)
+            self.dlg.service_metadata.setText(
+                "{service_metadata}\n\n{coverage_metadata}".format(
+                    service_metadata=self.basic_controls.getDescription(
+                        name=str(selected.parent().text()),
+                        host=str(self.server_controls.findServiceByName(
+                            selected.parent().text()
+                        ).host),
+                        coverage=selected.text()
+                    ),
+                    coverage_metadata=self.basic_controls.getCoverageDescription(
+                        self.server_controls,
+                        str(selected.parent().text()),
+                        selected.text()
+                    )
+                )
+            )
+        except:
+            self.dlg.service_metadata.setText(
+                "Select a coverage!"
+            )
+
     def run(self):
         """Run method that performs all the real work"""
         # Init Application
         self.dlg = wtss_qgisDialog()
         # Init Controls
         self.initControls()
-        # Description
-        self.dlg.service_metadata.setText(self.basic_controls.getDescription())
         # Services
         self.initServices()
         # History
