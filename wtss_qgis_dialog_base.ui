@@ -54,7 +54,7 @@
     <enum>QTabWidget::Rounded</enum>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="services_tab">
     <attribute name="title">
@@ -166,8 +166,17 @@
       <property name="text">
        <string/>
       </property>
+      <property name="textFormat">
+       <enum>Qt::PlainText</enum>
+      </property>
       <property name="alignment">
        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
+      <property name="textInteractionFlags">
+       <set>Qt::TextBrowserInteraction</set>
       </property>
      </widget>
     </widget>
@@ -213,7 +222,7 @@
    </widget>
    <widget class="QWidget" name="time_series_tab">
     <attribute name="title">
-     <string>Time Series</string>
+     <string>Get Time Series</string>
     </attribute>
     <widget class="QGroupBox" name="history">
      <property name="geometry">

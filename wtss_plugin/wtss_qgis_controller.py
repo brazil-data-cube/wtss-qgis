@@ -131,15 +131,8 @@ class Controls:
             coverage<string>: the coverage name selected
         """
         description = server_controls.productDescription(service, coverage)
-        counting_words = str(description.get("description")).split(" ")
-        coverage_description = ""
-        for i in range(len(counting_words)):
-            coverage_description += counting_words[i]
-            coverage_description += " "
-            if i != 0 and i % 4 == 0:
-                coverage_description += "\n"
         return "{description}\n\n{spatial}".format(
-            description=coverage_description,
+            description=str(description.get("description")),
             spatial= "*Dimensions*\n\nXmin: {xmin:,.2f}\nXmax: {xmax:,.2f}\nYmin: {ymin:,.2f}\nYmax: {ymax:,.2f}".format(
                 xmin=description.get("spatial_extent").get("xmin"),
                 xmax=description.get("spatial_extent").get("xmax"),

@@ -258,7 +258,7 @@ class wtss_qgis:
         self.basic_controls.addItemsTreeView(self.model, self.data)
         self.dlg.data.setModel(self.model)
         self.dlg.data.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.dlg.data.doubleClicked.connect(self.updateDescription)
+        self.dlg.data.clicked.connect(self.updateDescription)
         self.updateDescription()
 
     def saveService(self):
@@ -266,29 +266,42 @@ class wtss_qgis:
         name_to_save = str(self.dlg.service_name.text())
         host_to_save = str(self.dlg.service_host.text())
         try:
-            self.server_controls.editService(name_to_save, host_to_save)
-            self.selected_service = host_to_save
-            self.dlg.service_name.clear()
-            self.dlg.service_host.clear()
-            self.updateServicesList()
+            response = self.server_controls.editService(name_to_save, host_to_save)
+            if response != None:
+                self.selected_service = host_to_save
+                self.dlg.service_name.clear()
+                self.dlg.service_host.clear()
+                self.updateServicesList()
+            else:
+                self.basic_controls.alert(
+                    "error",
+                    "(ValueError, AttributeError)",
+                    "It is not a valid WTSS Server!"
+                )
         except (ValueError, AttributeError, ConnectionRefusedError) as error:
             self.basic_controls.alert("error", "(ValueError, AttributeError)", str(error))
 
     def deleteService(self):
         """Delete the selected active service"""
-        host_to_delete = self.dlg.service_selection.currentText()
         try:
-            self.server_controls.deleteService(host_to_delete)
+            host_to_delete = host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.text())
+            if host_to_delete == None:
+                host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.parent().text())
+            self.server_controls.deleteService(host_to_delete.name)
             self.updateServicesList()
         except (ValueError, AttributeError) as error:
             self.basic_controls.alert("error", "(ValueError, AttributeError)", str(error))
 
     def editService(self):
         """Edit the selected service"""
-        self.dlg.service_name.setText(self.dlg.service_selection.currentText())
-        self.dlg.service_host.setText(
-            self.server_controls.findServiceByName(self.dlg.service_selection.currentText()).host
-        )
+        try:
+            host_to_delete = host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.text())
+            if host_to_delete == None:
+                host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.parent().text())
+            self.dlg.service_name.setText(host_to_delete.name)
+            self.dlg.service_host.setText(host_to_delete.host)
+        except (ValueError, AttributeError) as error:
+            self.basic_controls.alert("error", "(ValueError, AttributeError)", str(error))
 
     def updateServicesList(self):
         """Update the service list when occurs some change in JSON file"""
@@ -496,20 +509,20 @@ class wtss_qgis:
     def updateDescription(self):
         try:
             index = self.dlg.data.selectedIndexes()[0]
-            selected = index.model().itemFromIndex(index)
+            self.metadata_selected = index.model().itemFromIndex(index)
             self.dlg.service_metadata.setText(
                 "{service_metadata}\n\n{coverage_metadata}".format(
                     service_metadata=self.basic_controls.getDescription(
-                        name=str(selected.parent().text()),
+                        name=str(self.metadata_selected.parent().text()),
                         host=str(self.server_controls.findServiceByName(
-                            selected.parent().text()
+                            self.metadata_selected.parent().text()
                         ).host),
-                        coverage=selected.text()
+                        coverage=self.metadata_selected.text()
                     ),
                     coverage_metadata=self.basic_controls.getCoverageDescription(
                         self.server_controls,
-                        str(selected.parent().text()),
-                        selected.text()
+                        str(self.metadata_selected.parent().text()),
+                        self.metadata_selected.text()
                     )
                 )
             )
