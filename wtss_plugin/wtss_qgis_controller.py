@@ -38,7 +38,7 @@ class Controls:
         getDescription
     """
 
-    def alert(self, title, text):
+    def alert(self, type_message, title, text):
         """
         Show alert message box with a title and info
 
@@ -47,7 +47,12 @@ class Controls:
             text<string>: the message box info
         """
         msg = QMessageBox()
-        msg.setIcon(QMessageBox.Critical)
+        if type_message == 'error':
+            msg.setIcon(QMessageBox.Critical)
+        elif type_message == 'warning':
+            msg.setIcon(QMessageBox.Warning)
+        elif type_message == 'info':
+            msg.setIcon(QMessageBox.Information)
         msg.setWindowTitle(title)
         msg.setText(text)
         msg.setStandardButtons(QMessageBox.Ok)
@@ -114,6 +119,26 @@ class Controls:
             "Service name: " + name + "\n" +
             "Host: " + host + "\n" +
             "Active coverage: " + coverage + "\n"
+        )
+
+    def getCoverageDescription(self, server_controls = None, service = "", coverage = ""):
+        """
+        Get description from WTSS Server and format for show
+
+        Args:
+            server_controls<Services>: server controls to set services
+            service<string>: the service name save on server controls
+            coverage<string>: the coverage name selected
+        """
+        description = server_controls.productDescription(service, coverage)
+        return "{description}\n\n{spatial}".format(
+            description=str(description.get("description")),
+            spatial= "*Dimensions*\n\nXmin: {xmin:,.2f}\nXmax: {xmax:,.2f}\nYmin: {ymin:,.2f}\nYmax: {ymax:,.2f}".format(
+                xmin=description.get("spatial_extent").get("xmin"),
+                xmax=description.get("spatial_extent").get("xmax"),
+                ymin=description.get("spatial_extent").get("ymin"),
+                ymax=description.get("spatial_extent").get("ymax")
+            )
         )
 
 class Service:
@@ -195,6 +220,10 @@ class Services:
         self.addService("Brazil Data Cube", "http://brazildatacube.dpi.inpe.br/")
         self.addService("E-sensing", "http://www.esensing.dpi.inpe.br/")
         self.addService("WTSS Local", "http://0.0.0.0:5000")
+        if not self.getServiceNames():
+            to_save = json_loads(json.dumps(ServiceList([]).__dict__))
+            with open(str(self.getPath()), 'w') as outfile:
+                    json.dump(to_save, outfile)
 
     def getServices(self):
         """
@@ -217,35 +246,41 @@ class Services:
                     service_names.append(server.name)
             return service_names
         except (FileNotFoundError, FileExistsError):
-            return None
+            return []
 
     def getServicesDict(self):
         """
         Returns the services object like dict
         """
-        serviceList = self.getServices()
-        for i in range(len(serviceList.services)):
-            serviceList.services[i] = json_loads(
-                json.dumps(serviceList.services[i].__dict__)
-            )
-        serviceList = json_loads(json.dumps(serviceList.__dict__))
-        return serviceList
+        try:
+            serviceList = self.getServices()
+            for i in range(len(serviceList.services)):
+                serviceList.services[i] = json_loads(
+                    json.dumps(serviceList.services[i].__dict__)
+                )
+            serviceList = json_loads(json.dumps(serviceList.__dict__))
+            return serviceList
+        except (FileNotFoundError, FileExistsError):
+            return {}
 
     def loadServices(self):
         """
         Returns the services in a data struct based on QGIS Tree View
         """
-        servers = []
-        for server in self.getServices().services:
-            if self.testServiceConnection(server.host):
-                client_wtss = wtss(server.host)
-                coverage_tree = []
-                for coverage in client_wtss.list_coverages().get('coverages', []):
-                    coverage_tree.append((coverage, []))
-                servers.append((server.name, coverage_tree))
-            else:
-                self.deleteService(server.name)
-        return [('Services', servers)]
+        try:
+            servers = []
+            for server in self.getServices().services:
+                if self.testServiceConnection(server.host):
+                    client_wtss = wtss(server.host)
+                    coverage_tree = []
+                    for coverage in client_wtss.list_coverages().get('coverages', []):
+                        coverage_tree.append((coverage, []))
+                    servers.append((server.name, coverage_tree))
+                else:
+                    self.deleteService(server.name)
+            return [('Services', servers)]
+        except (FileNotFoundError, FileExistsError):
+            return [('Services', servers)]
 
     def findServiceByName(self, service_name):
         """

@@ -24,6 +24,7 @@
 import os.path
 from pathlib import Path
 
+import qgis.utils
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from qgis.core import QgsProject
@@ -42,6 +43,17 @@ from .wtss_plugin.wtss_qgis_controller import Controls, Services
 # Import the code for the dialog
 from .wtss_qgis_dialog import wtss_qgisDialog
 
+class color:
+    PURPLE = '\033[95m'
+    CYAN = '\033[96m'
+    DARKCYAN = '\033[36m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    END = '\033[0m'
 
 class wtss_qgis:
     """QGIS Plugin Implementation."""
@@ -171,7 +183,7 @@ class wtss_qgis:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = str(Path(Config.BASE_DIR) / 'icon.png')
+        icon_path = str(Path(Config.BASE_DIR) / 'assets' / 'icon.png')
         self.add_action(
             icon_path,
             text=self.tr(u'WTSS'),
@@ -189,14 +201,32 @@ class wtss_qgis:
                 action)
             self.iface.removeToolBarIcon(action)
 
+    def showHelp(self):
+        helpfile = (
+            Path(os.path.abspath(os.path.dirname(__file__)))
+                / 'help' / 'build' / 'html' / 'about.html'
+        )
+        if os.path.exists(helpfile):
+            url = "file://" + str(helpfile)
+            self.iface.openURL(url, False)
+        qgis.utils.showPluginHelp(packageName="wtss_qgis", filename="index", section="about")
+
     def initControls(self):
         """Init basic controls to generate files and manage services"""
         self.basic_controls = Controls()
         self.server_controls = Services(user = "application")
         self.files_controls = FilesExport()
 
+    def initIcons(self):
+        icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'interrogation-icon.png'))
+        self.dlg.show_help_button.setIcon(icon)
+        icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'info-icon.png'))
+        self.dlg.show_coverage_description.setIcon(icon)
+
     def initButtons(self):
         """Init the main buttons to manage services and the results"""
+        self.dlg.show_help_button.clicked.connect(self.showHelp)
+        self.dlg.show_coverage_description.clicked.connect(self.showCoverageDescription)
         self.dlg.save_service.clicked.connect(self.saveService)
         self.dlg.delete_service.clicked.connect(self.deleteService)
         self.dlg.edit_service.clicked.connect(self.editService)
@@ -218,41 +248,60 @@ class wtss_qgis:
 
     def initServices(self):
         """Load the registered services based on JSON file"""
-        self.dlg.service_selection.addItems(self.server_controls.getServiceNames())
+        service_names = self.server_controls.getServiceNames()
+        if not service_names:
+            self.basic_controls.alert("error","502 Error", "The main services are not available!")
+        self.dlg.service_selection.addItems(service_names)
         self.dlg.service_selection.activated.connect(self.selectCoverage)
         self.data = self.server_controls.loadServices()
         self.model = QStandardItemModel()
         self.basic_controls.addItemsTreeView(self.model, self.data)
         self.dlg.data.setModel(self.model)
+        self.dlg.data.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.dlg.data.clicked.connect(self.updateDescription)
+        self.updateDescription()
 
     def saveService(self):
         """Save the service based on name and host input"""
         name_to_save = str(self.dlg.service_name.text())
         host_to_save = str(self.dlg.service_host.text())
         try:
-            self.server_controls.editService(name_to_save, host_to_save)
-            self.selected_service = host_to_save
-            self.dlg.service_name.clear()
-            self.dlg.service_host.clear()
-            self.updateServicesList()
+            response = self.server_controls.editService(name_to_save, host_to_save)
+            if response != None:
+                self.selected_service = host_to_save
+                self.dlg.service_name.clear()
+                self.dlg.service_host.clear()
+                self.updateServicesList()
+            else:
+                self.basic_controls.alert(
+                    "error",
+                    "(ValueError, AttributeError)",
+                    "It is not a valid WTSS Server!"
+                )
         except (ValueError, AttributeError, ConnectionRefusedError) as error:
-            self.basic_controls.alert("(ValueError, AttributeError)", str(error))
+            self.basic_controls.alert("error", "(ValueError, AttributeError)", str(error))
 
     def deleteService(self):
         """Delete the selected active service"""
-        host_to_delete = self.dlg.service_selection.currentText()
         try:
-            self.server_controls.deleteService(host_to_delete)
+            host_to_delete = host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.text())
+            if host_to_delete == None:
+                host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.parent().text())
+            self.server_controls.deleteService(host_to_delete.name)
             self.updateServicesList()
         except (ValueError, AttributeError) as error:
-            self.basic_controls.alert("(ValueError, AttributeError)", str(error))
+            self.basic_controls.alert("error", "(ValueError, AttributeError)", str(error))
 
     def editService(self):
         """Edit the selected service"""
-        self.dlg.service_name.setText(self.dlg.service_selection.currentText())
-        self.dlg.service_host.setText(
-            self.server_controls.findServiceByName(self.dlg.service_selection.currentText()).host
-        )
+        try:
+            host_to_delete = host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.text())
+            if host_to_delete == None:
+                host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.parent().text())
+            self.dlg.service_name.setText(host_to_delete.name)
+            self.dlg.service_host.setText(host_to_delete.host)
+        except (ValueError, AttributeError) as error:
+            self.basic_controls.alert("error", "(ValueError, AttributeError)", str(error))
 
     def updateServicesList(self):
         """Update the service list when occurs some change in JSON file"""
@@ -266,14 +315,6 @@ class wtss_qgis:
 
     def selectCoverage(self):
         """Fill the blank spaces with coverage metadata for selection"""
-        self.dlg.service_metadata.setText(
-            self.basic_controls.getDescription(
-                name=str(self.dlg.service_selection.currentText()),
-                host=str(self.server_controls.findServiceByName(
-                    self.dlg.service_selection.currentText()
-                ).host),
-            )
-        )
         self.dlg.coverage_selection.clear()
         self.dlg.coverage_selection.addItems(
             self.server_controls.listProducts(
@@ -282,17 +323,21 @@ class wtss_qgis:
         )
         self.dlg.coverage_selection.activated.connect(self.selectAtributtes)
 
+    def showCoverageDescription(self):
+        """Show a information coverage window"""
+        if str(self.dlg.coverage_selection.currentText()):
+            self.basic_controls.alert(
+                "info",
+                "Coverage {}".format(str(self.dlg.coverage_selection.currentText())),
+                self.basic_controls.getCoverageDescription(
+                    self.server_controls,
+                    str(self.dlg.service_selection.currentText()),
+                    str(self.dlg.coverage_selection.currentText())
+                )
+            )
+
     def selectAtributtes(self):
         """Get attributes based on coverage metadata and create the check list"""
-        self.dlg.service_metadata.setText(
-            self.basic_controls.getDescription(
-                name=self.dlg.service_selection.currentText(),
-                host=str(self.server_controls.findServiceByName(
-                    self.dlg.service_selection.currentText()
-                ).host),
-                coverage=str(self.dlg.coverage_selection.currentText())
-            )
-        )
         self.widget = QWidget()
         self.vbox = QVBoxLayout()
         description = self.server_controls.productDescription(
@@ -362,7 +407,7 @@ class wtss_qgis:
             }
             self.files_controls.generateCode(name[0], attributes)
         except AttributeError as error:
-            self.basic_controls.alert("AttributeError", str(error))
+            self.basic_controls.alert("warning", "AttributeError", str(error))
 
     def exportCSV(self):
         """Export to file system times series data in CSV"""
@@ -379,7 +424,7 @@ class wtss_qgis:
             time_series = self.loadTimeSeries()
             self.files_controls.generateCSV(name[0], time_series)
         except AttributeError as error:
-            self.basic_controls.alert("AttributeError", str(error))
+            self.basic_controls.alert("warning", "AttributeError", str(error))
 
     def exportJSON(self):
         """Export the response of WTSS data"""
@@ -396,7 +441,7 @@ class wtss_qgis:
             time_series = self.loadTimeSeries()
             self.files_controls.generateJSON(name[0], time_series)
         except AttributeError as error:
-            self.basic_controls.alert("AttributeError", str(error))
+            self.basic_controls.alert("warning", "AttributeError", str(error))
 
     def plotTimeSeries(self):
         """Generate the plot image with time series data"""
@@ -404,7 +449,7 @@ class wtss_qgis:
         if time_series.get('result').get("timeline") != []:
             self.files_controls.generatePlotFig(time_series)
         else:
-            self.basic_controls.alert("AttributeError", "The times series service returns empty, no data to show!")
+            self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
 
     def getLayers(self):
         """Storage the layers in QGIS project"""
@@ -461,18 +506,43 @@ class wtss_qgis:
             )
         return transformed
 
+    def updateDescription(self):
+        try:
+            index = self.dlg.data.selectedIndexes()[0]
+            self.metadata_selected = index.model().itemFromIndex(index)
+            self.dlg.service_metadata.setText(
+                "{service_metadata}\n\n{coverage_metadata}".format(
+                    service_metadata=self.basic_controls.getDescription(
+                        name=str(self.metadata_selected.parent().text()),
+                        host=str(self.server_controls.findServiceByName(
+                            self.metadata_selected.parent().text()
+                        ).host),
+                        coverage=self.metadata_selected.text()
+                    ),
+                    coverage_metadata=self.basic_controls.getCoverageDescription(
+                        self.server_controls,
+                        str(self.metadata_selected.parent().text()),
+                        self.metadata_selected.text()
+                    )
+                )
+            )
+        except:
+            self.dlg.service_metadata.setText(
+                "Select a coverage!"
+            )
+
     def run(self):
         """Run method that performs all the real work"""
         # Init Application
         self.dlg = wtss_qgisDialog()
         # Init Controls
         self.initControls()
-        # Description
-        self.dlg.service_metadata.setText(self.basic_controls.getDescription())
         # Services
         self.initServices()
         # History
         self.initHistory()
+        # Add icons to buttons
+        self.initIcons()
         # Add functions to buttons
         self.initButtons()
         # show the dialog
