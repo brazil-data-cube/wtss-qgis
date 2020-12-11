@@ -39,7 +39,7 @@ class FilesExport:
         template = (
             Path(os.path.abspath(os.path.dirname(__file__)))
                 / 'examples'
-                    / 'times_series_export_template.py'
+                    / 'times_series_export_template.txt'
         )
         return open(template, 'r').read()
 
