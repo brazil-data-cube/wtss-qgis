@@ -230,7 +230,7 @@
        <x>480</x>
        <y>10</y>
        <width>251</width>
-       <height>381</height>
+       <height>321</height>
       </rect>
      </property>
      <property name="title">
@@ -242,7 +242,7 @@
         <x>10</x>
         <y>30</y>
         <width>231</width>
-        <height>341</height>
+        <height>281</height>
        </rect>
       </property>
      </widget>
@@ -437,7 +437,7 @@
       </rect>
      </property>
      <property name="title">
-      <string>Export data as</string>
+      <string>Export result as</string>
      </property>
      <widget class="QPushButton" name="export_as_csv">
       <property name="geometry">
@@ -457,24 +457,6 @@
        <string>CSV</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="export_as_python">
-      <property name="geometry">
-       <rect>
-        <x>170</x>
-        <y>30</y>
-        <width>71</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>9</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Python</string>
-      </property>
-     </widget>
      <widget class="QPushButton" name="export_as_json">
       <property name="geometry">
        <rect>
@@ -491,6 +473,37 @@
       </property>
       <property name="text">
        <string>JSON</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="Export_data">
+     <property name="geometry">
+      <rect>
+       <x>480</x>
+       <y>340</y>
+       <width>241</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Export code as</string>
+     </property>
+     <widget class="QPushButton" name="export_as_python">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>71</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Python</string>
       </property>
      </widget>
     </widget>
