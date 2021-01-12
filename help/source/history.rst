@@ -5,7 +5,7 @@
     under the terms of the MIT License; see LICENSE file for more details.
 ..
 
-Installation
-************
+Changes
+*******
 
-.. include:: ../../INSTALL.rst
+.. include:: ../../CHANGES.rst
