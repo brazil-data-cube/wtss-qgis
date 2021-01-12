@@ -1,6 +1,6 @@
 ..
     This file is part of Python QGIS Plugin for Web Time Series Service.
-    Copyright (C) 2019 INPE.
+    Copyright (C) 2020 INPE.
 
     Python QGIS Plugin for Web Time Series Service is free software;
     You can redistribute it and/or modify it under the terms of the MIT License;
@@ -23,10 +23,16 @@ Python QGIS Plugin for Web Time Series Service
         :target: https://gitter.im/brazil-data-cube/community#
         :alt: Join the chat
 
+.. image:: https://readthedocs.org/projects/wlts-qgis/badge/?version=latest
+        :target: https://wlts-qgis.readthedocs.io/en/latest/
+        :alt: Documentation Status
+
+.. image:: https://img.shields.io/discord/689541907621085198?logo=discord&logoColor=ffffff&color=7389D8
+        :target: https://discord.com/channels/689541907621085198#
+        :alt: Join us at Discord
 
 About
 =====
-
 
 This is an implementation of the `Web Time Series Service specification <https://github.com/brazil-data-cube/wtss-spec>`_.
 
@@ -60,31 +66,10 @@ For more information on WTSS, see:
 
 The following image presents an overview of the plugin:
 
-.. image:: ./assets/screenshots/wtss-qgis.png
-        :target: ./assets/screenshots
+.. image:: https://github.com/brazil-data-cube/wtss-qgis/blob/master/help/source/assets/img/wtss-qgis.png
+        :target: https://github.com/brazil-data-cube/wtss-qgis/blob/master/help/source/assets/img
         :width: 100%
         :alt: WTSS-QGIS
-
-References
-==========
-
-- VINHAS, L. ; QUEIROZ, G. R. ; FERREIRA, K. R. ; C MARA, G.  Web Services for Big Earth Observation Data. RBC. REVISTA BRASILEIRA DE CARTOGRAFIA (ONLINE), v. 69, p. 6, 2016.
-
-- QUEIROZ, G. R.; FERREIRA, K. R.; VINHAS, L.; CAMARA, G.; COSTA, R. W.; Souza, R. C. M.; Maus,V. W.; Sanchez, A. WTSS: um serviço web para extração de séries temporais de imagens de sensoriamento remoto. In: Proceedings of the XVII Brazilian Symposium on Remote Sensing, pages 7553–7560. 2015.
-
-
-The following image presents an overview of the plugin:
-
-.. image:: ./help/source/assets/screenshots/wtss-qgis.png
-        :target: ./help/source/assets/screenshots
-        :width: 70%
-        :alt: WTSS-QGIS
-
-
-
-
-
-
 
 Installation
 ============
@@ -96,11 +81,18 @@ Unit Tests
 
 See `TESTS.rst <./TESTS.rst>`_.
 
+References
+==========
+
+- VINHAS, L. ; QUEIROZ, G. R. ; FERREIRA, K. R. ; C MARA, G.  Web Services for Big Earth Observation Data. RBC. REVISTA BRASILEIRA DE CARTOGRAFIA (ONLINE), v. 69, p. 6, 2016.
+
+- QUEIROZ, G. R.; FERREIRA, K. R.; VINHAS, L.; CAMARA, G.; COSTA, R. W.; Souza, R. C. M.; Maus,V. W.; Sanchez, A. WTSS: um serviço web para extração de séries temporais de imagens de sensoriamento remoto. In: Proceedings of the XVII Brazilian Symposium on Remote Sensing, pages 7553–7560. 2015.
+
 License
 =======
 
 .. admonition::
-    Copyright (C) 2019 INPE.
+    Copyright (C) 2020 INPE.
 
     Python QGIS Plugin for Web Time Series Service is free software; you can redistribute it and/or modify it
     under the terms of the MIT License; see LICENSE file for more details.
