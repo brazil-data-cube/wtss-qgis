@@ -23,10 +23,6 @@ Python QGIS Plugin for Web Time Series Service
         :target: https://gitter.im/brazil-data-cube/community#
         :alt: Join the chat
 
-.. image:: https://readthedocs.org/projects/wlts-qgis/badge/?version=latest
-        :target: https://wlts-qgis.readthedocs.io/en/latest/
-        :alt: Documentation Status
-
 .. image:: https://img.shields.io/discord/689541907621085198?logo=discord&logoColor=ffffff&color=7389D8
         :target: https://discord.com/channels/689541907621085198#
         :alt: Join us at Discord
