@@ -16,4 +16,4 @@ Contact
 =======
 
 
-`Brazil Data Cube Team <mailto: brazildatacube@inpe.br>`_
+`Brazil Data Cube Team <mailto:brazildatacube%40inpe.br>`_
