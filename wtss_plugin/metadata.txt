@@ -1,0 +1,47 @@
+# This file contains metadata for your plugin.
+
+# This file should be included when you package your plugin.# Mandatory items:
+
+[general]
+name=WTSS
+qgisMinimumVersion=3.0
+description=Python Client Library for Web Time Series Service
+version=0.1
+author=INPE
+email=brazildatacube@dpi.inpe.br
+
+about=Web Time Series Service (WTSS) is a lightweight web service for handling time series data from remote sensing imagery. Given a location and a time interval you can retrieve the according time series as a Python list of real values. In WTSS a coverage is a three dimensional array associate to spatial and temporal reference systems.
+
+tracker=https://github.com/brazil-data-cube/wtss-qgis/issues
+repository=https://github.com/brazil-data-cube/wtss-qgis
+# End of mandatory metadata
+
+# Recommended items:
+
+hasProcessingProvider=no
+# Uncomment the following line and add your changelog:
+# changelog=
+
+# Tags are comma separated with spaces allowed
+tags=python
+
+homepage=http://brazildatacube.org
+category=Web
+icon=./dependencies/assets/icon.png
+# experimental flag
+experimental=True
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
+
+# Since QGIS 3.8, a comma separated list of plugins to be installed
+# (or upgraded) can be specified.
+# Check the documentation for more information.
+# plugin_dependencies=
+
+Category of the plugin: Raster, Vector, Database or Web
+# category=
+
+# If the plugin can run on QGIS Server.
+server=False
+
