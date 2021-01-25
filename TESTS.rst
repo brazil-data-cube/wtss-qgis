@@ -8,6 +8,14 @@
 Unit Test
 =========
 
+Go to the source code folder:
+
+.. code-block:: shell
+
+    $ cd wtss_plugin
+
+Run ``pytest``:
+
 .. code-block:: shell
 
     $ pytest
