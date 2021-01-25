@@ -1,13 +1,12 @@
 ..
     This file is part of Python QGIS Plugin for Web Time Series Service.
-    Copyright (C) 2019 INPE.
+    Copyright (C) 2020 INPE.
 
     Python QGIS Plugin for Web Time Series Service is free software;
     You can redistribute it and/or modify it under the terms of the MIT License;
 
-
 Installation
-============
+************
 
 The Python QGIS Plugin for WTSS depends essentially on:
 
@@ -15,14 +14,11 @@ The Python QGIS Plugin for WTSS depends essentially on:
 - `QT Creator version +5 <https://www.qt.io/download>`_
 - `Python version +3 <https://www.python.org/>`_
 
-Development Plugin Installation
--------------------------------
-
 Clone the software repository:
 
 .. code-block:: shell
 
-    git clone https://github.com/brazil-data-cube/wtss-qgis
+    $ git clone https://github.com/brazil-data-cube/wtss-qgis
 
 Go to the source code folder:
 
@@ -34,19 +30,20 @@ Install requirements `pb_tool <https://pypi.org/project/pb-tool/>`_ to deploy an
 
 .. code-block:: shell
 
-    pip install -r requirements.txt
+    $ pip install -e .[all]
 
 Linux
-*****
+=====
 
 Use ``pb_tool`` to compile and deploy the plugin in Linux OS:
 
 .. code-block:: shell
 
-    $ pb_tool deploy --plugin_path /home/{USER}/.local/share/QGIS/QGIS3/profiles/default/python/plugins
+    $ pb_tool deploy --plugin_path \
+        /home/${USER}/.local/share/QGIS/QGIS3/profiles/default/python/plugins
 
 Windows
-*******
+=======
 
 To deploy the plugin in Windows OS add Python and QGIS Python Scripts to the **PATH** environmental variable such as:
 
@@ -57,18 +54,18 @@ To deploy the plugin in Windows OS add Python and QGIS Python Scripts to the **P
 
 Now you can work from the command line.
 
-On prompt use ``pb_tool`` to compile and deploy WLTS-QGIS plugin:
+On prompt use ``pb_tool`` to compile and deploy WTSS-QGIS plugin:
 
 .. code-block:: text
 
-   > pb_tool deploy --plugin_path C:\Users\user\AppData\Roaming\QGIS\QGIS{version}\profiles\default\python\plugins
+    > pb_tool deploy --plugin_path \
+        C:\Users\user\AppData\Roaming\QGIS\QGIS${version}\profiles\default\python\plugins
 
-
-Run QGIS and open the Plugin Manager and enable the WLTS-QGIS.
+Run QGIS and open the Plugin Manager and enable the WTSS-QGIS.
 
 .. note::
 
-    If you want to create a new *Python Virtual Environment*, please, follow this instruction:
+    If you want to create a new *Python Virtual Environment* as recommended, please, follow this instruction:
 
     **1.** Create a new virtual environment linked to Python +3::
 
@@ -82,6 +79,6 @@ Run QGIS and open the Plugin Manager and enable the WLTS-QGIS.
 
     **3.** Update pip and install requirements::
 
-        pip3 install --upgrade pip
+        (venv) pip install --upgrade pip
 
-        pip3 install -r requirements.txt
+        (venv) pip install -e .[all]

@@ -3,7 +3,7 @@
 #
 # Python Client Library for Web Time Series Service
 #							 -------------------
-#		begin				: 2020-05-04
+#		begin				: 2019-05-04
 #		git sha				: $Format:%H$
 #		copyright			: (C) 2020 by INPE
 #		email				: brazildatacube@dpi.inpe.br
