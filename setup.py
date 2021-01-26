@@ -52,7 +52,7 @@ install_requires = [
 packages = find_packages()
 
 g = {}
-with open(os.path.join('wtss_plugin','dependencies', 'version.py'), 'rt') as fp:
+with open(os.path.join('wtss_plugin', 'version.py'), 'rt') as fp:
     exec(fp.read(), g)
     version = g['__version__']
 
