@@ -12,7 +12,7 @@
 # serve to show the default.
 import sphinx_rtd_theme
 
-from wtss_plugin.dependencies.version import __version__
+from wtss_plugin.version import __version__
 
 # -- Project information -----------------------------------------------------
 
