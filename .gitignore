@@ -162,9 +162,9 @@ nohup.out
 resources.py
 
 # ignore the help build dir
-wtss_qgis/help/build
-wtss_qgis/help/_build
-wtss_qgis_plugin.egg-info/
+wtss_plugin/help/build
+wtss_plugin/help/_build
+wtss_plugin_plugin.egg-info/
 
 # Drone integration
 core
