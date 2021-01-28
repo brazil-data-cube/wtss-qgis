@@ -99,13 +99,7 @@ test: compile transcompile
 	@echo "----------------------"
 	@echo "Regression Test Suite"
 	@echo "----------------------"
-
-	@# Preceding dash means that make will continue in case of errors
-	@-export PYTHONPATH=`pwd`:$(PYTHONPATH); \
-		export QGIS_DEBUG=0; \
-		export QGIS_LOG_FILE=/dev/null; \
-		nosetests -v --with-id --with-coverage --cover-package=. \
-		3>&1 1>&2 2>&3 3>&- || true
+	pytest
 	@echo "----------------------"
 	@echo "If you get a 'no module named qgis.core error, try sourcing"
 	@echo "the helper script we have provided first then run make test."
@@ -120,13 +114,7 @@ deploy:
 	# The deploy  target only works on unix like operating system where
 	# the Python plugin directory is located at:
 	# $(QGISDIR)/python/plugins
-	mkdir -p $(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vf $(PY_FILES) $(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vf $(UI_FILES) $(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vf $(COMPILED_RESOURCE_FILES) $(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vf $(EXTRAS) $(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vfr i18n $(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vfr $(HELP) $(QGISDIR)/python/plugins/$(PLUGINNAME)/help
+	pytest; pb_tool deploy -y
 
 # The dclean target removes compiled python files from plugin directory
 # also deletes any .git entry

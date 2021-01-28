@@ -62,8 +62,8 @@ For more information on WTSS, see:
 
 The following image presents an overview of the plugin:
 
-.. image:: https://github.com/brazil-data-cube/wtss-qgis/blob/master/help/source/assets/img/wtss-qgis.png
-        :target: https://github.com/brazil-data-cube/wtss-qgis/blob/master/help/source/assets/img
+.. image:: https://github.com/brazil-data-cube/wtss-qgis/raw/master/wtss_plugin/help/source/assets/img/wtss-qgis.png
+        :target: https://github.com/brazil-data-cube/wtss-qgis/blob/master/wtss_plugin/help/source/assets/img
         :width: 100%
         :alt: WTSS-QGIS
 
