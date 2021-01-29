@@ -165,6 +165,7 @@ resources.py
 wtss_plugin/help/build
 wtss_plugin/help/_build
 wtss_plugin_plugin.egg-info/
+help/_build
 
 # Drone integration
 core
