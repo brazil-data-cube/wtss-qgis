@@ -46,7 +46,8 @@ install_requires = [
     'numpy>=1.19',
     'matplotlib>=3.3.3',
     'pandas>=1.1',
-    'jsonschema>=3.2.0'
+    'jsonschema>=3.2.0',
+    'wtss>=0.7.0'
 ]
 
 packages = find_packages()

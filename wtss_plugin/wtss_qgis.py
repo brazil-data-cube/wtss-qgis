@@ -335,9 +335,9 @@ class wtss_qgis:
         bands = description.get("attributes",{})
         timeline = description.get("timeline",[])
         self.bands_checks = {}
-        for band in list(bands.keys()):
-            self.bands_checks[bands.get(band).get("name")] = QCheckBox(str(bands.get(band).get("name")))
-            self.vbox.addWidget(self.bands_checks.get(bands.get(band).get("name")))
+        for band in bands:
+            self.bands_checks[band.get('name')] = QCheckBox(str(band.get('name')))
+            self.vbox.addWidget(self.bands_checks.get(band.get('name')))
         self.widget.setLayout(self.vbox)
         self.dlg.bands_scroll.setWidgetResizable(True)
         self.dlg.bands_scroll.setWidget(self.widget)

@@ -159,7 +159,7 @@ plugin_template/*pyc
 .coverage
 .noseids
 nohup.out
-resources.py
+wtss_plugin/resources.py
 
 # ignore the help build dir
 wtss_plugin/help/build

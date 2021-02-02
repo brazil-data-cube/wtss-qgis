@@ -1,0 +1,23 @@
+include *.in
+include *.rst
+include *.sh
+include *.yml
+include LICENSE
+include pylintrc
+recursive-include wtss_plugin *.bat
+recursive-include wtss_plugin *.cfg
+recursive-include wtss_plugin *.css
+recursive-include wtss_plugin *.csv
+recursive-include wtss_plugin *.ico
+recursive-include wtss_plugin *.ini
+recursive-include wtss_plugin *.jpg
+recursive-include wtss_plugin *.json
+recursive-include wtss_plugin *.png
+recursive-include wtss_plugin *.py
+recursive-include wtss_plugin *.qrc
+recursive-include wtss_plugin *.rst
+recursive-include wtss_plugin *.sh
+recursive-include wtss_plugin *.ts
+recursive-include wtss_plugin *.txt
+recursive-include wtss_plugin *.ui
+recursive-include wtss_plugin Makefile
