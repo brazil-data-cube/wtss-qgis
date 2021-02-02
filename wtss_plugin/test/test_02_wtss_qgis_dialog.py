@@ -16,8 +16,8 @@ import unittest
 
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox
 
-from wtss_plugin import Services
-from wtss_qgis_dialog import wtss_qgisDialog
+from wtss_plugin.dependencies.wtss_qgis_controller import Services
+from wtss_plugin.wtss_qgis_dialog import wtss_qgisDialog
 
 from .utilities import get_qgis_app
 
@@ -34,20 +34,6 @@ class wtss_qgisDialogTest(unittest.TestCase):
     def tearDown(self):
         """Runs after each test."""
         self.dialog = None
-
-    def test_dialog_ok(self):
-        """Test we can click OK."""
-        button = self.dialog.dialogButtonBox.button(QDialogButtonBox.Ok)
-        button.click()
-        result = self.dialog.result()
-        self.assertEqual(result, QDialog.Accepted)
-
-    def test_dialog_cancel(self):
-        """Test we can click cancel."""
-        button = self.dialog.dialogButtonBox.button(QDialogButtonBox.Cancel)
-        button.click()
-        result = self.dialog.result()
-        self.assertEqual(result, QDialog.Rejected)
 
     def test_01_comboBox_select_services(self):
         """Test we can select a service from WTSS available servers."""

@@ -32,6 +32,12 @@ Install requirements `pb_tool <https://pypi.org/project/pb-tool/>`_ to deploy an
 
     $ pip install -e .[all]
 
+Go to the source code folder:
+
+.. code-block:: shell
+
+    $ cd wtss_plugin
+
 Linux
 =====
 

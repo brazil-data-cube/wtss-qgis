@@ -27,7 +27,7 @@ tags=python
 
 homepage=http://brazildatacube.org
 category=Web
-icon=./wtss_plugin/assets/icon.png
+icon=./dependencies/assets/icon.png
 # experimental flag
 experimental=True
 

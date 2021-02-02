@@ -9,7 +9,7 @@
 Usage
 *****
 
-Enable WLTS-QGIS Plugin
+Enable WTSS-QGIS Plugin
 +++++++++++++++++++++++
 
 Open QGIS Desktop and add a vector layer as the figure below:
@@ -24,7 +24,7 @@ Go to ``Plugins`` tab in ``Management Plugins`` option to verify if WTSS-QGIS is
     :width: 100%
     :alt: Enable WTSS-PLUGIN
 
-Run WLTS-QGIS Plugin
+Run WTSS-QGIS Plugin
 ++++++++++++++++++++
 
 You can open the WTSS-QGIS Plugin in ``Web`` tab. The following screen will appear:
@@ -39,4 +39,4 @@ After that, ``Time Series Chart`` will be displayed in new screen with the selec
 
 .. image:: ./assets/screenshots/step4.jpg
     :width: 100%
-    :alt: WLTS-PLUGIN
+    :alt: WTSS-PLUGIN

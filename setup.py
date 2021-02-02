@@ -17,7 +17,7 @@ history = open('CHANGES.rst').read()
 docs_require = [
     'Sphinx>=2.2',
     'sphinx_rtd_theme',
-    'sphinx-copybutton',
+    'sphinx-copybutton'
 ]
 
 tests_require = [
@@ -31,22 +31,22 @@ tests_require = [
 
 extras_require = {
     'docs': docs_require,
-    'tests': tests_require,
+    'tests': tests_require
 }
 
 extras_require['all'] = [req for _, reqs in extras_require.items() for req in reqs]
 
 setup_requires = [
-    'pytest-runner>=5.2',
+    'pytest-runner>=5.2'
 ]
 
 install_requires = [
     'pyproj>=2.5.0',
-    'pyqt5-tools>=5.15',
     'pb-tool>=3.0.0',
     'numpy>=1.19',
     'matplotlib>=3.3.3',
     'pandas>=1.1',
+    'jsonschema>=3.2.0'
 ]
 
 packages = find_packages()
@@ -86,5 +86,5 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Scientific/Engineering :: GIS',
-    ],
+    ]
 )

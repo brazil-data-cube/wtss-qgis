@@ -5,4 +5,15 @@
     under the terms of the MIT License; see LICENSE file for more details.
 ..
 
-.. include:: ../../INSTALL.rst
+License
+=======
+
+
+.. include:: ../../../LICENSE
+
+
+Contact
+=======
+
+
+`Brazil Data Cube Team <mailto:brazildatacube%40inpe.br>`_

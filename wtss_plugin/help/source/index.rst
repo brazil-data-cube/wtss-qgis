@@ -5,7 +5,7 @@
     Python QGIS Plugin for Web Time Series Service is free software;
     You can redistribute it and/or modify it under the terms of the MIT License;
 
-.. include:: ../../README.rst
+.. include:: ../../../README.rst
    :end-before: About
 
 

@@ -35,11 +35,11 @@ from qgis.PyQt.QtWidgets import QAction
 
 # Initialize Qt resources from file resources.py
 from .resources import *
-from .wtss_plugin.config import Config
+from .dependencies.config import Config
 # Import files exporting controls
-from .wtss_plugin.files_export import FilesExport
+from .dependencies.files_export import FilesExport
 # Import the controls for the plugin
-from .wtss_plugin.wtss_qgis_controller import Controls, Services
+from .dependencies.wtss_qgis_controller import Controls, Services
 # Import the code for the dialog
 from .wtss_qgis_dialog import wtss_qgisDialog
 
