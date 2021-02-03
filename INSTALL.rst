@@ -6,7 +6,7 @@
     You can redistribute it and/or modify it under the terms of the MIT License;
 
 Installation
-************
+============
 
 The Python QGIS Plugin for WTSS depends essentially on:
 
@@ -39,7 +39,7 @@ Go to the source code folder:
     $ cd wtss_plugin
 
 Linux
-=====
+-----
 
 Use ``pb_tool`` to compile and deploy the plugin in Linux OS:
 
@@ -49,7 +49,7 @@ Use ``pb_tool`` to compile and deploy the plugin in Linux OS:
         /home/${USER}/.local/share/QGIS/QGIS3/profiles/default/python/plugins
 
 Windows
-=======
+-------
 
 To deploy the plugin in Windows OS add Python and QGIS Python Scripts to the **PATH** environmental variable such as:
 
@@ -66,6 +66,9 @@ On prompt use ``pb_tool`` to compile and deploy WTSS-QGIS plugin:
 
     > pb_tool deploy --plugin_path \
         C:\Users\user\AppData\Roaming\QGIS\QGIS${version}\profiles\default\python\plugins
+
+QGIS
+----
 
 Run QGIS and open the Plugin Manager and enable the WTSS-QGIS.
 
