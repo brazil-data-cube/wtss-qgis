@@ -41,7 +41,6 @@ setup_requires = [
 ]
 
 install_requires = [
-    'pyproj>=2.5.0',
     'pb-tool>=3.0.0',
     'numpy>=1.19',
     'matplotlib>=3.3.3',
