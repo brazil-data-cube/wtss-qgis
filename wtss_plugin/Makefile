@@ -25,14 +25,13 @@
 
 #Add iso code for any locales you want to support here (space separated)
 # default is no locales
-# LOCALES = af
-LOCALES =
+LOCALES = af
 
 # If locales are enabled, set the name of the lrelease binary on your system. If
 # you have trouble compiling the translations, you may have to specify the full path to
 # lrelease
-#LRELEASE = lrelease
-#LRELEASE = lrelease-qt4
+LRELEASE = lrelease
+LRELEASE = lrelease-qt4
 
 
 # translation
@@ -50,8 +49,6 @@ UI_FILES = wtss_qgis_dialog_base.ui
 
 EXTRAS = metadata.txt icon.png
 
-EXTRA_DIRS =
-
 COMPILED_RESOURCE_FILES = resources.py
 
 PEP8EXCLUDE = pydev,resources.py,conf.py,third_party,ui
@@ -65,7 +62,7 @@ PEP8EXCLUDE = pydev,resources.py,conf.py,third_party,ui
 #	* Windows:
 #	  AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins'
 
-QGISDIR =
+QGISDIR = /home/${USER}/.local/share/QGIS/QGIS3/profiles/default/python/plugins
 
 #################################################
 # Normally you would not need to edit below here
@@ -133,7 +130,7 @@ derase:
 	@echo "-------------------------"
 	rm -Rf $(QGISDIR)/python/plugins/$(PLUGINNAME)
 
-zip: deploy dclean
+zip: deploy derase
 	@echo
 	@echo "---------------------------"
 	@echo "Creating plugin zip bundle."
@@ -141,7 +138,7 @@ zip: deploy dclean
 	# The zip target deploys the plugin and creates a zip file with the deployed
 	# content. You can then upload the zip file on http://plugins.qgis.org
 	rm -f $(PLUGINNAME).zip
-	cd $(QGISDIR)/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
+	zip -r $(PLUGINNAME) .
 
 package: compile
 	# Create a zip package of the plugin named $(PLUGINNAME).zip.
