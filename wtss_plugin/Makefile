@@ -31,7 +31,7 @@ LOCALES = af
 # you have trouble compiling the translations, you may have to specify the full path to
 # lrelease
 LRELEASE = lrelease
-LRELEASE = lrelease-qt4
+LRELEASE = lrelease-qt5
 
 
 # translation
