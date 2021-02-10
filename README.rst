@@ -70,12 +70,12 @@ The following image presents an overview of the plugin:
 Installation
 ============
 
-See `INSTALL.rst <https://github.com/brazil-data-cube/wtss-qgis/blob/master/INSTALL.rst>`_.
+See `INSTALL.rst <https://github.com/brazil-data-cube/wtss-qgis/blob/master/docs/INSTALL.rst>`_.
 
 Unit Tests
 ==========
 
-See `TESTS.rst <https://github.com/brazil-data-cube/wtss-qgis/blob/master/TESTS.rst>`_.
+See `TESTS.rst <https://github.com/brazil-data-cube/wtss-qgis/blob/master/docs/TESTS.rst>`_.
 
 References
 ==========
