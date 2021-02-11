@@ -33,15 +33,16 @@ from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 
-# Initialize Qt resources from file resources.py
-from .resources import *
 from .dependencies.config import Config
 # Import files exporting controls
 from .dependencies.files_export import FilesExport
 # Import the controls for the plugin
 from .dependencies.wtss_qgis_controller import Controls, Services
+# Initialize Qt resources from file resources.py
+from .resources import *
 # Import the code for the dialog
 from .wtss_qgis_dialog import wtss_qgisDialog
+
 
 class wtss_qgis:
     """QGIS Plugin Implementation."""

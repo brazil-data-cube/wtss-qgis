@@ -4,13 +4,22 @@ include *.sh
 include *.yml
 include LICENSE
 include pylintrc
+include Dockerfile
+include .dockerignore
+recursive-include docs *.rst
+recursive-include wtss_plugin *.csv
+recursive-include wtss_plugin *.ini
+recursive-include wtss_plugin *.jpg
+recursive-include wtss_plugin *.cpg
+recursive-include wtss_plugin *.dbf
+recursive-include wtss_plugin *.prj
+recursive-include wtss_plugin *.shp
+recursive-include wtss_plugin *.shx
+recursive-include docs *.png
 recursive-include wtss_plugin *.bat
 recursive-include wtss_plugin *.cfg
 recursive-include wtss_plugin *.css
-recursive-include wtss_plugin *.csv
 recursive-include wtss_plugin *.ico
-recursive-include wtss_plugin *.ini
-recursive-include wtss_plugin *.jpg
 recursive-include wtss_plugin *.json
 recursive-include wtss_plugin *.png
 recursive-include wtss_plugin *.py
@@ -21,3 +30,5 @@ recursive-include wtss_plugin *.ts
 recursive-include wtss_plugin *.txt
 recursive-include wtss_plugin *.ui
 recursive-include wtss_plugin Makefile
+recursive-include wtss_plugin/test *.py
+recursive-include wtss_plugin/test/shapes *

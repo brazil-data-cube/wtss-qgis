@@ -11,6 +11,7 @@
  ***************************************************************************/
 """
 
+import datetime
 import json
 from json import loads as json_loads
 from pathlib import Path
@@ -21,10 +22,9 @@ from pyproj import CRS, Proj, transform
 from PyQt5.QtCore import QDate
 from PyQt5.QtGui import QStandardItem
 from PyQt5.QtWidgets import QMessageBox
+from wtss import *
 
 from .config import Config
-from wtss import *
-import datetime
 
 
 class Controls:
