@@ -4,7 +4,7 @@ name: wtss-qgis
 
 steps:
 - name: build
-  image: qgis/qgis:release-3_14
+  image: qgis/qgis:release-3_16
   commands:
   - pip3 install --upgrade pip
   - pip3 install --upgrade setuptools

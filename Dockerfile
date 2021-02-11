@@ -1,4 +1,4 @@
-FROM qgis/qgis:release-3_14
+FROM qgis/qgis:release-3_16
 COPY . /wtss_qgis
 WORKDIR /wtss_qgis
 RUN python3 -m pip install --upgrade pip \
