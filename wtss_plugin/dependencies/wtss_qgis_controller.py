@@ -21,7 +21,7 @@ import requests
 from pyproj import CRS, Proj, transform
 from PyQt5.QtCore import QDate
 from PyQt5.QtGui import QStandardItem
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QDialog, QInputDialog, QLineEdit, QMessageBox
 from wtss import *
 
 from .config import Config
@@ -58,6 +58,16 @@ class Controls:
         msg.setText(text)
         msg.setStandardButtons(QMessageBox.Ok)
         retval = msg.exec_()
+
+    def dialogBox(self, mainDialog, title, text):
+        """
+        Create a dialog box to get user info
+        """
+        text, okPressed = QInputDialog.getText(mainDialog, title, text, QLineEdit.Normal, "")
+        if okPressed and text != "":
+            return text
+        else:
+            return ""
 
     def addItemsTreeView(self, parent, elements):
         """
@@ -328,7 +338,7 @@ class Services:
         else:
             return {}
 
-    def productTimeSeries(self, service_name, product, bands, lat, lon, start_date, end_date):
+    def productTimeSeries(self, token, service_name, product, bands, lat, lon, start_date, end_date):
         """
         Return a dictionary with product time series data
 

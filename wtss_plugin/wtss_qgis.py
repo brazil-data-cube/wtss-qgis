@@ -205,6 +205,7 @@ class wtss_qgis:
         self.basic_controls = Controls()
         self.server_controls = Services(user = "application")
         self.files_controls = FilesExport()
+        self.token = ""
 
     def initIcons(self):
         icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'interrogation-icon.png'))
@@ -357,13 +358,14 @@ class wtss_qgis:
     def loadTimeSeries(self):
         """Load time series product data from selected values"""
         return self.server_controls.productTimeSeries(
+            self.token,
             str(self.dlg.service_selection.currentText()),
             str(self.dlg.coverage_selection.currentText()),
             tuple(self.loadAtributtes()),
             self.transformSelectedLocation().get('lat', 0),
             self.transformSelectedLocation().get('long', 0),
             str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
-            str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
+            str(self.dlg.end_date.date().toString('yyyy-MM-dd')),
         )
 
     def exportPython(self):
@@ -435,8 +437,14 @@ class wtss_qgis:
     def plotTimeSeries(self):
         """Generate the plot image with time series data"""
         time_series = self.loadTimeSeries()
-        if time_series.get('result').get("timeline") != []:
+        if self.token == "":
+            self.token = self.basic_controls.dialogBox(self.dlg, "Init session", "Insert a valid token:")
+            time_series = self.loadTimeSeries()
+        if time_series.get('result', {}).get("timeline", []) != [] \
+            and self.token != "":
             self.files_controls.generatePlotFig(time_series)
+        elif self.token == "":
+            self.basic_controls.alert("error", "AttributeError", "Please insert a valid token!")
         else:
             self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
 
