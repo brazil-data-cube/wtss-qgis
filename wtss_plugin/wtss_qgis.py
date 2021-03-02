@@ -33,15 +33,16 @@ from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 
-# Initialize Qt resources from file resources.py
-from .resources import *
 from .dependencies.config import Config
 # Import files exporting controls
 from .dependencies.files_export import FilesExport
 # Import the controls for the plugin
 from .dependencies.wtss_qgis_controller import Controls, Services
+# Initialize Qt resources from file resources.py
+from .resources import *
 # Import the code for the dialog
 from .wtss_qgis_dialog import wtss_qgisDialog
+
 
 class wtss_qgis:
     """QGIS Plugin Implementation."""
@@ -204,6 +205,7 @@ class wtss_qgis:
         self.basic_controls = Controls()
         self.server_controls = Services(user = "application")
         self.files_controls = FilesExport()
+        self.token = ""
 
     def initIcons(self):
         icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'interrogation-icon.png'))
@@ -335,9 +337,9 @@ class wtss_qgis:
         bands = description.get("attributes",{})
         timeline = description.get("timeline",[])
         self.bands_checks = {}
-        for band in list(bands.keys()):
-            self.bands_checks[bands.get(band).get("name")] = QCheckBox(str(bands.get(band).get("name")))
-            self.vbox.addWidget(self.bands_checks.get(bands.get(band).get("name")))
+        for band in bands:
+            self.bands_checks[band.get('name')] = QCheckBox(str(band.get('name')))
+            self.vbox.addWidget(self.bands_checks.get(band.get('name')))
         self.widget.setLayout(self.vbox)
         self.dlg.bands_scroll.setWidgetResizable(True)
         self.dlg.bands_scroll.setWidget(self.widget)
@@ -356,13 +358,14 @@ class wtss_qgis:
     def loadTimeSeries(self):
         """Load time series product data from selected values"""
         return self.server_controls.productTimeSeries(
+            self.token,
             str(self.dlg.service_selection.currentText()),
             str(self.dlg.coverage_selection.currentText()),
             tuple(self.loadAtributtes()),
             self.transformSelectedLocation().get('lat', 0),
             self.transformSelectedLocation().get('long', 0),
             str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
-            str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
+            str(self.dlg.end_date.date().toString('yyyy-MM-dd')),
         )
 
     def exportPython(self):
@@ -434,8 +437,14 @@ class wtss_qgis:
     def plotTimeSeries(self):
         """Generate the plot image with time series data"""
         time_series = self.loadTimeSeries()
-        if time_series.get('result').get("timeline") != []:
+        if self.token == "":
+            self.token = self.basic_controls.dialogBox(self.dlg, "Init session", "Insert a valid token:")
+            time_series = self.loadTimeSeries()
+        if time_series.get('result', {}).get("timeline", []) != [] \
+            and self.token != "":
             self.files_controls.generatePlotFig(time_series)
+        elif self.token == "":
+            self.basic_controls.alert("error", "AttributeError", "Please insert a valid token!")
         else:
             self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
 

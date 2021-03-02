@@ -11,6 +11,7 @@
  ***************************************************************************/
 """
 
+import datetime
 import json
 from json import loads as json_loads
 from pathlib import Path
@@ -20,10 +21,10 @@ import requests
 from pyproj import CRS, Proj, transform
 from PyQt5.QtCore import QDate
 from PyQt5.QtGui import QStandardItem
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QDialog, QInputDialog, QLineEdit, QMessageBox
+from wtss import *
 
 from .config import Config
-from .wtss_client.wtss_client import wtss
 
 
 class Controls:
@@ -57,6 +58,16 @@ class Controls:
         msg.setText(text)
         msg.setStandardButtons(QMessageBox.Ok)
         retval = msg.exec_()
+
+    def dialogBox(self, mainDialog, title, text):
+        """
+        Create a dialog box to get user info
+        """
+        text, okPressed = QInputDialog.getText(mainDialog, title, text, QLineEdit.Normal, "")
+        if okPressed and text != "":
+            return text
+        else:
+            return ""
 
     def addItemsTreeView(self, parent, elements):
         """
@@ -207,8 +218,8 @@ class Services:
             host<string>: the service host string
         """
         try:
-            client_wtss = wtss(host)
-            client_wtss.list_coverages()
+            client_wtss = WTSS(host)
+            client_wtss.coverages
             return True
         except:
             return False
@@ -271,9 +282,9 @@ class Services:
             servers = []
             for server in self.getServices().services:
                 if self.testServiceConnection(server.host):
-                    client_wtss = wtss(server.host)
+                    client_wtss = WTSS(server.host)
                     coverage_tree = []
-                    for coverage in client_wtss.list_coverages().get('coverages', []):
+                    for coverage in client_wtss.coverages:
                         coverage_tree.append((coverage, []))
                     servers.append((server.name, coverage_tree))
                 else:
@@ -307,8 +318,8 @@ class Services:
         """
         host = self.findServiceByName(service_name).host
         if self.testServiceConnection(host):
-            client_wtss = wtss(host)
-            return client_wtss.list_coverages().get('coverages',[])
+            client_wtss = WTSS(host)
+            return client_wtss.coverages
         else:
             return []
 
@@ -322,12 +333,12 @@ class Services:
         """
         host = self.findServiceByName(service_name).host
         if self.testServiceConnection(host):
-            client_wtss = wtss(host)
-            return client_wtss.describe_coverage(product)
+            client_wtss = WTSS(host)
+            return client_wtss[product]
         else:
             return {}
 
-    def productTimeSeries(self, service_name, product, bands, lat, lon, start_date, end_date):
+    def productTimeSeries(self, token, service_name, product, bands, lat, lon, start_date, end_date):
         """
         Return a dictionary with product time series data
 
@@ -342,9 +353,15 @@ class Services:
         """
         host = self.findServiceByName(service_name).host
         if self.testServiceConnection(host):
-            client_wtss = wtss(host)
-            time_series = client_wtss.time_series(product, bands, lat, lon, start_date, end_date)
-            return time_series.doc
+            client_wtss = WTSS(host)
+            time_series = client_wtss[product].ts(
+                attributes=bands,
+                latitude=lat,
+                longitude=lon,
+                start_date=start_date,
+                end_date=end_date
+            )
+            return time_series
         else:
             response = requests.get(
                 ("{}/wtss/time_series").format(
@@ -363,7 +380,7 @@ class Services:
             if response.status_code == 200:
                 response = response.json()
                 tl = response["result"]["timeline"]
-                tl = wtss._timeline(tl, "%Y-%m-%d")
+                tl = [datetime.strptime(t, "%Y-%m-%d").date() for t in tl]
                 response["result"]["timeline"] = tl
                 return response
             else:

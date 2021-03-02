@@ -5,4 +5,4 @@
     under the terms of the MIT License; see LICENSE file for more details.
 ..
 
-.. include:: ../../../CHANGES.rst
+.. include:: ../../../docs/CHANGES.rst

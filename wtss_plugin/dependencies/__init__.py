@@ -13,5 +13,4 @@
 
 # Exporting control classes to main class plugin
 from .files_export.files_export import FilesExport
-from .wtss_client.wtss_client import wtss
 from .wtss_qgis_controller import Controls, Services

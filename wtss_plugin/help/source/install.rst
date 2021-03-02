@@ -5,4 +5,4 @@
     under the terms of the MIT License; see LICENSE file for more details.
 ..
 
-.. include:: ../../../INSTALL.rst
+.. include:: ../../../docs/INSTALL.rst
