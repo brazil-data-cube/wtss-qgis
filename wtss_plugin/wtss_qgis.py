@@ -205,6 +205,7 @@ class wtss_qgis:
         self.basic_controls = Controls()
         self.server_controls = Services(user = "application")
         self.files_controls = FilesExport()
+        self.enabled_click = False
         self.token = ""
 
     def initIcons(self):
@@ -223,6 +224,8 @@ class wtss_qgis:
         self.dlg.export_as_python.clicked.connect(self.exportPython)
         self.dlg.export_as_csv.clicked.connect(self.exportCSV)
         self.dlg.export_as_json.clicked.connect(self.exportJSON)
+        self.dlg.search_button.clicked.connect(self.enableGetLatLng)
+        self.dlg.search_button.setEnabled(False)
 
     def initHistory(self):
         """Init and update location history"""
@@ -234,7 +237,6 @@ class wtss_qgis:
             self.locations = {}
         self.dlg.history_list.itemActivated.connect(self.getFromHistory)
         self.getLayers()
-        self.addCanvasControlPoint()
 
     def initServices(self):
         """Load the registered services based on JSON file"""
@@ -308,7 +310,8 @@ class wtss_qgis:
         self.dlg.coverage_selection.clear()
         self.dlg.coverage_selection.addItems(
             self.server_controls.listProducts(
-                str(self.dlg.service_selection.currentText())
+                str(self.dlg.service_selection.currentText()),
+                self.token
             )
         )
         self.dlg.coverage_selection.activated.connect(self.selectAtributtes)
@@ -332,7 +335,8 @@ class wtss_qgis:
         self.vbox = QVBoxLayout()
         description = self.server_controls.productDescription(
             str(self.dlg.service_selection.currentText()),
-            str(self.dlg.coverage_selection.currentText())
+            str(self.dlg.coverage_selection.currentText()),
+            self.token
         )
         bands = description.get("attributes",{})
         timeline = description.get("timeline",[])
@@ -346,6 +350,7 @@ class wtss_qgis:
         # Update dates for start and end to coverage selection
         self.dlg.start_date.setDate(self.basic_controls.formatForQDate(timeline[0]))
         self.dlg.end_date.setDate(self.basic_controls.formatForQDate(timeline[len(timeline) - 1]))
+        self.dlg.search_button.setEnabled(True)
 
     def loadAtributtes(self):
         """Verify the selected attributes in check list and save in array"""
@@ -358,7 +363,6 @@ class wtss_qgis:
     def loadTimeSeries(self):
         """Load time series product data from selected values"""
         return self.server_controls.productTimeSeries(
-            self.token,
             str(self.dlg.service_selection.currentText()),
             str(self.dlg.coverage_selection.currentText()),
             tuple(self.loadAtributtes()),
@@ -366,6 +370,7 @@ class wtss_qgis:
             self.transformSelectedLocation().get('long', 0),
             str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
             str(self.dlg.end_date.date().toString('yyyy-MM-dd')),
+            self.token
         )
 
     def exportPython(self):
@@ -436,12 +441,11 @@ class wtss_qgis:
 
     def plotTimeSeries(self):
         """Generate the plot image with time series data"""
-        time_series = self.loadTimeSeries()
+        time_series = {}
         if self.token == "":
             self.token = self.basic_controls.dialogBox(self.dlg, "Init session", "Insert a valid token:")
             time_series = self.loadTimeSeries()
-        if time_series.get('result', {}).get("timeline", []) != [] \
-            and self.token != "":
+        if time_series.get('result', {}).get("timeline", []) != [] and self.token != "":
             self.files_controls.generatePlotFig(time_series)
         elif self.token == "":
             self.basic_controls.alert("error", "AttributeError", "Please insert a valid token!")
@@ -456,6 +460,7 @@ class wtss_qgis:
 
     def getFromHistory(self, item):
         """Select location from history storage as selected location"""
+        self.dlg.search_button.setText("Time Series")
         self.selected_location = self.locations.get(item.text(), {})
 
     def display_point(self, pointTool):
@@ -480,17 +485,21 @@ class wtss_qgis:
             self.dlg.history_list.clear()
             self.dlg.history_list.addItems(list(self.locations.keys()))
             self.dlg.history_list.itemActivated.connect(self.getFromHistory)
-            self.plotTimeSeries()
         except AttributeError:
             pass
 
-    def addCanvasControlPoint(self):
+    def addCanvasControlPoint(self, enable):
         """Generate a canvas area to get mouse position"""
-        self.canvas = self.iface.mapCanvas()
-        self.point_tool = QgsMapToolEmitPoint(self.canvas)
-        self.point_tool.canvasClicked.connect(self.display_point)
-        self.canvas.setMapTool(self.point_tool)
+        self.enabled_click = False
+        self.point_tool = None
         self.display_point(self.point_tool)
+        if enable:
+            self.canvas = self.iface.mapCanvas()
+            self.point_tool = QgsMapToolEmitPoint(self.canvas)
+            self.point_tool.canvasClicked.connect(self.display_point)
+            self.canvas.setMapTool(self.point_tool)
+            self.display_point(self.point_tool)
+            self.enabled_click = True
 
     def transformSelectedLocation(self):
         """Use basic controls to transform any selected projection to EPSG:4326"""
@@ -503,11 +512,26 @@ class wtss_qgis:
             )
         return transformed
 
+    def enableGetLatLng(self):
+        """Enable get lat lng to search time series."""
+        if self.enabled_click:
+            try:
+                self.plotTimeSeries()
+                self.dlg.search_button.setText("Search")
+            except AttributeError:
+                pass
+            self.addCanvasControlPoint(False)
+        else:
+            self.dlg.search_button.setText("Time Series")
+            self.addCanvasControlPoint(True)
+
     def updateDescription(self):
         try:
             index = self.dlg.data.selectedIndexes()[0]
             self.metadata_selected = index.model().itemFromIndex(index)
-            self.dlg.service_metadata.setText(
+            widget = QWidget()
+            vbox = QVBoxLayout()
+            label = QLabel(
                 "{service_metadata}\n\n{coverage_metadata}".format(
                     service_metadata=self.basic_controls.getDescription(
                         name=str(self.metadata_selected.parent().text()),
@@ -523,10 +547,22 @@ class wtss_qgis:
                     )
                 )
             )
+            label.setWordWrap(True)
+            label.heightForWidth(180)
+            vbox.addWidget(label)
+            widget.setLayout(vbox)
+            self.dlg.metadata_scroll_area.setWidgetResizable(True)
+            self.dlg.metadata_scroll_area.setWidget(widget)
         except:
-            self.dlg.service_metadata.setText(
-                "Select a coverage!"
-            )
+            widget = QWidget()
+            vbox = QVBoxLayout()
+            label = QLabel("Select a coverage!")
+            label.setWordWrap(True)
+            label.heightForWidth(180)
+            vbox.addWidget(label)
+            widget.setLayout(vbox)
+            self.dlg.metadata_scroll_area.setWidgetResizable(True)
+            self.dlg.metadata_scroll_area.setWidget(widget)
 
     def run(self):
         """Run method that performs all the real work"""
@@ -550,5 +586,9 @@ class wtss_qgis:
         if result:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
-            self.plotTimeSeries()
+            try:
+                self.plotTimeSeries()
+            except AttributeError:
+                pass
+            self.addCanvasControlPoint(False)
             pass

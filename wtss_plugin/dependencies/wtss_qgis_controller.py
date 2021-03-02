@@ -141,7 +141,7 @@ class Controls:
             service<string>: the service name save on server controls
             coverage<string>: the coverage name selected
         """
-        description = server_controls.productDescription(service, coverage)
+        description = server_controls.productDescription(service, coverage, self.token)
         return "{description}\n\n{spatial}".format(
             description=str(description.get("description")),
             spatial= "*Dimensions*\n\nXmin: {xmin:,.2f}\nXmax: {xmax:,.2f}\nYmin: {ymin:,.2f}\nYmax: {ymax:,.2f}".format(
@@ -274,7 +274,7 @@ class Services:
         except (FileNotFoundError, FileExistsError):
             return {}
 
-    def loadServices(self):
+    def loadServices(self, token=""):
         """
         Returns the services in a data struct based on QGIS Tree View
         """
@@ -282,7 +282,7 @@ class Services:
             servers = []
             for server in self.getServices().services:
                 if self.testServiceConnection(server.host):
-                    client_wtss = WTSS(server.host)
+                    client_wtss = WTSS(server.host, access_token=token)
                     coverage_tree = []
                     for coverage in client_wtss.coverages:
                         coverage_tree.append((coverage, []))
@@ -309,36 +309,38 @@ class Services:
         except (FileNotFoundError, FileExistsError):
             return None
 
-    def listProducts(self, service_name):
+    def listProducts(self, service_name, token=""):
         """
         Return a dictionary with the list of available products
 
         Args:
             service_name<string>: the service registered name
+            token<string>: the OAuth token
         """
         host = self.findServiceByName(service_name).host
         if self.testServiceConnection(host):
-            client_wtss = WTSS(host)
+            client_wtss = WTSS(host, access_token=token)
             return client_wtss.coverages
         else:
             return []
 
-    def productDescription(self, service_name, product):
+    def productDescription(self, service_name, product, token=""):
         """
         Return a dictionary with product description
 
         Args:
             service_name<string>: the service registered name
             product<string>: the product name
+            token<string>: the OAuth token
         """
         host = self.findServiceByName(service_name).host
         if self.testServiceConnection(host):
-            client_wtss = WTSS(host)
+            client_wtss = WTSS(host, access_token=token)
             return client_wtss[product]
         else:
             return {}
 
-    def productTimeSeries(self, token, service_name, product, bands, lat, lon, start_date, end_date):
+    def productTimeSeries(self, service_name, product, bands, lat, lon, start_date, end_date, token=""):
         """
         Return a dictionary with product time series data
 
@@ -350,10 +352,11 @@ class Services:
             lat<float>: the point latitude
             start_date<string>: start date string with 'yyyy-mm-dd' format
             end_date<string>: end date string with 'yyyy-mm-dd' format
+            token<string>: the OAuth token
         """
         host = self.findServiceByName(service_name).host
         if self.testServiceConnection(host):
-            client_wtss = WTSS(host)
+            client_wtss = WTSS(host, access_token=token)
             time_series = client_wtss[product].ts(
                 attributes=bands,
                 latitude=lat,
@@ -373,7 +376,8 @@ class Services:
                     "latitude": lat,
                     "longitude": lon,
                     "start_date": start_date,
-                    "end_date": end_date
+                    "end_date": end_date,
+                    "access_token": token
                 },
                 timeout=100
             )
