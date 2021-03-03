@@ -73,6 +73,7 @@ class FilesExport:
             lon = "{:,.2f}".format(attributes.get("coordinates").get("long"))
             mapping = {
                 "service_host": attributes.get("host"),
+                "token": attributes.get("token"),
                 "selected_coverage": attributes.get("coverage"),
                 "selected_bands": bands_string,
                 "latitude" : lat,
@@ -156,7 +157,11 @@ class FilesExport:
             plt.xlabel("Date", fontsize=10)
             plt.ylabel("Value", fontsize=10)
             plt.grid(b=True, color='gray', linestyle='--', linewidth=0.5)
-            x = [str(date_str) for date_str in time_series.get('result').get("timeline")]
+            x = []
+            for date_str in time_series.get('result').get("timeline"):
+                date = str(date_str)
+                label = (date[:-9] if len(date) > 10 else date)
+                x.append(label)
             if len(x) > 5:
                 steps = np.arange(0, len(x), step=float(len(x) // 5))
                 x_axis_label = []
