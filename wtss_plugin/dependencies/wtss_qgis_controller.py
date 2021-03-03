@@ -141,7 +141,7 @@ class Controls:
             service<string>: the service name save on server controls
             coverage<string>: the coverage name selected
         """
-        description = server_controls.productDescription(service, coverage, self.token)
+        description = server_controls.productDescription(service, coverage)
         return "{description}\n\n{spatial}".format(
             description=str(description.get("description")),
             spatial= "*Dimensions*\n\nXmin: {xmin:,.2f}\nXmax: {xmax:,.2f}\nYmin: {ymin:,.2f}\nYmax: {ymax:,.2f}".format(

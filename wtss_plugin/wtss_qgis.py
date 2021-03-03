@@ -25,6 +25,7 @@ import os.path
 from pathlib import Path
 
 import qgis.utils
+import requests
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from qgis.core import QgsProject
@@ -389,6 +390,7 @@ class wtss_qgis:
                 "host": str(self.server_controls.findServiceByName(
                     self.dlg.service_selection.currentText()
                 ).host),
+                "token": self.token,
                 "coverage": str(self.dlg.coverage_selection.currentText()),
                 "bands": tuple(self.loadAtributtes()),
                 "coordinates": {
@@ -441,16 +443,16 @@ class wtss_qgis:
 
     def plotTimeSeries(self):
         """Generate the plot image with time series data"""
-        time_series = {}
         if self.token == "":
             self.token = self.basic_controls.dialogBox(self.dlg, "Init session", "Insert a valid token:")
-            time_series = self.loadTimeSeries()
+        time_series = self.loadTimeSeries()
         if time_series.get('result', {}).get("timeline", []) != [] and self.token != "":
             self.files_controls.generatePlotFig(time_series)
         elif self.token == "":
             self.basic_controls.alert("error", "AttributeError", "Please insert a valid token!")
         else:
             self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
+        print(time_series)
 
     def getLayers(self):
         """Storage the layers in QGIS project"""
@@ -460,7 +462,6 @@ class wtss_qgis:
 
     def getFromHistory(self, item):
         """Select location from history storage as selected location"""
-        self.dlg.search_button.setText("Time Series")
         self.selected_location = self.locations.get(item.text(), {})
 
     def display_point(self, pointTool):
@@ -517,12 +518,10 @@ class wtss_qgis:
         if self.enabled_click:
             try:
                 self.plotTimeSeries()
-                self.dlg.search_button.setText("Search")
             except AttributeError:
                 pass
             self.addCanvasControlPoint(False)
         else:
-            self.dlg.search_button.setText("Time Series")
             self.addCanvasControlPoint(True)
 
     def updateDescription(self):
