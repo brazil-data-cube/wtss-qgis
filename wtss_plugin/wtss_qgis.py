@@ -21,11 +21,14 @@
  *                                                                         *
  ***************************************************************************/
 """
+import getpass
 import os.path
+import secrets
 from pathlib import Path
 
 import qgis.utils
 import requests
+from bdc_config import BDCConfig
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from qgis.core import QgsProject
@@ -207,6 +210,7 @@ class wtss_qgis:
         self.server_controls = Services(user = "application")
         self.files_controls = FilesExport()
         self.enabled_click = False
+        self.bdc_config = BDCConfig("wtss_config_" + str(getpass.getuser()) + "_credentials.ini")
         self.token = ""
 
     def initIcons(self):
@@ -447,12 +451,13 @@ class wtss_qgis:
             self.token = self.basic_controls.dialogBox(self.dlg, "Init session", "Insert a valid token:")
         time_series = self.loadTimeSeries()
         if time_series.get('result', {}).get("timeline", []) != [] and self.token != "":
+            self.bdc_config.add(str(self.dlg.service_selection.currentText()), access_token=self.token)
+            self.bdc_config.save()
             self.files_controls.generatePlotFig(time_series)
         elif self.token == "":
             self.basic_controls.alert("error", "AttributeError", "Please insert a valid token!")
         else:
             self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
-        print(time_series)
 
     def getLayers(self):
         """Storage the layers in QGIS project"""
