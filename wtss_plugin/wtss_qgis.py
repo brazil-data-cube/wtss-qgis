@@ -26,7 +26,7 @@ import requests
 from bdc_config import BDCConfig
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from qgis.core import QgsProject
+from qgis.core import QgsProject, QgsVectorLayer
 from qgis.gui import QgsMapToolEmitPoint
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator
 from qgis.PyQt.QtGui import QIcon
