@@ -22,9 +22,9 @@
   <widget class="QDialogButtonBox" name="dialogButtonBox">
    <property name="geometry">
     <rect>
-     <x>10</x>
+     <x>0</x>
      <y>510</y>
-     <width>731</width>
+     <width>741</width>
      <height>31</height>
     </rect>
    </property>
@@ -54,7 +54,7 @@
     <enum>QTabWidget::Rounded</enum>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="services_tab">
     <attribute name="title">
@@ -154,7 +154,7 @@
      <property name="title">
       <string>SERVICES METADATA</string>
      </property>
-     <widget class="QLabel" name="service_metadata">
+     <widget class="QScrollArea" name="metadata_scroll_area">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -163,21 +163,19 @@
         <height>351</height>
        </rect>
       </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="textFormat">
-       <enum>Qt::PlainText</enum>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-      </property>
-      <property name="wordWrap">
+      <property name="widgetResizable">
        <bool>true</bool>
       </property>
-      <property name="textInteractionFlags">
-       <set>Qt::TextBrowserInteraction</set>
-      </property>
+      <widget class="QWidget" name="metadata_content">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>289</width>
+         <height>349</height>
+        </rect>
+       </property>
+      </widget>
      </widget>
     </widget>
     <widget class="QGroupBox" name="active_service_options">
@@ -265,7 +263,7 @@
         <x>10</x>
         <y>70</y>
         <width>431</width>
-        <height>251</height>
+        <height>221</height>
        </rect>
       </property>
       <property name="title">
@@ -277,7 +275,7 @@
          <x>0</x>
          <y>20</y>
          <width>431</width>
-         <height>231</height>
+         <height>201</height>
         </rect>
        </property>
        <property name="widgetResizable">
@@ -289,7 +287,7 @@
           <x>0</x>
           <y>0</y>
           <width>429</width>
-          <height>229</height>
+          <height>199</height>
          </rect>
         </property>
        </widget>
@@ -299,7 +297,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>330</y>
+        <y>300</y>
         <width>201</width>
         <height>51</height>
        </rect>
@@ -335,7 +333,7 @@
       <property name="geometry">
        <rect>
         <x>240</x>
-        <y>330</y>
+        <y>300</y>
         <width>201</width>
         <height>51</height>
        </rect>
@@ -388,6 +386,28 @@
       </property>
       <property name="text">
        <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="search_button">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>318</x>
+        <y>360</y>
+        <width>121</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Search</string>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+      <property name="flat">
+       <bool>false</bool>
       </property>
      </widget>
     </widget>
