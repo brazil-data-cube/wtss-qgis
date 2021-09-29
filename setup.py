@@ -56,6 +56,7 @@ install_requires = [
     'matplotlib>=3.3.3',
     'pandas>=1.1',
     'jsonschema>=3.2.0',
+    'bdc-config @ git+https://github.com/brazil-data-cube/bdc-config@b-0.1',
     'wtss>=0.7.0'
 ]
 
