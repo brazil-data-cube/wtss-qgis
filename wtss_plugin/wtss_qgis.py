@@ -203,7 +203,7 @@ class wtss_qgis:
         self.enabled_click = False
         self.token_controls = Tokens()
         try:
-            self.token = self.token_controls.getTokenByUser(str(getpass.getuser())).token
+            self.token = str(self.token_controls.getTokenByUser(str(getpass.getuser())).token)
         except:
             self.token = ""
 
@@ -443,7 +443,7 @@ class wtss_qgis:
     def plotTimeSeries(self):
         """Generate the plot image with time series data."""
         if self.token == "":
-            self.token = self.basic_controls.dialogBox(self.dlg, "Init session", "Insert a valid token:")
+            self.token = str(self.basic_controls.dialogBox(self.dlg, "Init session", "Insert a valid token:"))
         time_series = self.loadTimeSeries()
         if time_series.get('result', {}).get("timeline", []) != [] and self.token != "":
             self.token_controls.addToken(str(getpass.getuser()), self.token)
