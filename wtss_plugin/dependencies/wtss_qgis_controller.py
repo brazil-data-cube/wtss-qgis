@@ -146,6 +146,142 @@ class Controls:
             )
         )
 
+
+class Token:
+    """Token class to map json dumps."""
+
+    def __init__(self, index, user, token):
+        """Build the Service Object.
+
+        :param index<str>: service saved id.
+        :param user<str>: user name.
+        :param token<str>: access token.
+        """
+        self.id = index
+        self.user = user
+        self.token = token
+
+class TokenList:
+    """Token list class to store like json file."""
+
+    def __init__(self, tokens):
+        """Build the Tokens List Object.
+
+        :param tokens<Service[]>: list of token objects.
+        """
+        self.tokens = tokens
+
+class Tokens:
+    """Class for the tokens storage rule.
+
+    :Methods:
+        getPath
+        getTokens
+        getTokenByUser
+        addToken
+        deleteToken
+        editToken
+    """
+
+    def __init__(self):
+        """Build controls for WTSS user access tokens."""
+        try:
+            self.tokens = self.getTokens()
+        except FileNotFoundError:
+            to_save = json_loads(json.dumps(TokenList([]).__dict__))
+            with open(str(self.getPath()), 'w') as outfile:
+                    json.dump(to_save, outfile)
+
+    def getPath(self):
+        """Return the location of JSON with registered access tokens."""
+        return (
+            Path(Config.BASE_DIR)
+                / 'json-schemas'
+                    / ('tokens_storage.json')
+        )
+
+    def getTokens(self):
+        """Return a dictionary with registered tokens."""
+        with self.getPath().open() as f:
+            return json.loads(
+                f.read(),
+                object_hook = lambda d: SimpleNamespace(**d)
+            )
+
+    def getTokenByUser(self, user):
+        """Return the token in a dictionary finding by user name.
+
+        :param user<string>: the user registered name.
+        """
+        try:
+            _token = None
+            for token in self.getTokens().tokens:
+                if str(token.user) == str(user):
+                    _token = token
+            return _token
+        except (FileNotFoundError, FileExistsError):
+            return None
+
+    def addToken(self, user, token):
+        """Register an active access token.
+
+        :param user<string>: the access token user name.
+        :param token<string>: the access token to save.
+        """
+        try:
+            token_to_save = self.getTokenByUser(user)
+            if token_to_save == None:
+                try:
+                    to_save = self.getTokens()
+                    index = to_save.tokens[len(to_save.tokens) - 1].id + 1
+                except (IndexError, FileNotFoundError, FileExistsError):
+                    to_save = TokenList([])
+                    index = 0
+                token_to_save = Token(index, str(user), str(token))
+                to_save.tokens.append(token_to_save)
+                for i in range(len(to_save.tokens)):
+                    to_save.tokens[i] = json_loads(
+                        json.dumps(to_save.tokens[i].__dict__)
+                    )
+                to_save = json_loads(json.dumps(to_save.__dict__))
+                with open(str(self.getPath()), 'w') as outfile:
+                    json.dump(to_save, outfile)
+            return token_to_save
+        except (FileNotFoundError, FileExistsError):
+            return None
+
+    def deleteToken(self, user):
+        """Delete a token finding by user name.
+
+        :param user<string>: the user name access token to delete.
+        """
+        try:
+            token_to_delete = self.getTokenByUser(user)
+            if token_to_delete != None:
+                to_delete = self.getTokens()
+                to_delete.tokens.pop(
+                    to_delete.tokens.index(token_to_delete)
+                )
+                for i in range(len(to_delete.tokens)):
+                    to_delete.tokens[i] = json_loads(json.dumps(to_delete.tokens[i].__dict__))
+                to_delete = json_loads(json.dumps(to_delete.__dict__))
+                with open(str(self.getPath()), 'w') as outfile:
+                    json.dump(to_delete, outfile)
+            return token_to_delete
+        except (FileNotFoundError, FileExistsError):
+            return None
+
+    def editToken(self, user, token):
+        """Edit the token data finding by user name.
+
+        :param user<string>: the user name to find.
+        :param token<string>: the user token to edit.
+        """
+        token_to_edit = self.getTokenByUser(user)
+        if token_to_edit != None:
+            self.deleteToken(user)
+        return self.addToken(user, token)
+
 class Service:
     """Service class to map json dumps."""
 
@@ -222,7 +358,7 @@ class Services:
 
     def resetAvailableServices(self):
         """Restart the list of services with default sevices available."""
-        self.addService("Brazil Data Cube", "http://brazildatacube.dpi.inpe.br/")
+        self.addService("Brazil Data Cube", "https://brazildatacube.dpi.inpe.br/")
         self.addService("E-sensing", "http://www.esensing.dpi.inpe.br/")
         self.addService("WTSS Local", "http://0.0.0.0:5000")
         if not self.getServiceNames():
@@ -420,8 +556,8 @@ class Services:
     def editService(self, server_name, server_host):
         """Edit the service data finding by name.
 
-        :param name<string>: the service name to find.
-        :param host<string>: the URL service to edit.
+        :param server_name<string>: the service name to find.
+        :param server_host<string>: the URL service to edit.
         """
         server_to_edit = self.findServiceByName(server_name)
         if server_to_edit != None:

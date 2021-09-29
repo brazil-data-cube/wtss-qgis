@@ -22,8 +22,6 @@ import secrets
 from pathlib import Path
 
 import qgis.utils
-import requests
-from bdc_config import BDCConfig
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from qgis.core import QgsProject, QgsVectorLayer
@@ -36,7 +34,7 @@ from .dependencies.config import Config
 # Import files exporting controls
 from .dependencies.files_export import FilesExport
 # Import the controls for the plugin
-from .dependencies.wtss_qgis_controller import Controls, Services
+from .dependencies.wtss_qgis_controller import Controls, Tokens, Services
 # Initialize Qt resources from file resources.py
 from .resources import *
 # Import the code for the dialog
@@ -92,7 +90,6 @@ class wtss_qgis:
         """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('wtss_qgis', message)
-
 
     def add_action(
         self,
@@ -204,8 +201,11 @@ class wtss_qgis:
         self.server_controls = Services(user = "application")
         self.files_controls = FilesExport()
         self.enabled_click = False
-        self.bdc_config = BDCConfig("wtss_config_" + str(getpass.getuser()) + "_credentials.ini")
-        self.token = ""
+        self.token_controls = Tokens()
+        try:
+            self.token = self.token_controls.getTokenByUser(str(getpass.getuser())).token
+        except:
+            self.token = ""
 
     def initIcons(self):
         """Get icons from file system."""
@@ -446,8 +446,7 @@ class wtss_qgis:
             self.token = self.basic_controls.dialogBox(self.dlg, "Init session", "Insert a valid token:")
         time_series = self.loadTimeSeries()
         if time_series.get('result', {}).get("timeline", []) != [] and self.token != "":
-            self.bdc_config.add(str(self.dlg.service_selection.currentText()), access_token=self.token)
-            self.bdc_config.save()
+            self.token_controls.addToken(str(getpass.getuser()), self.token)
             self.files_controls.generatePlotFig(time_series)
         elif self.token == "":
             self.basic_controls.alert("error", "AttributeError", "Please insert a valid token!")
