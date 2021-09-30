@@ -27,9 +27,9 @@ from pathlib import Path
 from jsonschema import validate
 from qgis.PyQt.QtGui import QIcon
 
-from wtss_plugin.dependencies.config import Config
-from wtss_plugin.dependencies.schemas import services_storage_schema
-from wtss_plugin.dependencies.wtss_qgis_controller import Services
+from wtss_plugin.controller.config import Config
+from wtss_plugin.controller.schemas import services_storage_schema
+from wtss_plugin.controller.wtss_qgis_controller import Services
 
 
 class wtss_qgisResourcesTest(unittest.TestCase):
