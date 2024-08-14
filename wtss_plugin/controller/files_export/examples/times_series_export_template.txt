@@ -3,7 +3,7 @@ import numpy as np
 from wtss import WTSS
 
 # Creating the client with selected service host
-client = WTSS("{service_host}", access_token="{token}")
+client = WTSS("{service_host}")
 
 ##
 # Listing coverages

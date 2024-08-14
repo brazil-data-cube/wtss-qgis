@@ -22,21 +22,19 @@ import secrets
 from pathlib import Path
 
 import qgis.utils
-import requests
-from bdc_config import BDCConfig
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from qgis.core import QgsProject, QgsVectorLayer
 from qgis.gui import QgsMapToolEmitPoint
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator
-from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtGui import QIcon, QMovie
 from qgis.PyQt.QtWidgets import QAction
 
-from .dependencies.config import Config
+from .controller.config import Config
 # Import files exporting controls
-from .dependencies.files_export import FilesExport
+from .controller.files_export import FilesExport
 # Import the controls for the plugin
-from .dependencies.wtss_qgis_controller import Controls, Services
+from .controller.wtss_qgis_controller import Controls, Services
 # Initialize Qt resources from file resources.py
 from .resources import *
 # Import the code for the dialog
@@ -92,7 +90,6 @@ class wtss_qgis:
         """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('wtss_qgis', message)
-
 
     def add_action(
         self,
@@ -204,8 +201,21 @@ class wtss_qgis:
         self.server_controls = Services(user = "application")
         self.files_controls = FilesExport()
         self.enabled_click = False
-        self.bdc_config = BDCConfig("wtss_config_" + str(getpass.getuser()) + "_credentials.ini")
-        self.token = ""
+
+    def initLoadingControls(self):
+        """Enable loading label."""
+        self.movie = QMovie(str(Path(Config.BASE_DIR) / 'assets' / 'loading.gif'))
+        self.movie.start()
+        self.dlg.loading_label.setMovie(self.movie)
+        self.endLoading()
+
+    def startLoading(self):
+        """Start loading label."""
+        self.dlg.loading_label.setVisible(True)
+
+    def endLoading(self):
+        """End loading label."""
+        self.dlg.loading_label.setVisible(False)
 
     def initIcons(self):
         """Get icons from file system."""
@@ -310,8 +320,7 @@ class wtss_qgis:
         self.dlg.coverage_selection.clear()
         self.dlg.coverage_selection.addItems(
             self.server_controls.listProducts(
-                str(self.dlg.service_selection.currentText()),
-                self.token
+                str(self.dlg.service_selection.currentText())
             )
         )
         self.dlg.coverage_selection.activated.connect(self.selectAtributtes)
@@ -335,8 +344,7 @@ class wtss_qgis:
         self.vbox = QVBoxLayout()
         description = self.server_controls.productDescription(
             str(self.dlg.service_selection.currentText()),
-            str(self.dlg.coverage_selection.currentText()),
-            self.token
+            str(self.dlg.coverage_selection.currentText())
         )
         bands = description.get("attributes",{})
         timeline = description.get("timeline",[])
@@ -369,8 +377,7 @@ class wtss_qgis:
             self.transformSelectedLocation().get('lat', 0),
             self.transformSelectedLocation().get('long', 0),
             str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
-            str(self.dlg.end_date.date().toString('yyyy-MM-dd')),
-            self.token
+            str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
         )
 
     def exportPython(self):
@@ -389,7 +396,6 @@ class wtss_qgis:
                 "host": str(self.server_controls.findServiceByName(
                     self.dlg.service_selection.currentText()
                 ).host),
-                "token": self.token,
                 "coverage": str(self.dlg.coverage_selection.currentText()),
                 "bands": tuple(self.loadAtributtes()),
                 "coordinates": {
@@ -442,15 +448,9 @@ class wtss_qgis:
 
     def plotTimeSeries(self):
         """Generate the plot image with time series data."""
-        if self.token == "":
-            self.token = self.basic_controls.dialogBox(self.dlg, "Init session", "Insert a valid token:")
         time_series = self.loadTimeSeries()
-        if time_series.get('result', {}).get("timeline", []) != [] and self.token != "":
-            self.bdc_config.add(str(self.dlg.service_selection.currentText()), access_token=self.token)
-            self.bdc_config.save()
+        if time_series.get('result', {}).get("timeline", []) != []:
             self.files_controls.generatePlotFig(time_series)
-        elif self.token == "":
-            self.basic_controls.alert("error", "AttributeError", "Please insert a valid token!")
         else:
             self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
 
@@ -486,6 +486,7 @@ class wtss_qgis:
             self.dlg.history_list.clear()
             self.dlg.history_list.addItems(list(self.locations.keys()))
             self.dlg.history_list.itemActivated.connect(self.getFromHistory)
+            self.plotTimeSeries()
         except AttributeError:
             pass
 
@@ -516,10 +517,7 @@ class wtss_qgis:
     def enableGetLatLng(self):
         """Enable get lat lng to search time series."""
         if self.enabled_click:
-            try:
-                self.plotTimeSeries()
-            except AttributeError:
-                pass
+            self.plotTimeSeries()
             self.addCanvasControlPoint(False)
         else:
             self.addCanvasControlPoint(True)
@@ -576,6 +574,8 @@ class wtss_qgis:
         self.initHistory()
         # Add icons to buttons
         self.initIcons()
+        # Start loading label
+        self.initLoadingControls()
         # Add functions to buttons
         self.initButtons()
         # show the dialog

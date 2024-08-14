@@ -25,7 +25,7 @@ import unittest
 
 from qgis.PyQt.QtWidgets import QDialog, QDialogButtonBox
 
-from wtss_plugin.dependencies.wtss_qgis_controller import Services
+from wtss_plugin.controller.wtss_qgis_controller import Services
 from wtss_plugin.wtss_qgis_dialog import wtss_qgisDialog
 
 from .utilities import get_qgis_app

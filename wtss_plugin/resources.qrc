@@ -1,5 +1,5 @@
 <RCC>
     <qresource prefix="/plugins/wtss_qgis" >
-        <file>./dependencies/assets/icon.png</file>
+        <file>./controller/assets/icon.png</file>
     </qresource>
 </RCC>

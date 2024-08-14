@@ -30,6 +30,10 @@ docs_require = [
     'sphinx-copybutton'
 ]
 
+dev_env_require = [
+    'pb-tool>=3.0.0'
+]
+
 tests_require = [
     'pytest>=5.2',
     'pytest-cov>=2.8',
@@ -41,6 +45,7 @@ tests_require = [
 
 extras_require = {
     'docs': docs_require,
+    'dev': dev_env_require,
     'tests': tests_require
 }
 
@@ -51,7 +56,6 @@ setup_requires = [
 ]
 
 install_requires = [
-    'pb-tool>=3.0.0',
     'numpy>=1.19',
     'matplotlib>=3.3.3',
     'pandas>=1.1',

@@ -222,9 +222,7 @@ class Services:
 
     def resetAvailableServices(self):
         """Restart the list of services with default sevices available."""
-        self.addService("Brazil Data Cube", "http://brazildatacube.dpi.inpe.br/")
-        self.addService("E-sensing", "http://www.esensing.dpi.inpe.br/")
-        self.addService("WTSS Local", "http://0.0.0.0:5000")
+        self.addService("Brazil Data Cube COIDS", "https://data.inpe.br/bdc/wtss/v4/")
         if not self.getServiceNames():
             to_save = json_loads(json.dumps(ServiceList([]).__dict__))
             with open(str(self.getPath()), 'w') as outfile:
@@ -262,13 +260,13 @@ class Services:
         except (FileNotFoundError, FileExistsError):
             return {}
 
-    def loadServices(self, token=""):
+    def loadServices(self):
         """Return the services in a data struct based on QGIS Tree View."""
         try:
             servers = []
             for server in self.getServices().services:
                 if self.testServiceConnection(server.host):
-                    client_wtss = WTSS(server.host, access_token=token)
+                    client_wtss = WTSS(server.host)
                     coverage_tree = []
                     for coverage in client_wtss.coverages:
                         coverage_tree.append((coverage, []))
@@ -293,34 +291,32 @@ class Services:
         except (FileNotFoundError, FileExistsError):
             return None
 
-    def listProducts(self, service_name, token=""):
+    def listProducts(self, service_name):
         """Return a dictionary with the list of available products.
 
         :param service_name<string>: the service registered name.
-        :param token<string>: the OAuth token.
         """
         host = self.findServiceByName(service_name).host
         if self.testServiceConnection(host):
-            client_wtss = WTSS(host, access_token=token)
+            client_wtss = WTSS(host)
             return client_wtss.coverages
         else:
             return []
 
-    def productDescription(self, service_name, product, token=""):
+    def productDescription(self, service_name, product):
         """Return a dictionary with product description.
 
         :param service_name<string>: the service registered name.
         :param product<string>: the product name.
-        :param token<string>: the OAuth token.
         """
         host = self.findServiceByName(service_name).host
         if self.testServiceConnection(host):
-            client_wtss = WTSS(host, access_token=token)
+            client_wtss = WTSS(host)
             return client_wtss[product]
         else:
             return {}
 
-    def productTimeSeries(self, service_name, product, bands, lat, lon, start_date, end_date, token=""):
+    def productTimeSeries(self, service_name, product, bands, lat, lon, start_date, end_date):
         """Return a dictionary with product time series data.
 
         :param service_name<string>: the service registered name.
@@ -330,11 +326,10 @@ class Services:
         :param lat<float>: the point latitude.
         :param start_date<string>: start date string with 'yyyy-mm-dd' format.
         :param end_date<string>: end date string with 'yyyy-mm-dd' format.
-        :param token<string>: the OAuth token.
         """
         host = self.findServiceByName(service_name).host
         if self.testServiceConnection(host):
-            client_wtss = WTSS(host, access_token=token)
+            client_wtss = WTSS(host)
             time_series = client_wtss[product].ts(
                 attributes=bands,
                 latitude=lat,
@@ -354,8 +349,7 @@ class Services:
                     "latitude": lat,
                     "longitude": lon,
                     "start_date": start_date,
-                    "end_date": end_date,
-                    "access_token": token
+                    "end_date": end_date
                 },
                 timeout=100
             )
@@ -420,8 +414,8 @@ class Services:
     def editService(self, server_name, server_host):
         """Edit the service data finding by name.
 
-        :param name<string>: the service name to find.
-        :param host<string>: the URL service to edit.
+        :param server_name<string>: the service name to find.
+        :param server_host<string>: the URL service to edit.
         """
         server_to_edit = self.findServiceByName(server_name)
         if server_to_edit != None:
