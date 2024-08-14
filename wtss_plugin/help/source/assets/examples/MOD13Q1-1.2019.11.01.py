@@ -3,7 +3,7 @@ import numpy as np
 from wtss import WTSS
 
 # Creating the client with selected service host
-client = WTSS("http://brazildatacube.dpi.inpe.br/", access_token="<token>")
+client = WTSS("http://brazildatacube.dpi.inpe.br/")
 
 ##
 # Listing coverages

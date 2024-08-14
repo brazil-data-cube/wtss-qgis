@@ -9,8 +9,6 @@
 Usage
 *****
 
-To use the WTSS extension to satellite image time series it is necessary to generate a user access token in `BDC Auth App <https://brazildatacube.dpi.inpe.br/auth-app>`_.
-
 Enable WTSS-QGIS Plugin
 +++++++++++++++++++++++
 
