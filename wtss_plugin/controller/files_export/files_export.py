@@ -73,7 +73,6 @@ class FilesExport:
             lon = "{:,.2f}".format(attributes.get("coordinates").get("long"))
             mapping = {
                 "service_host": attributes.get("host"),
-                "token": attributes.get("token"),
                 "selected_coverage": attributes.get("coverage"),
                 "selected_bands": bands_string,
                 "latitude" : lat,
@@ -100,7 +99,7 @@ class FilesExport:
                 fieldnames = ['coverage','latitude','longitude','timeline']
                 for result in time_series.get('result').get('attributes'):
                     fieldnames.append(result.get('attribute'))
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=',')
                 writer.writeheader()
                 ind = 0
                 for date in dates:
@@ -138,8 +137,6 @@ class FilesExport:
         """
         try:
             plt.clf()
-            plt.cla()
-            plt.close()
             plt.title(
                 ("Coverage {name}\nEPSG:4326 ({lat:,.2f},{lng:,.2f})").format(
                     name=str(time_series.get('query').get('coverage')),
