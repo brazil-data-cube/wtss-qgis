@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>748</width>
-    <height>539</height>
+    <width>741</width>
+    <height>541</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -528,6 +528,25 @@
      </widget>
     </widget>
    </widget>
+  </widget>
+  <widget class="QLabel" name="loading_label">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>741</width>
+     <height>541</height>
+    </rect>
+   </property>
+   <property name="autoFillBackground">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
   </widget>
  </widget>
  <resources/>
