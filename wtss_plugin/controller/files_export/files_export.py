@@ -148,7 +148,7 @@ class FilesExport:
             )
             plt.xlabel("Date", fontsize = 10)
             plt.ylabel("Value", fontsize = 10)
-            plt.grid(b=True, color='gray', linestyle='--', linewidth=0.3)
+            plt.grid(color='gray', linestyle='--', linewidth=0.3)
             x = []
             for date_str in time_series.get('result').get("timeline"):
                 date = str(date_str)
