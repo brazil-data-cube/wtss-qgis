@@ -452,7 +452,8 @@ class wtss_qgis:
         """Generate the plot image with time series data."""
         time_series = self.loadTimeSeries()
         if time_series.get('result', {}).get("timeline", []) != []:
-            self.files_controls.generatePlotFig(time_series)
+            self.addCanvasControlPoint(False)
+            self.files_controls.generatePlotFig(time_series, QgsProject.instance())
         else:
             self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
 
@@ -465,6 +466,10 @@ class wtss_qgis:
     def getFromHistory(self, item):
         """Select location from history storage as selected location."""
         self.selected_location = self.locations.get(item.text(), {})
+        try:
+            self.plotTimeSeries()
+        except AttributeError:
+            pass
 
     def display_point(self, pointTool):
         """Get the mouse possition and storage as selected location."""
@@ -487,7 +492,6 @@ class wtss_qgis:
             self.locations[history_key] = self.selected_location
             self.dlg.history_list.clear()
             self.dlg.history_list.addItems(list(self.locations.keys()))
-            self.dlg.history_list.itemActivated.connect(self.getFromHistory)
             self.plotTimeSeries()
         except AttributeError:
             pass
@@ -519,7 +523,6 @@ class wtss_qgis:
     def enableGetLatLng(self):
         """Enable get lat lng to search time series."""
         if self.enabled_click:
-            self.plotTimeSeries()
             self.addCanvasControlPoint(False)
         else:
             self.addCanvasControlPoint(True)
@@ -588,9 +591,4 @@ class wtss_qgis:
         if result:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
-            try:
-                self.plotTimeSeries()
-            except AttributeError:
-                pass
             self.addCanvasControlPoint(False)
-            pass

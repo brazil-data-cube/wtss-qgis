@@ -62,6 +62,7 @@ install_requires = [
     'matplotlib>=3.3.3',
     'pandas>=1.1',
     'jsonschema>=3.2.0',
+    'pystac-client>=0.8.3',
     'wtss>=0.7.0'
 ]
 

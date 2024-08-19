@@ -26,6 +26,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from ..helpers.pystac_helper import get_source_from_click, stac_args
+
 
 class FilesExport:
     """Exporting WTSS data in different formats.
@@ -132,17 +134,24 @@ class FilesExport:
         except FileNotFoundError:
             pass
 
-    def generatePlotFig(self, time_series):
+    def generatePlotFig(self, time_series, qgis_project_instance):
         """Generate an image .JPEG with time series data in a line chart.
 
         :param time_series<dict>: the time series service reponse dictionary.
+        :param qgis_project_instance<QgsProject>: the qgis project instance.
         """
         try:
+            stac_args.qgis_project = qgis_project_instance
+            stac_args.coverage = str(time_series.get('query').get('coverage'))
+            stac_args.longitude = time_series.get('query').get('longitude')
+            stac_args.latitude = time_series.get('query').get('latitude')
+            fig, ax = plt.subplots()
+            fig.canvas.callbacks.connect('pick_event', get_source_from_click)
             plt.title(
-                ("Coverage {name}\nEPSG:4326 ({lat:,.2f},{lng:,.2f})").format(
+                ("Coverage {name}\nEPSG:4326 ({lng:,.2f}, {lat:,.2f})").format(
                     name=str(time_series.get('query').get('coverage')),
-                    lat=time_series.get('query').get('latitude'),
-                    lng=time_series.get('query').get('longitude')
+                    lng=time_series.get('query').get('longitude'),
+                    lat=time_series.get('query').get('latitude')
                 ),
                 fontsize = 12
             )
@@ -164,7 +173,7 @@ class FilesExport:
             plt.yticks(fontsize = 10)
             for result in time_series.get('result').get('attributes'):
                 y = result.get('values')
-                plt.plot(
+                ax.plot(
                     x, y,
                     picker = 10,
                     ls = '-',

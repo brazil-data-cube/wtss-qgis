@@ -32,7 +32,7 @@ For devlopment environment you will need the requirements, to deploy and publish
 - `Python Test Library (pytest) <https://pypi.org/project/pytest/>`_
 
 
-The fisrt step is to clone the software repository or download the zip file for `wtss_plugin <>`_:
+The fisrt step is to clone the software repository or download the zip file for `wtss_plugin <./>`_:
 
 .. code-block:: shell
 
