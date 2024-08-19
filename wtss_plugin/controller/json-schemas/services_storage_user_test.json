@@ -1,1 +1,9 @@
-{"services": [{"id": 0, "name": "Brazil Data Cube COIDS", "host": "https://data.inpe.br/bdc/wtss/v4/"}]}
+{
+    "services": [
+        {
+            "id": 0,
+            "name": "Brazil Data Cube",
+            "host": "https://data.inpe.br/bdc/wtss/v4/"
+        }
+    ]
+}

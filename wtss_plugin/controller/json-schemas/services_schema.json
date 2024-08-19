@@ -3,7 +3,7 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://github.com/brazil-data-cube/wtss-qgis/json-schemas/services_schema.json",
     "type": "object",
-    "title": "QGIS Pluin Services Storage",
+    "title": "QGIS Plugin Services Storage",
     "description": "List of services available",
     "required": [
         "services"
