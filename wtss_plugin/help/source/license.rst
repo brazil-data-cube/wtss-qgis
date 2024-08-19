@@ -26,4 +26,4 @@ License
 Contact
 =======
 
-`Brazil Data Cube Team <mailto:brazildatacube%40inpe.br>`_
+`Brazil Data Cube Team <mailto:data.suporte@inpe.br>`_
