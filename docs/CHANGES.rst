@@ -19,4 +19,21 @@
 Changes
 *******
 
-**Under Development!**
+Version 0.2.0 (2024-08-19)
+--------------------------
+
+- Project is active again and under development
+- Change License to GPL v3 (`#59 <https://github.com/brazil-data-cube/wtss-qgis/issues/59>`_)
+- Review dependencies in package (`#54 <https://github.com/brazil-data-cube/wtss-qgis/issues/54>`_)
+- Remove access token dependency (`#51 <https://github.com/brazil-data-cube/wtss-qgis/issues/51>`_)
+- Fix mouse click event when search time series (`#52 <https://github.com/brazil-data-cube/wtss-qgis/issues/52>`_)
+
+
+Version 0.1.0-0 (2020-05-19)
+----------------------------
+
+- First version of Plugin with QGIS Version 3+ support
+- Add feature to export Python code
+- Plot time series using matplotlib
+- Initial unittests
+- Persist an historic of time series coordinates
