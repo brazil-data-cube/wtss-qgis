@@ -122,7 +122,7 @@ If you download to install by `zip` file, use:
 
 .. code-block:: shell
 
-    \> pip3 install git+https://github.com/brazil-data-cube/wtss-qgis.git@v0.1.0
+    \> pip3 install git+https://github.com/brazil-data-cube/wtss-qgis.git@v0.2.0
 
 
 If you cloned the repository, for **development environment**, you can install the requirements running `pip` in source code:
