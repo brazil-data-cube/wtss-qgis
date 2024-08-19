@@ -26,13 +26,13 @@ The Python QGIS Plugin for WTSS depends essentially on:
 - `Python version +3 <https://www.python.org/>`_
 
 
-For devlopment environment you will need the requirements, to deploy and publish QGIS Python plugin:
+For development environment you will need the requirements, to deploy and publish QGIS Python plugin:
 
 - `Plugin Build Tool (pb_tool) <https://pypi.org/project/pb-tool/>`_
 - `Python Test Library (pytest) <https://pypi.org/project/pytest/>`_
 
 
-The fisrt step is to clone the software repository or download the zip file for `wtss_plugin <>`_:
+The fisrt step is to clone the software repository or download the zip file for `wtss_plugin`:
 
 .. code-block:: shell
 
@@ -62,7 +62,7 @@ Or if you download to install by `zip` file, use:
 
 .. code-block:: shell
 
-    $ pip3 install git+https://github.com/brazil-data-cube/wtss-qgis.git@v0.1.0
+    $ pip3 install git+https://github.com/brazil-data-cube/wtss-qgis.git@v0.2.0
 
 
 For **development environment**, go to the source code folder:
