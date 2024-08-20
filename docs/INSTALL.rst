@@ -34,14 +34,14 @@ For development environment you will need the requirements, to deploy and publis
 
 The fisrt step is to clone the software repository or download the zip file for `wtss_plugin`:
 
-.. code-block:: shell
+.. code-block:: text
 
     $ git clone https://github.com/brazil-data-cube/wtss-qgis
 
 
 If you clone the repository from git you needd to go to the source code folder:
 
-.. code-block:: shell
+.. code-block:: text
 
     $ cd wtss-plugin
 
@@ -53,35 +53,35 @@ Linux
 
 If you cloned the repository, you can install the requirements running `pip` in source code:
 
-.. code-block:: shell
+.. code-block:: text
 
     $ pip3 install -e .[all]
 
 
 Or if you download to install by `zip` file, use:
 
-.. code-block:: shell
+.. code-block:: text
 
     $ pip3 install git+https://github.com/brazil-data-cube/wtss-qgis.git@v0.2.0
 
 
 For **development environment**, go to the source code folder:
 
-.. code-block:: shell
+.. code-block:: text
 
     $ cd wtss_plugin
 
 
 In source code folder, use ``pb_tool`` to compile and deploy the plugin in Linux:
 
-.. code-block:: shell
+.. code-block:: text
 
     $ pb_tool compile
 
 
 The `pb_tool compile` will generate a file named `resources.py`, check this file before deploy:
 
-.. code-block:: shell
+.. code-block:: text
 
     $ pb_tool deploy --plugin_path \
         /home/${USER}/.local/share/QGIS/QGIS3/profiles/default/python/plugins
@@ -104,7 +104,7 @@ Find the `Python` and `Grass` version installed by QGIS:
    \wtss-qgis> dir "%OSGEO4W_ROOT%"\apps\grass
 
 
-You can set the environment variables in panel control or run the script in  `set_pyqgis_win <./scripts/set_pyqgis_win.cmd>`_.
+You can set the environment variables in panel control or run the script in  `set_pyqgis_win <../wtss_plugin/scripts/set_pyqgis_win.cmd>`_.
 
 In script its required to set the python and grass version.
 
@@ -120,33 +120,33 @@ For examples set the python version like `3.12` to `312` and grass version `8.4`
 
 If you download to install by `zip` file, use:
 
-.. code-block:: shell
+.. code-block:: text
 
     \> pip3 install git+https://github.com/brazil-data-cube/wtss-qgis.git@v0.2.0
 
 
 If you cloned the repository, for **development environment**, you can install the requirements running `pip` in source code:
 
-.. code-block:: shell
+.. code-block:: text
 
     \wtss-qgis> pip3 install -e .[all]
 
 
 On prompt use ``pb_tool`` to compile the plugin and generate the `resources.py`:
 
-.. code-block:: shell
+.. code-block:: text
 
     \wtss-qgis\wtss_plugin> pb_tool compile
 
 
-To deploy the plugin in Windows, go to `wtss_plugin` folder and run the script `deploy_win <./scripts/deploy_win.cmd>`_, but before set the `USER` variable to use your windows user:
+To deploy the plugin in Windows, go to `wtss_plugin` folder and run the script `deploy_win <../wtss_plugin/scripts/deploy_win.cmd>`_, but before set the `USER` variable to use your windows user:
 
 .. code-block:: text
 
     \wtss-qgis\wtss_plugin> set USER=<your_user>
 
 
-.. code-block:: shell
+.. code-block:: text
 
     \wtss-qgis\wtss_plugin> .\scripts\deploy_win.cmd
 

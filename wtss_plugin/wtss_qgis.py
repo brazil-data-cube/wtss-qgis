@@ -469,6 +469,7 @@ class wtss_qgis:
         try:
             self.plotTimeSeries()
         except AttributeError:
+            self.addCanvasControlPoint(False)
             pass
 
     def display_point(self, pointTool):
@@ -494,6 +495,7 @@ class wtss_qgis:
             self.dlg.history_list.addItems(list(self.locations.keys()))
             self.plotTimeSeries()
         except AttributeError:
+            self.addCanvasControlPoint(False)
             pass
 
     def addCanvasControlPoint(self, enable):
