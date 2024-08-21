@@ -26,7 +26,7 @@ from pathlib import Path
 import qgis.utils
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from qgis.core import QgsProject, QgsVectorLayer
+from qgis.core import QgsCoordinateReferenceSystem, QgsProject
 from qgis.gui import QgsMapToolEmitPoint
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator
 from qgis.PyQt.QtGui import QIcon, QMovie
@@ -450,9 +450,9 @@ class wtss_qgis:
 
     def plotTimeSeries(self):
         """Generate the plot image with time series data."""
+        self.addCanvasControlPoint(False)
         time_series = self.loadTimeSeries()
         if time_series.get('result', {}).get("timeline", []) != []:
-            self.addCanvasControlPoint(False)
             self.files_controls.generatePlotFig(time_series, QgsProject.instance())
         else:
             self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
@@ -495,7 +495,6 @@ class wtss_qgis:
             self.dlg.history_list.addItems(list(self.locations.keys()))
             self.plotTimeSeries()
         except AttributeError:
-            self.addCanvasControlPoint(False)
             pass
 
     def addCanvasControlPoint(self, enable):
@@ -504,6 +503,7 @@ class wtss_qgis:
         self.point_tool = None
         self.display_point(self.point_tool)
         if enable:
+            QgsProject.instance().setCrs(QgsCoordinateReferenceSystem(4326))
             self.canvas = self.iface.mapCanvas()
             self.point_tool = QgsMapToolEmitPoint(self.canvas)
             self.point_tool.canvasClicked.connect(self.display_point)

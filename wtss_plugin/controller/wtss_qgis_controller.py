@@ -28,7 +28,7 @@ import requests
 from pyproj import CRS, Proj, transform
 from PyQt5.QtCore import QDate
 from PyQt5.QtGui import QStandardItem
-from PyQt5.QtWidgets import QDialog, QInputDialog, QLineEdit, QMessageBox
+from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox
 from wtss import *
 
 from .config import Config

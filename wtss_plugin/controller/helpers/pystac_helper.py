@@ -18,11 +18,13 @@
 
 """Python QGIS Plugin for WTSS."""
 
-import subprocess
+from copy import deepcopy
 from pathlib import Path
+from typing import List, Optional
 
 import pystac_client
 import shapely.geometry
+from osgeo import gdal
 from qgis.core import QgsRasterLayer
 
 from ..config import Config
@@ -52,19 +54,37 @@ class STAC_ARGS:
         self.quick_look = False
         self.channels = Channels()
 
-    def get_raster_vrt_folder(self):
+    def get_raster_vrt_folder(self) -> str:
         """Return the location path to save virtual rasters."""
-        return (Path(Config.BASE_DIR) / 'files_export')
+        return (
+            Path(Config.BASE_DIR) /
+                'files_export' /
+                    'examples'
+        )
 
-    def set_quick_look(self, service):
+    def set_quick_look(self, service) -> None:
         collection = service.get_collection(stac_args.coverage)
         rgb = collection.to_dict().get("bdc:bands_quicklook")
-        print(rgb)
         self.channels = Channels({
             "red": rgb[0],
             "green": rgb[1],
             "blue": rgb[2]
         })
+
+    def build_gdal_vrt_raster(self, output_file: str, files: List[str], **options) -> Optional[str]:
+        opts = deepcopy(options)
+        opts.setdefault("resampleAlg", "nearest")
+        opts.setdefault("separate", True)
+
+        vrt_options = gdal.BuildVRTOptions(**opts)
+
+        try:
+            vrt = gdal.BuildVRT(output_file, files, options = vrt_options)
+        except:
+            output_file = None
+
+        return vrt, output_file
+
 
 stac_args = STAC_ARGS()
 
@@ -91,8 +111,6 @@ def get_source_from_click(event):
 
     stac_args.set_quick_look(service)
 
-    print(stac_args.channels)
-
     rgb_href = {}
     channels = stac_args.channels
     for channel in ['red', 'green', 'blue']:
@@ -100,13 +118,21 @@ def get_source_from_click(event):
         href = item.get(band).href
         rgb_href[channel] = f'/vsicurl/{href}'
 
-    vrt_raster_file = f'{stac_args.get_raster_vrt_folder()}{selected_time}.vrt'
     layer_name = f'{stac_args.coverage}_{selected_time}'
 
-    subprocess.run(
-        f'gdalbuildvrt -separate {vrt_raster_file} {rgb_href['red']} {rgb_href['green']} {rgb_href['blue']}',
-        shell = True
-    )
+    vrt_raster_file = f'{stac_args.get_raster_vrt_folder()}/{layer_name}.vrt'
+
+    vrt_raster_file = stac_args.build_gdal_vrt_raster(
+        vrt_raster_file,
+        [
+            rgb_href['red'],
+            rgb_href['green'],
+            rgb_href['blue']
+        ],
+        resampleAlg = 'nearest',
+        addAlpha = False,
+        separate = True
+    )[1]
 
     stac_args.qgis_project.addMapLayer(
         QgsRasterLayer(vrt_raster_file, layer_name), True
