@@ -203,6 +203,8 @@ class wtss_qgis:
         self.server_controls = Services(user = "application")
         self.files_controls = FilesExport()
         self.enabled_click = False
+        self.dlg.enable_canvas_point.setChecked(self.enabled_click)
+        self.dlg.enable_canvas_point.stateChanged.connect(self.enableGetLatLng)
 
     def initLoadingControls(self):
         """Enable loading label."""
@@ -225,6 +227,8 @@ class wtss_qgis:
         self.dlg.show_help_button.setIcon(icon)
         icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'info-icon.png'))
         self.dlg.show_coverage_description.setIcon(icon)
+        icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'navigation.png'))
+        self.dlg.search_button.setIcon(icon)
 
     def initButtons(self):
         """Init the main buttons to manage services and the results."""
@@ -236,7 +240,7 @@ class wtss_qgis:
         self.dlg.export_as_python.clicked.connect(self.exportPython)
         self.dlg.export_as_csv.clicked.connect(self.exportCSV)
         self.dlg.export_as_json.clicked.connect(self.exportJSON)
-        self.dlg.search_button.clicked.connect(self.enableGetLatLng)
+        self.dlg.search_button.clicked.connect(self.getTimeSeriesButton)
         self.dlg.search_button.setEnabled(False)
 
     def initHistory(self):
@@ -450,7 +454,6 @@ class wtss_qgis:
 
     def plotTimeSeries(self):
         """Generate the plot image with time series data."""
-        self.addCanvasControlPoint(False)
         time_series = self.loadTimeSeries()
         if time_series.get('result', {}).get("timeline", []) != []:
             self.files_controls.generatePlotFig(time_series, QgsProject.instance())
@@ -466,50 +469,65 @@ class wtss_qgis:
     def getFromHistory(self, item):
         """Select location from history storage as selected location."""
         self.selected_location = self.locations.get(item.text(), {})
+        self.dlg.input_longitude.setValue(self.selected_location.get('long'))
+        self.dlg.input_latitude.setValue(self.selected_location.get('lat'))
         try:
             self.plotTimeSeries()
         except AttributeError:
-            self.addCanvasControlPoint(False)
+            pass
+
+    def getTimeSeriesButton(self):
+        """Get time series using canvas click or selected location"""
+        self.display_point(None)
+        try:
+            self.plotTimeSeries()
+        except AttributeError:
             pass
 
     def display_point(self, pointTool):
         """Get the mouse possition and storage as selected location."""
+        x = None
+        y = None
+        if pointTool == None:
+            x = self.dlg.input_longitude.value()
+            y = self.dlg.input_longitude.value()
+        else:
+            x = float(pointTool.x())
+            y = float(pointTool.y())
+            self.dlg.input_longitude.setValue(x)
+            self.dlg.input_latitude.setValue(y)
         try:
             self.selected_location = {
                 'layer_name' : str(self.layer.name()),
-                'lat' : float(pointTool.y()),
-                'long' : float(pointTool.x()),
+                'long' : float(x), 'lat' : y,
                 'crs' : str(self.layer.crs().authid())
             }
             history_key = str(
                 (
-                    "({lat:,.2f},{long:,.2f}) {crs}"
+                    "({long:,.2f}, {lat:,.2f}) {crs}"
                 ).format(
                     crs = self.selected_location.get('crs'),
-                    lat = self.selected_location.get('lat'),
-                    long = self.selected_location.get('long')
+                    long = self.selected_location.get('long'),
+                    lat = self.selected_location.get('lat')
                 )
             )
             self.locations[history_key] = self.selected_location
             self.dlg.history_list.clear()
             self.dlg.history_list.addItems(list(self.locations.keys()))
-            self.plotTimeSeries()
         except AttributeError:
             pass
 
     def addCanvasControlPoint(self, enable):
         """Generate a canvas area to get mouse position."""
-        self.enabled_click = False
+        self.canvas = None
         self.point_tool = None
-        self.display_point(self.point_tool)
+        self.canvas.setMapTool(self.point_tool)
         if enable:
             QgsProject.instance().setCrs(QgsCoordinateReferenceSystem(4326))
             self.canvas = self.iface.mapCanvas()
             self.point_tool = QgsMapToolEmitPoint(self.canvas)
             self.point_tool.canvasClicked.connect(self.display_point)
             self.canvas.setMapTool(self.point_tool)
-            self.display_point(self.point_tool)
-            self.enabled_click = True
 
     def transformSelectedLocation(self):
         """Use basic controls to transform any selected projection to EPSG:4326."""
@@ -524,10 +542,15 @@ class wtss_qgis:
 
     def enableGetLatLng(self):
         """Enable get lat lng to search time series."""
+        self.enabled_click = self.dlg.enable_canvas_point.isChecked()
         if self.enabled_click:
-            self.addCanvasControlPoint(False)
-        else:
+            self.dlg.input_longitude.setDisabled(True)
+            self.dlg.input_latitude.setDisabled(True)
             self.addCanvasControlPoint(True)
+        else:
+            self.dlg.input_longitude.setDisabled(False)
+            self.dlg.input_latitude.setDisabled(False)
+            self.addCanvasControlPoint(False)
 
     def updateDescription(self):
         """Load label on scroll area with product description."""
