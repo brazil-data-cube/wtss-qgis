@@ -18,9 +18,8 @@
 
 """Python QGIS Plugin for WTSS."""
 
-import getpass
 import os.path
-import secrets
+from datetime import datetime
 from pathlib import Path
 
 import qgis.utils
@@ -202,7 +201,8 @@ class wtss_qgis:
         self.basic_controls = Controls()
         self.server_controls = Services(user = "application")
         self.files_controls = FilesExport()
-        self.enabled_click = False
+        self.enabled_click = True
+        self.enableGetLatLng()
         self.dlg.enable_canvas_point.setChecked(self.enabled_click)
         self.dlg.enable_canvas_point.stateChanged.connect(self.enableGetLatLng)
 
@@ -227,7 +227,7 @@ class wtss_qgis:
         self.dlg.show_help_button.setIcon(icon)
         icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'info-icon.png'))
         self.dlg.show_coverage_description.setIcon(icon)
-        icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'navigation.png'))
+        icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'location-icon.png'))
         self.dlg.search_button.setIcon(icon)
 
     def initButtons(self):
@@ -354,6 +354,11 @@ class wtss_qgis:
         )
         bands = description.get("attributes",{})
         timeline = description.get("timeline",[])
+        timeline = sorted(
+            description.get("timeline",[]),
+            key = lambda x:
+                datetime.strptime(x, '%Y-%m-%d')
+        )
         self.bands_checks = {}
         for band in bands:
             self.bands_checks[band.get('name')] = QCheckBox(str(band.get('name')))
@@ -471,10 +476,6 @@ class wtss_qgis:
         self.selected_location = self.locations.get(item.text(), {})
         self.dlg.input_longitude.setValue(self.selected_location.get('long'))
         self.dlg.input_latitude.setValue(self.selected_location.get('lat'))
-        try:
-            self.plotTimeSeries()
-        except AttributeError:
-            pass
 
     def getTimeSeriesButton(self):
         """Get time series using canvas click or selected location"""
@@ -490,7 +491,7 @@ class wtss_qgis:
         y = None
         if pointTool == None:
             x = self.dlg.input_longitude.value()
-            y = self.dlg.input_longitude.value()
+            y = self.dlg.input_latitude.value()
         else:
             x = float(pointTool.x())
             y = float(pointTool.y())
@@ -499,7 +500,8 @@ class wtss_qgis:
         try:
             self.selected_location = {
                 'layer_name' : str(self.layer.name()),
-                'long' : float(x), 'lat' : y,
+                'long' : x,
+                'lat' : y,
                 'crs' : str(self.layer.crs().authid())
             }
             history_key = str(
@@ -519,9 +521,8 @@ class wtss_qgis:
 
     def addCanvasControlPoint(self, enable):
         """Generate a canvas area to get mouse position."""
-        self.canvas = None
         self.point_tool = None
-        self.canvas.setMapTool(self.point_tool)
+        self.canvas = None
         if enable:
             QgsProject.instance().setCrs(QgsCoordinateReferenceSystem(4326))
             self.canvas = self.iface.mapCanvas()

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>742</width>
-    <height>513</height>
+    <height>512</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -203,29 +203,6 @@
     <attribute name="title">
      <string>Get Time Series</string>
     </attribute>
-    <widget class="QGroupBox" name="history">
-     <property name="geometry">
-      <rect>
-       <x>480</x>
-       <y>170</y>
-       <width>251</width>
-       <height>231</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>Coordinates History</string>
-     </property>
-     <widget class="QListWidget" name="history_list">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>231</width>
-        <height>191</height>
-       </rect>
-      </property>
-     </widget>
-    </widget>
     <widget class="QGroupBox" name="attribute_group">
      <property name="geometry">
       <rect>
@@ -480,7 +457,7 @@
      <property name="geometry">
       <rect>
        <x>490</x>
-       <y>130</y>
+       <y>370</y>
        <width>231</width>
        <height>25</height>
       </rect>
@@ -498,8 +475,8 @@
     <widget class="QGroupBox" name="latitudeBox">
      <property name="geometry">
       <rect>
-       <x>600</x>
-       <y>10</y>
+       <x>610</x>
+       <y>250</y>
        <width>121</width>
        <height>71</height>
       </rect>
@@ -536,8 +513,8 @@
     <widget class="QGroupBox" name="longitudeBox">
      <property name="geometry">
       <rect>
-       <x>470</x>
-       <y>10</y>
+       <x>480</x>
+       <y>250</y>
        <width>120</width>
        <height>71</height>
       </rect>
@@ -574,8 +551,8 @@
     <widget class="QCheckBox" name="enable_canvas_point">
      <property name="geometry">
       <rect>
-       <x>520</x>
-       <y>90</y>
+       <x>530</x>
+       <y>330</y>
        <width>161</width>
        <height>25</height>
       </rect>
@@ -596,6 +573,29 @@
      <property name="text">
       <string/>
      </property>
+    </widget>
+    <widget class="QGroupBox" name="history">
+     <property name="geometry">
+      <rect>
+       <x>480</x>
+       <y>10</y>
+       <width>251</width>
+       <height>231</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Coordinates History</string>
+     </property>
+     <widget class="QListWidget" name="history_list">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>231</width>
+        <height>191</height>
+       </rect>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>
