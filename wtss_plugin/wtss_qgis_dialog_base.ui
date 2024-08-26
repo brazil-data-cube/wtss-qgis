@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>742</width>
-    <height>512</height>
+    <width>743</width>
+    <height>511</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -561,19 +561,6 @@
       <string>Enable Select Point</string>
      </property>
     </widget>
-    <widget class="QLabel" name="loading_label">
-     <property name="geometry">
-      <rect>
-       <x>230</x>
-       <y>90</y>
-       <width>261</width>
-       <height>211</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
     <widget class="QGroupBox" name="history">
      <property name="geometry">
       <rect>
@@ -598,6 +585,22 @@
      </widget>
     </widget>
    </widget>
+  </widget>
+  <widget class="QLabel" name="loading_label">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>751</width>
+     <height>511</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
   </widget>
  </widget>
  <resources/>

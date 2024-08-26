@@ -210,6 +210,7 @@ class wtss_qgis:
         """Enable loading label."""
         self.movie = QMovie(str(Path(Config.BASE_DIR) / 'assets' / 'loading.gif'))
         self.movie.start()
+        self.dlg.loading_label.setStyleSheet("background-color: rgba(216, 216, 216, 0.5)")
         self.dlg.loading_label.setMovie(self.movie)
         self.endLoading()
 
