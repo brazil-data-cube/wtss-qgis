@@ -202,9 +202,11 @@ class wtss_qgis:
         self.server_controls = Services(user = "application")
         self.files_controls = FilesExport()
         self.enabled_click = True
-        self.enableGetLatLng()
         self.dlg.enable_canvas_point.setChecked(self.enabled_click)
         self.dlg.enable_canvas_point.stateChanged.connect(self.enableGetLatLng)
+        self.dlg.input_longitude.valueChanged.connect(self.checkLatLng)
+        self.dlg.input_latitude.valueChanged.connect(self.checkLatLng)
+        self.enableGetLatLng()
 
     def initLoadingControls(self):
         """Enable loading label."""
@@ -370,7 +372,7 @@ class wtss_qgis:
         # Update dates for start and end to coverage selection
         self.dlg.start_date.setDate(self.basic_controls.formatForQDate(timeline[0]))
         self.dlg.end_date.setDate(self.basic_controls.formatForQDate(timeline[len(timeline) - 1]))
-        self.dlg.search_button.setEnabled(True)
+        self.checkLatLng()
 
     def loadAtributtes(self):
         """Verify the selected attributes in check list and save in array."""
@@ -553,6 +555,16 @@ class wtss_qgis:
             self.dlg.input_longitude.setDisabled(False)
             self.dlg.input_latitude.setDisabled(False)
             self.addCanvasControlPoint(False)
+
+    def checkLatLng(self):
+        """Check if lat lng are selected."""
+        if (str(self.dlg.coverage_selection.currentText()) != '' and
+                len(self.loadAtributtes()) > 0 and
+                    self.dlg.input_longitude.value() != 0 and
+                        self.dlg.input_latitude.value() != 0):
+            self.dlg.search_button.setEnabled(True)
+        else:
+            self.dlg.search_button.setEnabled(False)
 
     def updateDescription(self):
         """Load label on scroll area with product description."""
