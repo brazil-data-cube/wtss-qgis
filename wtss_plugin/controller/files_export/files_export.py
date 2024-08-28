@@ -25,6 +25,8 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas
+import seaborn
 
 from ..helpers.pystac_helper import get_source_from_click, stac_args
 
@@ -134,7 +136,7 @@ class FilesExport:
         except FileNotFoundError:
             pass
 
-    def generatePlotFig(self, time_series, qgis_project_instance):
+    def generatePlotFig(self, time_series, normalize_data: bool, bands_description: any, qgis_project_instance):
         """Generate an image .JPEG with time series data in a line chart.
 
         :param time_series<dict>: the time series service reponse dictionary.
@@ -145,43 +147,39 @@ class FilesExport:
             stac_args.coverage = str(time_series.get('query').get('coverage'))
             stac_args.longitude = time_series.get('query').get('longitude')
             stac_args.latitude = time_series.get('query').get('latitude')
-            fig, ax = plt.subplots()
-            fig.canvas.callbacks.connect('pick_event', get_source_from_click)
-            plt.title(
-                ("Coverage {name}\nEPSG:4326 ({lng:,.2f}, {lat:,.2f})").format(
+            stac_args.set_timeline(time_series.get('result').get("timeline"))
+            time_series_df = pandas.DataFrame({
+                "Index": stac_args.timeline
+            })
+            fig = plt.figure(figsize = (12, 5))
+            fig.suptitle(
+                ("Coverage {name} [{lng:,.2f}, {lat:,.2f}] WGS 84 EPSG:4326 ").format(
                     name=str(time_series.get('query').get('coverage')),
                     lng=time_series.get('query').get('longitude'),
                     lat=time_series.get('query').get('latitude')
-                ),
-                fontsize = 12
-            )
-            plt.xlabel("Date", fontsize = 10)
-            plt.ylabel("Value", fontsize = 10)
-            plt.grid(color='gray', linestyle='--', linewidth=0.3)
-            x = []
-            for date_str in time_series.get('result').get("timeline"):
-                date = str(date_str)
-                label = (date[:-9] if len(date) > 10 else date)
-                x.append(label)
-            if len(x) > 5:
-                steps = np.arange(0, len(x), step=float(len(x) // 5))
-                x_axis_label = []
-                for i in range(len(x)):
-                    if i in steps:
-                        x_axis_label.append(x[i])
-                plt.xticks(steps, x_axis_label, fontsize = 10)
-            plt.yticks(fontsize = 10)
-            for result in time_series.get('result').get('attributes'):
-                y = result.get('values')
-                ax.plot(
-                    x, y,
-                    picker = 10,
-                    ls = '-',
-                    marker = 'o',
-                    linewidth = 1.3,
-                    label = result.get('attribute')
                 )
-            plt.rcParams["figure.figsize"] = (12, 5)
+            )
+            seaborn.set_theme(style="darkgrid")
+            for result in time_series.get("result").get("attributes"):
+                band = str(result.get("attribute"))
+                time_series_df[band] = result.get("values")
+                if normalize_data:
+                    def normalize_(value):
+                        if value != bands_description.get(band).get('missing_value'):
+                            return value * bands_description.get(band).get('scale_factor')
+                        else:
+                            return None
+                    time_series_df[band] = time_series_df[band].apply(normalize_)
+                seaborn.lineplot(
+                    data = time_series_df,
+                    x = "Index", y = band,
+                    label = band, markersize = 8,
+                    marker='o', picker = 10
+                )
+            fig.canvas.mpl_connect('pick_event', get_source_from_click)
+            fig.autofmt_xdate()
+            plt.xlabel(None)
+            plt.ylabel(None)
             plt.legend()
             plt.show()
         except:
