@@ -22,6 +22,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import List, Optional
 
+import pandas
 import pystac_client
 import shapely.geometry
 from osgeo import gdal
@@ -51,6 +52,7 @@ class STAC_ARGS:
         self.coverage = ""
         self.longitude = 0
         self.latitude = 0
+        self.timeline = []
         self.quick_look = False
         self.channels = Channels()
 
@@ -61,6 +63,10 @@ class STAC_ARGS:
                 'files_export' /
                     'examples'
         )
+
+    def set_timeline(self, timeline: list[str]) -> None:
+        """Return a datetime timeline."""
+        self.timeline = [pandas.to_datetime(date) for date in timeline]
 
     def set_quick_look(self, service) -> None:
         collection = service.get_collection(stac_args.coverage)
@@ -94,7 +100,8 @@ def get_source_from_click(event):
     :param event<Event>: The plot event click.
     """
     selection_x = event.artist.get_xdata()
-    selected_time = str(selection_x[event.ind[0]])
+    # selected_time = str(selection_x[event.ind[0]])
+    selected_time = stac_args.timeline[event.ind[0]].strftime('%Y-%m-%d')
 
     service = pystac_client.Client.open(Config.STAC_HOST)
 
@@ -134,6 +141,12 @@ def get_source_from_click(event):
         separate = True
     )[1]
 
-    stac_args.qgis_project.addMapLayer(
-        QgsRasterLayer(vrt_raster_file, layer_name), True
-    )
+    layer_names = [
+        layer.name()
+        for layer in stac_args.qgis_project.mapLayers().values()
+    ]
+
+    if layer_name not in layer_names:
+        stac_args.qgis_project.addMapLayer(
+            QgsRasterLayer(vrt_raster_file, layer_name), True
+        )
