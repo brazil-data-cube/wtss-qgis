@@ -23,6 +23,7 @@ from datetime import datetime
 from pathlib import Path
 
 import qgis.utils
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from qgis.core import QgsCoordinateReferenceSystem, QgsProject
@@ -198,14 +199,15 @@ class wtss_qgis:
 
     def initControls(self):
         """Init basic controls to generate files and manage services."""
+        self.dlg.setWindowFlag(Qt.WindowMaximizeButtonHint, False)
         self.basic_controls = Controls()
         self.server_controls = Services(user = "application")
         self.files_controls = FilesExport()
         self.enabled_click = True
         self.dlg.enable_canvas_point.setChecked(self.enabled_click)
         self.dlg.enable_canvas_point.stateChanged.connect(self.enableGetLatLng)
-        self.dlg.input_longitude.valueChanged.connect(self.checkLatLng)
-        self.dlg.input_latitude.valueChanged.connect(self.checkLatLng)
+        self.dlg.input_longitude.valueChanged.connect(self.checkFilters)
+        self.dlg.input_latitude.valueChanged.connect(self.checkFilters)
         self.enableGetLatLng()
 
     def initLoadingControls(self):
@@ -264,6 +266,7 @@ class wtss_qgis:
             self.basic_controls.alert("error","502 Error", "The main services are not available!")
         self.dlg.service_selection.addItems(service_names)
         self.dlg.service_selection.activated.connect(self.selectCoverage)
+        self.selectCoverage()
         self.data = self.server_controls.loadServices()
         self.model = QStandardItemModel()
         self.basic_controls.addItemsTreeView(self.model, self.data)
@@ -355,31 +358,40 @@ class wtss_qgis:
             str(self.dlg.service_selection.currentText()),
             str(self.dlg.coverage_selection.currentText())
         )
-        bands = description.get("attributes",{})
-        timeline = description.get("timeline",[])
+        timeline = description.get("timeline", [])
         timeline = sorted(
             description.get("timeline",[]),
             key = lambda x:
                 datetime.strptime(x, '%Y-%m-%d')
         )
+        bands = description.get("attributes", {})
+        bands = sorted(bands, key = lambda d: d['name'])
         self.bands_checks = {}
         for band in bands:
-            self.bands_checks[band.get('name')] = QCheckBox(str(band.get('name')))
-            self.vbox.addWidget(self.bands_checks.get(band.get('name')))
+            band.get('scale_factor', 0)
+            self.bands_checks[band.get('name')] = band
+            self.bands_checks[band.get('name')]['check'] = QCheckBox(f'{str(band.get('name'))} ({str(band.get('common_name'))})')
+            self.bands_checks[band.get('name')]['check'].stateChanged.connect(self.checkFilters)
+            self.vbox.addWidget(self.bands_checks.get(band.get('name')).get('check'))
         self.widget.setLayout(self.vbox)
         self.dlg.bands_scroll.setWidgetResizable(True)
         self.dlg.bands_scroll.setWidget(self.widget)
         # Update dates for start and end to coverage selection
         self.dlg.start_date.setDate(self.basic_controls.formatForQDate(timeline[0]))
         self.dlg.end_date.setDate(self.basic_controls.formatForQDate(timeline[len(timeline) - 1]))
-        self.checkLatLng()
+        self.checkFilters()
+
+    def loadSelectedBands(self):
+        """Verify the selected attributes in check list and save in array."""
+        selected_attributes = {}
+        for band_name in list(self.bands_checks.keys()):
+            if self.bands_checks and self.bands_checks.get(band_name).get('check').isChecked():
+                selected_attributes[band_name] = self.bands_checks.get(band_name)
+        return selected_attributes
 
     def loadAtributtes(self):
         """Verify the selected attributes in check list and save in array."""
-        selected_attributes = []
-        for band in list(self.bands_checks.keys()):
-            if self.bands_checks and self.bands_checks.get(band).isChecked():
-                selected_attributes.append(band)
+        selected_attributes = [str(band) for band in self.loadSelectedBands().keys()]
         return selected_attributes
 
     def loadTimeSeries(self):
@@ -464,7 +476,12 @@ class wtss_qgis:
         """Generate the plot image with time series data."""
         time_series = self.loadTimeSeries()
         if time_series.get('result', {}).get("timeline", []) != []:
-            self.files_controls.generatePlotFig(time_series, QgsProject.instance())
+            self.files_controls.generatePlotFig(
+                time_series = time_series,
+                normalize_data = self.dlg.normalize_data.isChecked(),
+                bands_description = self.loadSelectedBands(),
+                qgis_project_instance = QgsProject.instance()
+            )
         else:
             self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
 
@@ -501,17 +518,17 @@ class wtss_qgis:
             self.dlg.input_longitude.setValue(x)
             self.dlg.input_latitude.setValue(y)
         try:
+            self.getLayers()
             self.selected_location = {
-                'layer_name' : str(self.layer.name()),
                 'long' : x,
                 'lat' : y,
+                'layer_name' : str(self.layer.name()),
                 'crs' : str(self.layer.crs().authid())
             }
             history_key = str(
                 (
-                    "({long:,.2f}, {lat:,.2f}) {crs}"
+                    "[{long:,.7f}, {lat:,.7f}]"
                 ).format(
-                    crs = self.selected_location.get('crs'),
                     long = self.selected_location.get('long'),
                     lat = self.selected_location.get('lat')
                 )
@@ -527,8 +544,8 @@ class wtss_qgis:
         self.point_tool = None
         self.canvas = None
         if enable:
-            QgsProject.instance().setCrs(QgsCoordinateReferenceSystem(4326))
             self.canvas = self.iface.mapCanvas()
+            QgsProject.instance().setCrs(QgsCoordinateReferenceSystem(4326))
             self.point_tool = QgsMapToolEmitPoint(self.canvas)
             self.point_tool.canvasClicked.connect(self.display_point)
             self.canvas.setMapTool(self.point_tool)
@@ -556,14 +573,17 @@ class wtss_qgis:
             self.dlg.input_latitude.setDisabled(False)
             self.addCanvasControlPoint(False)
 
-    def checkLatLng(self):
+    def checkFilters(self):
         """Check if lat lng are selected."""
-        if (str(self.dlg.coverage_selection.currentText()) != '' and
-                len(self.loadAtributtes()) > 0 and
-                    self.dlg.input_longitude.value() != 0 and
-                        self.dlg.input_latitude.value() != 0):
-            self.dlg.search_button.setEnabled(True)
-        else:
+        try:
+            if (str(self.dlg.coverage_selection.currentText()) != '' and
+                    len(self.loadAtributtes()) > 0 and
+                        self.dlg.input_longitude.value() != 0 and
+                            self.dlg.input_latitude.value() != 0):
+                self.dlg.search_button.setEnabled(True)
+            else:
+                self.dlg.search_button.setEnabled(False)
+        except:
             self.dlg.search_button.setEnabled(False)
 
     def updateDescription(self):
