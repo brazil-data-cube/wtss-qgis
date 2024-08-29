@@ -396,15 +396,21 @@ class wtss_qgis:
 
     def loadTimeSeries(self):
         """Load time series product data from selected values."""
-        return self.server_controls.productTimeSeries(
-            str(self.dlg.service_selection.currentText()),
-            str(self.dlg.coverage_selection.currentText()),
-            tuple(self.loadAtributtes()),
-            self.transformSelectedLocation().get('lat', 0),
-            self.transformSelectedLocation().get('long', 0),
-            str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
-            str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
-        )
+        try:
+            time_series = self.server_controls.productTimeSeries(
+                str(self.dlg.service_selection.currentText()),
+                str(self.dlg.coverage_selection.currentText()),
+                tuple(self.loadAtributtes()),
+                float(self.selected_location.get("long")),
+                float(self.selected_location.get("lat")),
+                str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
+                str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
+            )
+            if time_series == None:
+                self.basic_controls.alert("error", "requests.exceptions.HTTPError", "500 Server Error: INTERNAL SERVER ERROR!")
+            return time_series
+        except:
+            return None
 
     def exportPython(self):
         """Export python code to file system filling blank spaces with coverage metadata."""
@@ -478,6 +484,7 @@ class wtss_qgis:
         if time_series.get('result', {}).get("timeline", []) != []:
             self.files_controls.generatePlotFig(
                 time_series = time_series,
+                interpolate_data = self.dlg.interpolate_data.isChecked(),
                 normalize_data = self.dlg.normalize_data.isChecked(),
                 bands_description = self.loadSelectedBands(),
                 qgis_project_instance = QgsProject.instance()
@@ -549,17 +556,6 @@ class wtss_qgis:
             self.point_tool = QgsMapToolEmitPoint(self.canvas)
             self.point_tool.canvasClicked.connect(self.display_point)
             self.canvas.setMapTool(self.point_tool)
-
-    def transformSelectedLocation(self):
-        """Use basic controls to transform any selected projection to EPSG:4326."""
-        transformed = self.selected_location
-        if self.selected_location.get("crs"):
-            transformed = self.basic_controls.transformProjection(
-                self.selected_location.get("crs"),
-                self.selected_location.get("lat"),
-                self.selected_location.get("long")
-            )
-        return transformed
 
     def enableGetLatLng(self):
         """Enable get lat lng to search time series."""

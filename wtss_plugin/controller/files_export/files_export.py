@@ -24,7 +24,6 @@ import os
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas
 import seaborn
 
@@ -136,7 +135,11 @@ class FilesExport:
         except FileNotFoundError:
             pass
 
-    def generatePlotFig(self, time_series, normalize_data: bool, bands_description: any, qgis_project_instance):
+    def generatePlotFig(
+            self, time_series,
+            interpolate_data: bool, normalize_data: bool,
+            bands_description: any, qgis_project_instance
+        ):
         """Generate an image .JPEG with time series data in a line chart.
 
         :param time_series<dict>: the time series service reponse dictionary.
@@ -164,17 +167,31 @@ class FilesExport:
                 band = str(result.get("attribute"))
                 time_series_df[band] = result.get("values")
                 if normalize_data:
-                    def normalize_(value):
+                    def _normalize(value):
                         if value != bands_description.get(band).get('missing_value'):
                             return value * bands_description.get(band).get('scale_factor')
                         else:
                             return None
-                    time_series_df[band] = time_series_df[band].apply(normalize_)
+                    time_series_df[band] = time_series_df[band].apply(_normalize)
+                if interpolate_data:
+                    if not normalize_data:
+                        def _set_NaN(value):
+                            if value != bands_description.get(band).get('missing_value'):
+                                return value
+                            else:
+                                return None
+                        time_series_df[band] = time_series_df[band].apply(_set_NaN)
+                    time_series_df[band] = time_series_df[band] \
+                        .interpolate(
+                            method='linear',
+                            limit_direction = 'forward',
+                            order = 2
+                        )
                 seaborn.lineplot(
                     data = time_series_df,
-                    x = "Index", y = band,
-                    label = band, markersize = 8,
-                    marker='o', picker = 10
+                    x = "Index", y = band, label = band,
+                    markersize = 8, marker = 'o',
+                    linestyle = '-', picker = 10
                 )
             fig.canvas.mpl_connect('pick_event', get_source_from_click)
             fig.autofmt_xdate()
