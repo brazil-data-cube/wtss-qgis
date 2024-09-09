@@ -81,15 +81,12 @@ class STAC_ARGS:
         opts = deepcopy(options)
         opts.setdefault("resampleAlg", "nearest")
         opts.setdefault("separate", True)
-
         vrt_options = gdal.BuildVRTOptions(**opts)
-
         try:
-            vrt = gdal.BuildVRT(output_file, files, options = vrt_options)
+            gdal.BuildVRT(output_file, files, options = vrt_options)
         except:
             output_file = None
-
-        return vrt, output_file
+        return output_file
 
 
 stac_args = STAC_ARGS()
@@ -99,8 +96,6 @@ def get_source_from_click(event):
 
     :param event<Event>: The plot event click.
     """
-    selection_x = event.artist.get_xdata()
-    # selected_time = str(selection_x[event.ind[0]])
     selected_time = stac_args.timeline[event.ind[0]].strftime('%Y-%m-%d')
 
     service = pystac_client.Client.open(Config.STAC_HOST)
@@ -139,7 +134,7 @@ def get_source_from_click(event):
         resampleAlg = 'nearest',
         addAlpha = False,
         separate = True
-    )[1]
+    )
 
     layer_names = [
         layer.name()
