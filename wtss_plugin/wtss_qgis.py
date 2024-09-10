@@ -22,6 +22,7 @@ import os.path
 from datetime import datetime
 from pathlib import Path
 
+import pystac_client
 import qgis.utils
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
@@ -35,6 +36,8 @@ from qgis.PyQt.QtWidgets import QAction
 from .controller.config import Config
 # Import files exporting controls
 from .controller.files_export import FilesExport
+# Import the STAC args
+from .controller.helpers.pystac_helper import stac_args
 # Import the controls for the plugin
 from .controller.wtss_qgis_controller import Controls, Services
 # Initialize Qt resources from file resources.py
@@ -203,7 +206,7 @@ class wtss_qgis:
         self.basic_controls = Controls()
         self.server_controls = Services(user = "application")
         self.files_controls = FilesExport()
-        self.enabled_click = True
+        self.enabled_click = False
         self.dlg.enable_canvas_point.setChecked(self.enabled_click)
         self.dlg.enable_canvas_point.stateChanged.connect(self.enableGetLatLng)
         self.dlg.input_longitude.valueChanged.connect(self.checkFilters)
@@ -259,6 +262,10 @@ class wtss_qgis:
         self.dlg.history_list.itemActivated.connect(self.getFromHistory)
         self.getLayers()
 
+    def initRasterHistory(self):
+        """Add a event listener when a layer is added to check the history of vrt layers."""
+        QgsProject.instance().layersAdded.connect(self.updateRasterHistory)
+
     def initServices(self):
         """Load the registered services based on JSON file."""
         service_names = self.server_controls.getServiceNames()
@@ -274,6 +281,22 @@ class wtss_qgis:
         self.dlg.data.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.dlg.data.clicked.connect(self.updateDescription)
         self.updateDescription()
+
+    def initRasterPathControls(self):
+        """Init raster path location controls."""
+        self.enabled_output_path_raster_edit = False
+        self.dlg.user_output_path_raster.setText(str(stac_args.get_raster_vrt_folder()))
+        self.dlg.user_output_path_raster.setEnabled(self.enabled_output_path_raster_edit)
+        self.dlg.change_output_path_raster.clicked.connect(self.updateOutputRasterPath)
+
+    def initRGBoptions(self):
+        """Load RGB options with not enabled controls."""
+        self.dlg.red_input.setEnabled(False)
+        self.dlg.red_input.activated.connect(self.loadRGBOptions)
+        self.dlg.green_input.setEnabled(False)
+        self.dlg.green_input.activated.connect(self.loadRGBOptions)
+        self.dlg.blue_input.setEnabled(False)
+        self.dlg.blue_input.activated.connect(self.loadRGBOptions)
 
     def saveService(self):
         """Save the service based on name and host input."""
@@ -295,10 +318,26 @@ class wtss_qgis:
         except (ValueError, AttributeError, ConnectionRefusedError) as error:
             self.basic_controls.alert("error", "(ValueError, AttributeError)", str(error))
 
+    def updateOutputRasterPath(self):
+        """Update the output path for generated rasters."""
+        stac_args.update_raster_vrt_folder(self.dlg.user_output_path_raster.text())
+        self.enabled_output_path_raster_edit = not self.enabled_output_path_raster_edit
+        if self.enabled_output_path_raster_edit:
+            self.dlg.change_output_path_raster.setText('Save')
+        else:
+            self.dlg.change_output_path_raster.setText('Update')
+        self.dlg.user_output_path_raster.setEnabled(self.enabled_output_path_raster_edit)
+        self.dlg.user_output_path_raster.setText(stac_args.raster_vrt_folder)
+
+    def updateRasterHistory(self):
+        """Save a list of generated rasters."""
+        self.dlg.virtual_raster_list.clear()
+        self.dlg.virtual_raster_list.addItems(stac_args.vrt_history)
+
     def deleteService(self):
         """Delete the selected active service."""
         try:
-            host_to_delete = host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.text())
+            host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.text())
             if host_to_delete == None:
                 host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.parent().text())
             self.server_controls.deleteService(host_to_delete.name)
@@ -309,11 +348,11 @@ class wtss_qgis:
     def editService(self):
         """Edit the selected service."""
         try:
-            host_to_delete = host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.text())
-            if host_to_delete == None:
-                host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.parent().text())
-            self.dlg.service_name.setText(host_to_delete.name)
-            self.dlg.service_host.setText(host_to_delete.host)
+            host_to_update = self.server_controls.findServiceByName(self.metadata_selected.text())
+            if host_to_update == None:
+                host_to_update = self.server_controls.findServiceByName(self.metadata_selected.parent().text())
+            self.dlg.service_name.setText(host_to_update.name)
+            self.dlg.service_host.setText(host_to_update.host)
         except (ValueError, AttributeError) as error:
             self.basic_controls.alert("error", "(ValueError, AttributeError)", str(error))
 
@@ -358,6 +397,8 @@ class wtss_qgis:
             str(self.dlg.service_selection.currentText()),
             str(self.dlg.coverage_selection.currentText())
         )
+        stac_args.coverage = str(self.dlg.coverage_selection.currentText())
+        stac_args.set_quick_look(pystac_client.Client.open(Config.STAC_HOST))
         timeline = description.get("timeline", [])
         timeline = sorted(
             description.get("timeline",[]),
@@ -367,12 +408,37 @@ class wtss_qgis:
         bands = description.get("attributes", {})
         bands = sorted(bands, key = lambda d: d['name'])
         self.bands_checks = {}
+        self.dlg.red_input.setEnabled(True)
+        self.dlg.green_input.setEnabled(True)
+        self.dlg.blue_input.setEnabled(True)
+        self.rgb_band_options = {
+            'names': [],
+            'titles': []
+        }
         for band in bands:
+            band_name = band.get('name')
+            band_title = f'{str(band_name)} ({str(band.get('common_name'))})'
             band.get('scale_factor', 0)
-            self.bands_checks[band.get('name')] = band
-            self.bands_checks[band.get('name')]['check'] = QCheckBox(f'{str(band.get('name'))} ({str(band.get('common_name'))})')
-            self.bands_checks[band.get('name')]['check'].stateChanged.connect(self.checkFilters)
-            self.vbox.addWidget(self.bands_checks.get(band.get('name')).get('check'))
+            self.bands_checks[band_name] = band
+            self.bands_checks[band_name]['check'] = QCheckBox(band_title)
+            self.bands_checks[band_name]['check'].stateChanged.connect(self.checkFilters)
+            self.vbox.addWidget(self.bands_checks.get(band_name).get('check'))
+            # Load RGB default options based on selected service to generate vrt rasters.
+            self.rgb_band_options['names'].append(band_name)
+            self.rgb_band_options['titles'].append(band_title)
+        # Load RGB default options to QComboBox for RED Channel
+        self.dlg.red_input.clear()
+        self.dlg.red_input.addItems(self.rgb_band_options['titles'])
+        self.dlg.red_input.setCurrentIndex(self.rgb_band_options['names'].index(stac_args.channels.red))
+        # Load RGB default options to QComboBox for GREEN Channel
+        self.dlg.green_input.clear()
+        self.dlg.green_input.addItems(self.rgb_band_options['titles'])
+        self.dlg.green_input.setCurrentIndex(self.rgb_band_options['names'].index(stac_args.channels.green))
+        # Load RGB default options to QComboBox for BLUE Channel
+        self.dlg.blue_input.clear()
+        self.dlg.blue_input.addItems(self.rgb_band_options['titles'])
+        self.dlg.blue_input.setCurrentIndex(self.rgb_band_options['names'].index(stac_args.channels.blue))
+        # #
         self.widget.setLayout(self.vbox)
         self.dlg.bands_scroll.setWidgetResizable(True)
         self.dlg.bands_scroll.setWidget(self.widget)
@@ -411,6 +477,26 @@ class wtss_qgis:
             return time_series
         except:
             return None
+
+    def loadSTACArgs(self, time_series) -> None:
+        """Load selected arguments for STAC search."""
+        try:
+            stac_args.qgis_project = QgsProject.instance()
+            stac_args.longitude = time_series.get('query').get('longitude')
+            stac_args.latitude = time_series.get('query').get('latitude')
+            stac_args.set_timeline(time_series.get('result').get("timeline"))
+            self.loadRGBOptions()
+        except:
+            pass
+
+    def loadRGBOptions(self, time_series) -> None:
+        """Load selected arguments for STAC search."""
+        try:
+            stac_args.channels.red = self.rgb_band_options['names'][self.dlg.red_input.currentIndex()]
+            stac_args.channels.green = self.rgb_band_options['names'][self.dlg.green_input.currentIndex()]
+            stac_args.channels.blue = self.rgb_band_options['names'][self.dlg.blue_input.currentIndex()]
+        except:
+            pass
 
     def exportPython(self):
         """Export python code to file system filling blank spaces with coverage metadata."""
@@ -482,12 +568,13 @@ class wtss_qgis:
         """Generate the plot image with time series data."""
         time_series = self.loadTimeSeries()
         if time_series.get('result', {}).get("timeline", []) != []:
+            self.loadSTACArgs(time_series)
             self.files_controls.generatePlotFig(
                 time_series = time_series,
                 interpolate_data = self.dlg.interpolate_data.isChecked(),
                 normalize_data = self.dlg.normalize_data.isChecked(),
                 bands_description = self.loadSelectedBands(),
-                qgis_project_instance = QgsProject.instance()
+                stac_args=stac_args
             )
         else:
             self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
@@ -630,6 +717,12 @@ class wtss_qgis:
         self.initControls()
         # Services
         self.initServices()
+        # Virtual Raster History
+        self.initRasterHistory()
+        # Output vrt path
+        self.initRasterPathControls()
+        # RGB Options
+        self.initRGBoptions()
         # History
         self.initHistory()
         # Add icons to buttons

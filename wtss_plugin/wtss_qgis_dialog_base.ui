@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>743</width>
-    <height>512</height>
+    <width>742</width>
+    <height>511</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -628,47 +628,11 @@
     <attribute name="title">
      <string>Virtual Raster Options</string>
     </attribute>
-    <widget class="QGroupBox" name="set_output_path_raster_group">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>160</y>
-       <width>721</width>
-       <height>61</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>Set Output path</string>
-     </property>
-     <widget class="QLineEdit" name="user_output_path_raster">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>601</width>
-        <height>27</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="change_output_path_raster">
-      <property name="geometry">
-       <rect>
-        <x>620</x>
-        <y>30</y>
-        <width>91</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Change</string>
-      </property>
-     </widget>
-    </widget>
     <widget class="QGroupBox" name="rgb_options_group">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>240</y>
+       <y>10</y>
        <width>721</width>
        <height>101</height>
       </rect>
@@ -679,7 +643,7 @@
      <widget class="QGroupBox" name="red_option_group">
       <property name="geometry">
        <rect>
-        <x>20</x>
+        <x>10</x>
         <y>30</y>
         <width>221</width>
         <height>61</height>
@@ -702,7 +666,7 @@
      <widget class="QGroupBox" name="green_option_group">
       <property name="geometry">
        <rect>
-        <x>260</x>
+        <x>250</x>
         <y>30</y>
         <width>221</width>
         <height>61</height>
@@ -746,35 +710,42 @@
       </widget>
      </widget>
     </widget>
-    <widget class="QLabel" name="stac_host_label">
+    <widget class="QGroupBox" name="virtual_raster_list_group">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>10</y>
+       <y>190</y>
        <width>721</width>
-       <height>31</height>
+       <height>281</height>
       </rect>
      </property>
-     <property name="autoFillBackground">
-      <bool>true</bool>
+     <property name="title">
+      <string>Virtual Rasters History</string>
      </property>
-     <property name="text">
-      <string>STAC Service</string>
-     </property>
+     <widget class="QListWidget" name="virtual_raster_list">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>701</width>
+        <height>241</height>
+       </rect>
+      </property>
+     </widget>
     </widget>
-    <widget class="QGroupBox" name="set_stac_service_group">
+    <widget class="QGroupBox" name="output_path_raster_group">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>50</y>
+       <y>120</y>
        <width>721</width>
        <height>61</height>
       </rect>
      </property>
      <property name="title">
-      <string>Set STAC Service</string>
+      <string>Output virtual raster path</string>
      </property>
-     <widget class="QLineEdit" name="user_stac_service">
+     <widget class="QLineEdit" name="user_output_path_raster">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -784,7 +755,7 @@
        </rect>
       </property>
      </widget>
-     <widget class="QPushButton" name="change_stac_service">
+     <widget class="QPushButton" name="change_output_path_raster">
       <property name="geometry">
        <rect>
         <x>620</x>
@@ -794,46 +765,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>Change</string>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QLabel" name="output_raster_path_label">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>120</y>
-       <width>721</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="autoFillBackground">
-      <bool>true</bool>
-     </property>
-     <property name="text">
-      <string>Path</string>
-     </property>
-    </widget>
-    <widget class="QGroupBox" name="virtual_raster_list_group">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>350</y>
-       <width>721</width>
-       <height>121</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>Virtual Rasters</string>
-     </property>
-     <widget class="QListView" name="virtual_raster_list">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>20</y>
-        <width>721</width>
-        <height>101</height>
-       </rect>
+       <string>Update</string>
       </property>
      </widget>
     </widget>
@@ -842,8 +774,8 @@
   <widget class="QLabel" name="loading_label">
    <property name="geometry">
     <rect>
-     <x>-1</x>
-     <y>-1</y>
+     <x>0</x>
+     <y>0</y>
      <width>741</width>
      <height>511</height>
     </rect>

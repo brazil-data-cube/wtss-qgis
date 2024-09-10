@@ -55,6 +55,8 @@ class STAC_ARGS:
         self.timeline = []
         self.quick_look = False
         self.channels = Channels()
+        self.vrt_history = []
+        self.raster_vrt_folder = str(self.get_raster_vrt_folder())
 
     def get_raster_vrt_folder(self) -> str:
         """Return the location path to save virtual rasters."""
@@ -63,6 +65,15 @@ class STAC_ARGS:
                 'files_export' /
                     'examples'
         )
+
+    def update_raster_vrt_folder(self, new_raster_vrt_folder) -> None:
+        """Update the location path to save virtual rasters."""
+        new_raster_vrt_folder = str(new_raster_vrt_folder)
+        last_item = new_raster_vrt_folder[len(new_raster_vrt_folder) - 1]
+        if (last_item == "/") or (last_item == "\\"):
+            self.raster_vrt_folder = str(new_raster_vrt_folder[0: len(new_raster_vrt_folder) - 1])
+        else:
+            self.raster_vrt_folder = str(new_raster_vrt_folder)
 
     def set_timeline(self, timeline: list[str]) -> None:
         """Return a datetime timeline."""
@@ -111,8 +122,6 @@ def get_source_from_click(event):
     items = list(item_search.items())
     item = items[0].assets
 
-    stac_args.set_quick_look(service)
-
     rgb_href = {}
     channels = stac_args.channels
     for channel in ['red', 'green', 'blue']:
@@ -120,9 +129,9 @@ def get_source_from_click(event):
         href = item.get(band).href
         rgb_href[channel] = f'/vsicurl/{href}'
 
-    layer_name = f'{stac_args.coverage}_{selected_time}'
+    layer_name = f'{stac_args.coverage}_{selected_time}_{stac_args.channels.red}_{stac_args.channels.green}_{stac_args.channels.blue}'
 
-    vrt_raster_file = f'{stac_args.get_raster_vrt_folder()}/{layer_name}.vrt'
+    vrt_raster_file = f'{stac_args.raster_vrt_folder}/{layer_name}.vrt'
 
     vrt_raster_file = stac_args.build_gdal_vrt_raster(
         vrt_raster_file,
@@ -142,6 +151,7 @@ def get_source_from_click(event):
     ]
 
     if layer_name not in layer_names:
+        stac_args.vrt_history.append(layer_name)
         stac_args.qgis_project.addMapLayer(
             QgsRasterLayer(vrt_raster_file, layer_name), True
         )

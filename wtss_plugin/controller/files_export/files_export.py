@@ -27,7 +27,7 @@ import matplotlib.pyplot as plt
 import pandas
 import seaborn
 
-from ..helpers.pystac_helper import get_source_from_click, stac_args
+from ..helpers.pystac_helper import STAC_ARGS, get_source_from_click
 
 
 class FilesExport:
@@ -138,7 +138,7 @@ class FilesExport:
     def generatePlotFig(
             self, time_series,
             interpolate_data: bool, normalize_data: bool,
-            bands_description: any, qgis_project_instance
+            bands_description: any, stac_args: STAC_ARGS
         ):
         """Generate an image .JPEG with time series data in a line chart.
 
@@ -146,11 +146,6 @@ class FilesExport:
         :param qgis_project_instance<QgsProject>: the qgis project instance.
         """
         try:
-            stac_args.qgis_project = qgis_project_instance
-            stac_args.coverage = str(time_series.get('query').get('coverage'))
-            stac_args.longitude = time_series.get('query').get('longitude')
-            stac_args.latitude = time_series.get('query').get('latitude')
-            stac_args.set_timeline(time_series.get('result').get("timeline"))
             time_series_df = pandas.DataFrame({
                 "Index": stac_args.timeline
             })
