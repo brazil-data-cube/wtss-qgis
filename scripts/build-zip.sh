@@ -15,18 +15,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 #
+#!/bin/bash
 
-"""Python QGIS Plugin for WTSS."""
+LIB_PATH="./wtss_plugin/controller/lib"
+SCRIPTS_PATH="./scripts"
 
-def classFactory(iface):
-    """Load wtss_qgis class from file wtss_qgis.
+mkdir -p ./wtss_plugin/controller/lib
 
-    :param iface: A QGIS interface instance.
-    :type iface: QgsInterface
-    """
-    import sys
-    import os
-    from pathlib import Path
-    from .wtss_qgis import wtss_qgis
-    sys.path.append(str(Path(os.path.abspath(os.path.dirname(__file__))) / 'lib'))
-    return wtss_qgis(iface)
+cat $SCRIPTS_PATH/lib-paths.txt | while read path || [[ -n $path ]];
+do
+    echo "Copying all dependencies for "$path" to "$LIB_PATH
+    cp -R $path ./wtss_plugin/controller/lib
+done
+
+cd wtss_plugin
+
+pb_tool zip
