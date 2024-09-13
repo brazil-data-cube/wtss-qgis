@@ -24,7 +24,6 @@ from typing import List, Optional
 
 import pandas
 import pystac_client
-import shapely.geometry
 from osgeo import gdal
 from qgis.core import QgsRasterLayer
 
@@ -65,6 +64,16 @@ class STAC_ARGS:
                 'files_export' /
                     'examples'
         )
+
+    def get_point_reference(self) -> any:
+        """Return the coordinates as Geojson."""
+        return {
+            "type": "Point",
+            "coordinates": [
+                self.longitude,
+                self.latitude
+            ],
+        }
 
     def update_raster_vrt_folder(self, new_raster_vrt_folder) -> None:
         """Update the location path to save virtual rasters."""
@@ -111,11 +120,9 @@ def get_source_from_click(event):
 
     service = pystac_client.Client.open(Config.STAC_HOST)
 
-    geometry = shapely.geometry.Point(stac_args.longitude, stac_args.latitude)
-
     item_search = service.search(
         collections = [stac_args.coverage],
-        intersects = geometry,
+        intersects = stac_args.get_point_reference(),
         datetime = selected_time
     )
 

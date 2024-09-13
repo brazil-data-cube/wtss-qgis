@@ -15,19 +15,41 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 #
-#!/bin/bash
 
-LIB_PATH="./wtss_plugin/controller/lib"
-SCRIPTS_PATH="./scripts"
+"""Python Script to list Path libraries."""
 
-mkdir -p ./wtss_plugin/controller/lib
+from pathlib import Path
 
-cat $SCRIPTS_PATH/lib-paths.txt | while read path || [[ -n $path ]];
-do
-    echo "Copying all dependencies for "$path" to "$LIB_PATH
-    cp -R $path ./wtss_plugin/controller/lib
-done
+lib_paths = []
 
-cd wtss_plugin
+import json
+lib_paths.append(json.__file__)
 
-pb_tool zip
+import numpy
+lib_paths.append(numpy.__file__)
+
+import seaborn
+lib_paths.append(seaborn.__file__)
+
+import matplotlib
+lib_paths.append(matplotlib.__file__)
+
+import pandas
+lib_paths.append(pandas.__file__)
+
+import jsonschema
+lib_paths.append(jsonschema.__file__)
+
+import pystac
+lib_paths.append(pystac.__file__)
+
+import pystac_client
+lib_paths.append(pystac_client.__file__)
+
+import wtss
+lib_paths.append(wtss.__file__)
+
+file = open(Path('scripts') / 'lib-paths.txt','w')
+for path in lib_paths:
+	file.write(str(path).replace('__init__.py', '') + "\n")
+file.close()

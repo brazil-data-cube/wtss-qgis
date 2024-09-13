@@ -16,19 +16,13 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 #
 
-"""Python QGIS Plugin for WTSS."""
+xhost +
 
-def classFactory(iface):
-    """Load wtss_qgis class from file wtss_qgis.
+docker run --rm --name="qgis-3-desktop" \
+	-i -t \
+	-v ${PWD}:/home/wtss_plugin \
+	-v /tmp/.X11-unix:/tmp/.X11-unix \
+	-e DISPLAY=unix$DISPLAY \
+	qgis/qgis qgis
 
-    :param iface: A QGIS interface instance.
-    :type iface: QgsInterface
-    """
-    # Setting PYTHONPATH to use dependencies
-    import os
-    import sys
-    from pathlib import Path
-    sys.path.append(str(Path(os.path.abspath(os.path.dirname(__file__))) / 'lib'))
-    # Start plugin GUI
-    from .wtss_qgis import wtss_qgis
-    return wtss_qgis(iface)
+xhost -
