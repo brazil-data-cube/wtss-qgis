@@ -417,7 +417,8 @@ class wtss_qgis:
         }
         for band in bands:
             band_name = band.get('name')
-            band_title = f'{str(band_name)} ({str(band.get('common_name'))})'
+            band_common_name = band.get('common_name')
+            band_title = f"{str(band_name)} ({str(band_common_name)})"
             band.get('scale_factor', 0)
             self.bands_checks[band_name] = band
             self.bands_checks[band_name]['check'] = QCheckBox(band_title)

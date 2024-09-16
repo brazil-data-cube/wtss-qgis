@@ -18,17 +18,32 @@
 
 """Python QGIS Plugin for WTSS."""
 
+def start(iface):
+    """Start WTSS QGIS Plugin"""
+    #
+    # Setting PYTHONPATH to use dependencies
+    import os
+    import sys
+    from pathlib import Path
+    sys.path.append(str(Path(os.path.abspath(os.path.dirname(__file__))) / 'lib'))
+    #
+    # Start plugin GUI
+    from .wtss_qgis import wtss_qgis
+    return wtss_qgis(iface)
+
 def classFactory(iface):
     """Load wtss_qgis class from file wtss_qgis.
 
     :param iface: A QGIS interface instance.
     :type iface: QgsInterface
     """
-    # Setting PYTHONPATH to use dependencies
-    import os
-    import sys
-    from pathlib import Path
-    sys.path.append(str(Path(os.path.abspath(os.path.dirname(__file__))) / 'lib'))
-    # Start plugin GUI
-    from .wtss_qgis import wtss_qgis
-    return wtss_qgis(iface)
+    try:
+        return start(iface)
+    except:
+        import pip
+        pip.main([
+            'install',
+            '-r', 'requirements.txt',
+            '--target', 'lib'
+        ])
+        return start(iface)
