@@ -49,7 +49,7 @@ lib_paths.append(pystac_client.__file__)
 import wtss
 lib_paths.append(wtss.__file__)
 
-file = open(Path('scripts') / 'lib-paths.txt','w')
+file = open(Path('scripts') / 'lib-paths.txt', 'w')
 for path in lib_paths:
 	file.write(str(path).replace('__init__.py', '') + "\n")
 file.close()

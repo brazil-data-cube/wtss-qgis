@@ -30,3 +30,6 @@ done
 
 echo "Removing backends for matplotlib..."
 rm -R  $LIB_PATH/matplotlib/backends/web_backend/jquery
+
+echo "Removing _pycache__..."
+find $LIB_PATH -type f -name "__pycache__" -exec rm -r {} \;

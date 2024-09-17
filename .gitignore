@@ -38,6 +38,7 @@ parts/
 sdist/
 var/
 wheels/
+plugins/
 pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/
@@ -195,7 +196,9 @@ services_storage_user_application.json
 # Ignore pb_tool builds
 *zip_build
 
-# Ignore libs
+# Ignore libs path
 *lib
 
 *lib-paths.txt
+
+*requirements.txt

@@ -15,19 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 #
-#!/bin/bash
 
-xhost +
+import distutils.core
+from pathlib import Path
 
-docker run --rm \
-	--interactive \
-    --tty \
-	--name="qgis-3-desktop" \
-	-i -t \
-	-v ${PWD}:/home/wtss_plugin \
-	-v ${PWD}/plugins:/root/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ \
-	-v /tmp/.X11-unix:/tmp/.X11-unix \
-	-e DISPLAY=unix$DISPLAY \
-	qgis/qgis:release-3_32 qgis
+dist = distutils.core.run_setup("setup.py")
 
-xhost -
+file = open(Path('wtss_plugin') / 'requirements.txt','w')
+for req in dist.install_requires:
+	file.write(str(req) + "\n")
+file.close()

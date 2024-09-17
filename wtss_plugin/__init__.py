@@ -18,14 +18,49 @@
 
 """Python QGIS Plugin for WTSS."""
 
+import os
+from pathlib import Path
+
+def lib_path():
+    """Get the path for python installed lib path."""
+    return str(Path(os.path.abspath(os.path.dirname(__file__))) / 'lib')
+
+def lib_path_end():
+    """Get the path for python installed lib path."""
+    return str(os.path.join(str(Path(os.path.abspath(os.path.dirname(__file__))) / 'lib'), ''))
+
+def get_lib_paths():
+    """Get the path for python installed lib path."""
+    return [lib_path(), lib_path_end()]
+
+def requirements_file():
+    """Get the path for requirements file."""
+    return str(Path(os.path.abspath(os.path.dirname(__file__))) / 'requirements.txt')
+
+def warning(title, message):
+    """Show a simple warning when ImportError."""
+    from PyQt5.QtWidgets import QMessageBox
+    msg = QMessageBox()
+    msg.setIcon(QMessageBox.Critical)
+    msg.setWindowTitle(title)
+    msg.setText(message)
+    msg.setStandardButtons(QMessageBox.Ok)
+    return msg.exec_()
+
+def set_lib_path():
+    """Setting lib path for installed libraries."""
+    import sys
+    if lib_path() in sys.path:
+        sys.path.remove(lib_path())
+    if lib_path_end() in sys.path:
+        sys.path.remove(lib_path_end())
+    sys.path = get_lib_paths() + sys.path
+
 def start(iface):
     """Start WTSS QGIS Plugin"""
     #
     # Setting PYTHONPATH to use dependencies
-    import os
-    import sys
-    from pathlib import Path
-    sys.path.append(str(Path(os.path.abspath(os.path.dirname(__file__))) / 'lib'))
+    set_lib_path()
     #
     # Start plugin GUI
     from .wtss_qgis import wtss_qgis
@@ -39,11 +74,37 @@ def classFactory(iface):
     """
     try:
         return start(iface)
-    except:
-        import pip
-        pip.main([
-            'install',
-            '-r', 'requirements.txt',
-            '--target', 'lib'
-        ])
-        return start(iface)
+    except (ModuleNotFoundError, ImportError) as error:
+        ok_install_requirements = warning(
+            "ImportError!",
+            ("Your environment does not have the minimal " +
+            "requirements to run WTSS Plugin, " +
+            "click OK to install them.\n\n" + str(error))
+        )
+        if ok_install_requirements:
+            import subprocess
+            try:
+                subprocess.run([
+                    'pip', 'uninstall',
+                    '-r', requirements_file(),
+                ])
+            except:
+                pass
+            subprocess.run([
+                'pip', 'install',
+                '--target', lib_path(),
+                '-r', requirements_file(),
+            ])
+            ok_restart = warning(
+                "Restart Required!",
+                "Restart your QGIS environment to load updates!"
+            )
+            if ok_restart:
+                import sys
+                python = sys.executable
+                os.execl(python, python, *sys.argv)
+            else:
+                return None
+            return start(iface)
+        else:
+            return None
