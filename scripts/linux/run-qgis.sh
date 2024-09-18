@@ -22,12 +22,12 @@ xhost +
 docker run --rm \
 	--interactive \
     --tty \
-	--name="qgis-3-desktop" \
+	--name qgis3 \
 	-i -t \
 	-v ${PWD}:/home/wtss_plugin \
 	-v ${PWD}/plugins:/root/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ \
 	-v /tmp/.X11-unix:/tmp/.X11-unix \
 	-e DISPLAY=unix$DISPLAY \
-	qgis/qgis:release-3_32 qgis
+	qgis/qgis qgis
 
 xhost -
