@@ -88,9 +88,13 @@ class STAC_ARGS:
         """Return a datetime timeline."""
         self.timeline = [pandas.to_datetime(date) for date in timeline]
 
-    def set_quick_look(self, service) -> None:
+    def set_channels(self, service, config = "quicklook") -> None:
         collection = service.get_collection(stac_args.coverage)
-        rgb = collection.to_dict().get("bdc:bands_quicklook")
+        rgb = []
+        if config == "quicklook":
+            rgb = collection.to_dict()["bdc:bands_quicklook"]
+        elif config == "true_color":
+            rgb = collection.to_dict()['properties']['bdc:visual']['rgb']
         self.channels = Channels({
             "red": rgb[0],
             "green": rgb[1],

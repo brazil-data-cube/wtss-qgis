@@ -398,7 +398,10 @@ class wtss_qgis:
             str(self.dlg.coverage_selection.currentText())
         )
         stac_args.coverage = str(self.dlg.coverage_selection.currentText())
-        stac_args.set_quick_look(pystac_client.Client.open(Config.STAC_HOST))
+        stac_args.set_channels(
+            pystac_client.Client.open(Config.STAC_HOST),
+            config = "true_color"
+        )
         timeline = description.get("timeline", [])
         timeline = sorted(
             description.get("timeline",[]),
@@ -636,11 +639,17 @@ class wtss_qgis:
 
     def addCanvasControlPoint(self, enable):
         """Generate a canvas area to get mouse position."""
+        crs_id = "4326"
         self.point_tool = None
         self.canvas = None
         if enable:
             self.canvas = self.iface.mapCanvas()
-            QgsProject.instance().setCrs(QgsCoordinateReferenceSystem(4326))
+            if crs_id not in QgsProject.instance().crs().authid():
+                self.basic_controls.alert(
+                    "warning", "Update CRS!",
+                    "The WTSS search uses WGS 84 'EPSG:4326'!"
+                )
+            QgsProject.instance().setCrs(QgsCoordinateReferenceSystem(int(crs_id)))
             self.point_tool = QgsMapToolEmitPoint(self.canvas)
             self.point_tool.canvasClicked.connect(self.display_point)
             self.canvas.setMapTool(self.point_tool)
