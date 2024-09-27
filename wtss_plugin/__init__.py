@@ -23,8 +23,7 @@ import importlib
 import os
 import subprocess
 from pathlib import Path
-
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QMessageBox, QCheckBox
 
 
 def lib_path():
@@ -43,7 +42,7 @@ def requirements_file(ext):
     """Get the path for requirements file."""
     return str(Path(os.path.abspath(os.path.dirname(__file__))) / f'requirements.{ext}')
 
-def warning(type_message, title, message, **add_buttons):
+def warning(type_message, title, message, checkbox = None, **add_buttons):
     """Show a simple warning when ImportError."""
     msg = QMessageBox()
     if type_message == 'error':
@@ -58,13 +57,16 @@ def warning(type_message, title, message, **add_buttons):
     if add_buttons:
         for button in add_buttons.keys():
             buttons[button] = msg.addButton(add_buttons[button][0], add_buttons[button][1])
+    if checkbox:
+        checkbox.setChecked(True)
+        msg.setCheckBox(checkbox)
     msg.exec_()
     msg.deleteLater()
-    return msg, buttons
+    return msg, checkbox, buttons
 
 def raise_restart():
     """Raise a warning requesting restart."""
-    restart, buttons_ = warning(
+    restart, _, buttons_ = warning(
         "warning",
         "Restart Required!",
         "Restart your QGIS environment to load updates!",
@@ -87,30 +89,25 @@ def set_lib_path():
 
 def run_install_pkgs_process():
     """Run subprocess to install packages through."""
-    install_requirements, buttons = warning(
+    install_requirements, checkbox, buttons = warning(
         "error",
         "ImportError!",
         ("Your environment does not have the minimal " +
         "requirements to run WTSS Plugin, " +
-        "click OK to install them.\n\n" + str(error)),
+        "click OK to install them."),
+        checkbox = QCheckBox("Use python home?"),
         install_all = ['Install All', QMessageBox.YesRole],
         install_by = ['Install By', QMessageBox.YesRole],
         cancel = ['Cancel', QMessageBox.RejectRole]
     )
+    target = []
+    if not checkbox.isChecked():
+        target = ['--target', lib_path()]
     if install_requirements.clickedButton() == buttons['install_all']:
-        try:
-            subprocess.run([
-                'pip', 'uninstall',
-                '-r', requirements_file('txt'),
-                '--break-system-packages'
-            ])
-        except:
-            pass
         subprocess.run([
-            'pip', 'install',
-            '--target', lib_path(),
-            '-r', requirements_file('txt'),
-        ])
+            'pip', 'install', '--upgrade',
+            '-r', requirements_file('txt')
+        ] + target)
         #
         # Request restart
         raise_restart()
@@ -120,45 +117,46 @@ def run_install_pkgs_process():
             reader = csv.DictReader(csvfile, delimiter=',')
             for row in reader:
                 pkg_name = row['package']
-                pkg_version = row['version']
+                pkg_required_version = float('.'.join(row['version'].split('.')[0:2]))
                 pkg = None
                 try:
                     pkg = importlib.import_module(pkg_name)
                 except (ModuleNotFoundError, ImportError) as error:
                     pass
+                pkg_installed_version = None
                 if pkg:
-                    install_existing_lib, buttons_lib = warning(
+                    pkg_installed_version = float('.'.join(pkg.__version__.split('.')[0:2]))
+                if pkg_installed_version and pkg_required_version >= pkg_installed_version:
+                    install_existing_lib, _, buttons_lib = warning(
                         "warning",
                         "Found conflicts!",
                         (f"Found existing installation for {pkg_name} version {pkg.__version__} in" +
                             f"\n\n{pkg.__file__}.\n\n" +
-                            f"The WTSS Plugin needs version {pkg_version}."),
+                            f"The WTSS Plugin needs version >= {pkg_required_version}."),
                         update = ['Update', QMessageBox.YesRole],
                         cancel = ['Cancel', QMessageBox.RejectRole]
                     )
                     if install_existing_lib.clickedButton() == buttons_lib['update']:
-                        subprocess.run(['pip', 'uninstall', pkg_name, '--break-system-packages'])
-                        subprocess.run([
-                            'pip', 'install',
-                            '--target', lib_path(),
-                            f"{pkg_name}>={pkg_version}"
-                        ])
+                        subprocess.run(
+                            ['pip', 'install'] + target +
+                            ['--upgrade'] +
+                            [f"{pkg_name}>={pkg_required_version}"]
+                        )
                     else:
                         pass
-                else:
-                    install_lib, buttons_lib = warning(
+                elif pkg == None:
+                    install_lib, _, buttons_lib = warning(
                         "warning",
                         "ImportError!",
-                        (f"The WTSS Plugin needs package {pkg_name} version {pkg_version}."),
-                        update = ['Install', QMessageBox.YesRole],
+                        (f"The WTSS Plugin needs package {pkg_name} version >= {pkg_required_version}."),
+                        install = ['Install', QMessageBox.YesRole],
                         cancel = ['Cancel', QMessageBox.RejectRole]
                     )
-                    if install_lib.clickedButton() == buttons_lib['update']:
-                        subprocess.run([
-                            'pip', 'install',
-                            '--target', lib_path(),
-                            f"{pkg_name}>={pkg_version}"
-                        ])
+                    if install_lib.clickedButton() == buttons_lib['install']:
+                        subprocess.run(
+                            ['pip', 'install'] + target +
+                            [f"{pkg_name}>={pkg_required_version}"]
+                        )
                     else:
                         pass
         #
