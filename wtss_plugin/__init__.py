@@ -104,10 +104,13 @@ def run_install_pkgs_process():
     if not checkbox.isChecked():
         target = ['--target', lib_path()]
     if install_requirements.clickedButton() == buttons['install_all']:
-        subprocess.run([
-            'pip', 'install', '--upgrade',
-            '-r', requirements_file('txt')
-        ] + target)
+        subprocess.run(
+            [
+                'pip', 'install', '--upgrade',
+                '-r', requirements_file('txt')
+            ] + target,
+            shell = True
+        )
         #
         # Request restart
         raise_restart()
@@ -140,7 +143,8 @@ def run_install_pkgs_process():
                         subprocess.run(
                             ['pip', 'install'] + target +
                             ['--upgrade'] +
-                            [f"{pkg_name}>={pkg_required_version}"]
+                            [f"{pkg_name}>={pkg_required_version}"],
+                            shell = True
                         )
                     else:
                         pass
@@ -155,7 +159,8 @@ def run_install_pkgs_process():
                     if install_lib.clickedButton() == buttons_lib['install']:
                         subprocess.run(
                             ['pip', 'install'] + target +
-                            [f"{pkg_name}>={pkg_required_version}"]
+                            [f"{pkg_name}>={pkg_required_version}"],
+                            shell = True
                         )
                     else:
                         pass
