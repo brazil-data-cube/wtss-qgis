@@ -18,6 +18,7 @@
 
 """Python QGIS Plugin for WTSS."""
 
+import os
 from copy import deepcopy
 from pathlib import Path
 from typing import List, Optional
@@ -25,7 +26,7 @@ from typing import List, Optional
 import pandas
 import pystac_client
 from osgeo import gdal
-from qgis.core import QgsRasterLayer
+from qgis.core import QgsApplication, QgsRasterLayer
 
 from ..config import Config
 
@@ -59,11 +60,7 @@ class STAC_ARGS:
 
     def get_raster_vrt_folder(self) -> str:
         """Return the location path to save virtual rasters."""
-        return (
-            Path(Config.BASE_DIR) /
-                'files_export' /
-                    'examples'
-        )
+        return QgsApplication.qgisSettingsDirPath()
 
     def get_point_reference(self) -> any:
         """Return the coordinates as Geojson."""
@@ -142,7 +139,7 @@ def get_source_from_click(event):
 
     layer_name = f'{stac_args.coverage}_{selected_time}_{stac_args.channels.red}_{stac_args.channels.green}_{stac_args.channels.blue}'
 
-    vrt_raster_file = f'{stac_args.raster_vrt_folder}/{layer_name}.vrt'
+    vrt_raster_file = str(os.path.join(stac_args.raster_vrt_folder, f'{layer_name}.vrt'))
 
     vrt_raster_file = stac_args.build_gdal_vrt_raster(
         vrt_raster_file,
