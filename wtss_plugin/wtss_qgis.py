@@ -19,6 +19,7 @@
 """Python QGIS Plugin for WTSS."""
 
 import os.path
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -27,7 +28,10 @@ import qgis.utils
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from qgis.core import QgsCoordinateReferenceSystem, QgsProject
+from qgis.core import (QgsCoordinateReferenceSystem, QgsFeature, QgsPoint,
+                       QgsProject, QgsRasterMarkerSymbolLayer, QgsRectangle,
+                       QgsSingleSymbolRenderer, QgsSymbol, QgsVectorLayer,
+                       QgsWkbTypes)
 from qgis.gui import QgsMapToolEmitPoint
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator
 from qgis.PyQt.QtGui import QIcon, QMovie
@@ -237,6 +241,9 @@ class wtss_qgis:
         self.dlg.show_coverage_description.setIcon(icon)
         icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'location-icon.png'))
         self.dlg.search_button.setIcon(icon)
+        icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'zoom-icon.png'))
+        self.dlg.zoom_selected_point.setIcon(icon)
+        self.points_layer_icon_path = str(Path(Config.BASE_DIR) / 'assets' / 'marker-icon.png')
 
     def initButtons(self):
         """Init the main buttons to manage services and the results."""
@@ -248,12 +255,16 @@ class wtss_qgis:
         self.dlg.export_as_python.clicked.connect(self.exportPython)
         self.dlg.export_as_csv.clicked.connect(self.exportCSV)
         self.dlg.export_as_json.clicked.connect(self.exportJSON)
+        self.dlg.zoom_selected_point.clicked.connect(self.zoom_to_selected_point)
+        self.dlg.zoom_selected_point.setEnabled(False)
         self.dlg.search_button.clicked.connect(self.getTimeSeriesButton)
         self.dlg.search_button.setEnabled(False)
 
     def initHistory(self):
         """Init and update location history."""
         self.dlg.history_list.clear()
+        self.points_layer = None
+        self.points_layer_data_provider = None
         self.selected_location = None
         try:
             self.dlg.history_list.addItems(list(self.locations.keys()))
@@ -594,6 +605,10 @@ class wtss_qgis:
         self.selected_location = self.locations.get(item.text(), {})
         self.dlg.input_longitude.setValue(self.selected_location.get('long'))
         self.dlg.input_latitude.setValue(self.selected_location.get('lat'))
+        self.draw_point(
+            self.selected_location.get('long'),
+            self.selected_location.get('lat')
+        )
 
     def getTimeSeriesButton(self):
         """Get time series using canvas click or selected location"""
@@ -602,6 +617,66 @@ class wtss_qgis:
             self.plotTimeSeries()
         except AttributeError:
             pass
+
+    def remove_layer_by_name(self, layer_name):
+        """Remove a layer using name."""
+        for layer in QgsProject.instance().mapLayers().values():
+            if layer.name() == layer_name:
+                QgsProject.instance().removeMapLayer(layer.id())
+
+    def zoom_to_point(self, longitude, latitude, scale = None):
+        """Zoom in to selected location using longitude and latitude."""
+        time.sleep(0.30)
+        canvas = self.iface.mapCanvas()
+        if not scale:
+            scale = 200 * (1 / canvas.scale())
+        canvas.setExtent(
+            QgsRectangle(
+                float(longitude) - scale,
+                float(latitude) - scale,
+                float(longitude) + scale,
+                float(latitude) + scale
+            )
+        )
+        canvas.refresh()
+
+    def zoom_to_selected_point(self):
+        """Zoom to selected point."""
+        self.zoom_to_point(
+            self.selected_location['long'],
+            self.selected_location['lat'],
+            scale = 0.1
+        )
+
+    def draw_point(self, longitude, latitude):
+        """Draw the selected points in canvas."""
+        points_layer_name = "wtss_coordinates_history"
+        points_layer_icon_size = 8
+
+        def add_featute():
+            feature = QgsFeature()
+            feature.setGeometry(QgsPoint(float(longitude), float(latitude)))
+            self.points_layer_data_provider.truncate()
+            self.points_layer_data_provider.addFeatures([feature])
+            self.points_layer_data_provider.forceReload()
+
+        try:
+            add_featute()
+        except:
+            self.remove_layer_by_name(points_layer_name)
+            self.points_layer = QgsVectorLayer(
+                "Point?crs=epsg:4326&index=yes",
+                points_layer_name, "memory"
+            )
+            symbol = QgsSymbol.defaultSymbol(QgsWkbTypes.PointGeometry)
+            symbol.deleteSymbolLayer(0)
+            symbol.appendSymbolLayer(QgsRasterMarkerSymbolLayer(self.points_layer_icon_path))
+            symbol.setSize(points_layer_icon_size)
+            self.points_layer.setRenderer(QgsSingleSymbolRenderer(symbol))
+            self.points_layer.triggerRepaint()
+            QgsProject.instance().addMapLayer(self.points_layer)
+            self.points_layer_data_provider = self.points_layer.dataProvider()
+            add_featute()
 
     def display_point(self, pointTool):
         """Get the mouse possition and storage as selected location."""
@@ -634,6 +709,7 @@ class wtss_qgis:
             self.locations[history_key] = self.selected_location
             self.dlg.history_list.clear()
             self.dlg.history_list.addItems(list(self.locations.keys()))
+            self.draw_point(x, y)
         except AttributeError:
             pass
 
@@ -669,6 +745,10 @@ class wtss_qgis:
     def checkFilters(self):
         """Check if lat lng are selected."""
         try:
+            if (self.dlg.input_longitude.value() != 0 and self.dlg.input_latitude.value() != 0):
+                self.dlg.zoom_selected_point.setEnabled(True)
+            else:
+                self.dlg.zoom_selected_point.setEnabled(False)
             if (str(self.dlg.coverage_selection.currentText()) != '' and
                     len(self.loadAtributtes()) > 0 and
                         self.dlg.input_longitude.value() != 0 and
