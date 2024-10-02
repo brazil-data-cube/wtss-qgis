@@ -651,7 +651,7 @@ class wtss_qgis:
     def draw_point(self, longitude, latitude):
         """Draw the selected points in canvas."""
         points_layer_name = "wtss_coordinates_history"
-        points_layer_icon_size = 8
+        points_layer_icon_size = 10
 
         def add_featute():
             feature = QgsFeature()
