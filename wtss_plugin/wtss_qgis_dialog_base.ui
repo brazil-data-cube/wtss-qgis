@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>741</width>
-    <height>541</height>
+    <width>742</width>
+    <height>510</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,25 +19,6 @@
   <property name="modal">
    <bool>false</bool>
   </property>
-  <widget class="QDialogButtonBox" name="dialogButtonBox">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>510</y>
-     <width>741</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-   </property>
-   <property name="centerButtons">
-    <bool>false</bool>
-   </property>
-  </widget>
   <widget class="QTabWidget" name="main_tabs">
    <property name="geometry">
     <rect>
@@ -58,7 +39,7 @@
    </property>
    <widget class="QWidget" name="services_tab">
     <attribute name="title">
-     <string>Services</string>
+     <string>Time Series Services</string>
     </attribute>
     <widget class="QGroupBox" name="registry">
      <property name="geometry">
@@ -222,36 +203,13 @@
     <attribute name="title">
      <string>Get Time Series</string>
     </attribute>
-    <widget class="QGroupBox" name="history">
-     <property name="geometry">
-      <rect>
-       <x>480</x>
-       <y>10</y>
-       <width>251</width>
-       <height>321</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>COORDINATES HISTORY</string>
-     </property>
-     <widget class="QListWidget" name="history_list">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>231</width>
-        <height>281</height>
-       </rect>
-      </property>
-     </widget>
-    </widget>
     <widget class="QGroupBox" name="attribute_group">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>80</y>
        <width>451</width>
-       <height>391</height>
+       <height>261</height>
       </rect>
      </property>
      <property name="title">
@@ -263,7 +221,7 @@
         <x>10</x>
         <y>70</y>
         <width>431</width>
-        <height>221</height>
+        <height>181</height>
        </rect>
       </property>
       <property name="title">
@@ -275,7 +233,7 @@
          <x>0</x>
          <y>20</y>
          <width>431</width>
-         <height>201</height>
+         <height>161</height>
         </rect>
        </property>
        <property name="widgetResizable">
@@ -287,82 +245,10 @@
           <x>0</x>
           <y>0</y>
           <width>429</width>
-          <height>199</height>
+          <height>159</height>
          </rect>
         </property>
        </widget>
-      </widget>
-     </widget>
-     <widget class="QGroupBox" name="start_date_group">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>300</y>
-        <width>201</width>
-        <height>51</height>
-       </rect>
-      </property>
-      <property name="title">
-       <string>Start Date:</string>
-      </property>
-      <widget class="QDateEdit" name="start_date">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>20</y>
-         <width>201</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="dateTime">
-        <datetime>
-         <hour>0</hour>
-         <minute>0</minute>
-         <second>0</second>
-         <year>1999</year>
-         <month>1</month>
-         <day>1</day>
-        </datetime>
-       </property>
-       <property name="displayFormat">
-        <string>dd/MM/yyyy</string>
-       </property>
-      </widget>
-     </widget>
-     <widget class="QGroupBox" name="end_date_group">
-      <property name="geometry">
-       <rect>
-        <x>240</x>
-        <y>300</y>
-        <width>201</width>
-        <height>51</height>
-       </rect>
-      </property>
-      <property name="title">
-       <string>End Date:</string>
-      </property>
-      <widget class="QDateEdit" name="end_date">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>20</y>
-         <width>201</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="dateTime">
-        <datetime>
-         <hour>0</hour>
-         <minute>0</minute>
-         <second>0</second>
-         <year>2020</year>
-         <month>1</month>
-         <day>1</day>
-        </datetime>
-       </property>
-       <property name="displayFormat">
-        <string>dd/MM/yyyy</string>
-       </property>
       </widget>
      </widget>
      <widget class="QComboBox" name="coverage_selection">
@@ -386,28 +272,6 @@
       </property>
       <property name="text">
        <string/>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="search_button">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>318</x>
-        <y>360</y>
-        <width>121</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Search</string>
-      </property>
-      <property name="checkable">
-       <bool>false</bool>
-      </property>
-      <property name="flat">
-       <bool>false</bool>
       </property>
      </widget>
     </widget>
@@ -495,23 +359,10 @@
        <string>JSON</string>
       </property>
      </widget>
-    </widget>
-    <widget class="QGroupBox" name="Export_data">
-     <property name="geometry">
-      <rect>
-       <x>480</x>
-       <y>340</y>
-       <width>241</width>
-       <height>61</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>Export code as</string>
-     </property>
      <widget class="QPushButton" name="export_as_python">
       <property name="geometry">
        <rect>
-        <x>10</x>
+        <x>170</x>
         <y>30</y>
         <width>71</width>
         <height>25</height>
@@ -527,6 +378,397 @@
       </property>
      </widget>
     </widget>
+    <widget class="QPushButton" name="search_button">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>490</x>
+       <y>370</y>
+       <width>231</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Get Time Series</string>
+     </property>
+     <property name="checkable">
+      <bool>false</bool>
+     </property>
+     <property name="flat">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="longitudelatitudeBox">
+     <property name="geometry">
+      <rect>
+       <x>480</x>
+       <y>280</y>
+       <width>251</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Longitude / Latitude</string>
+     </property>
+     <widget class="QDoubleSpinBox" name="input_longitude">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>91</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="decimals">
+       <number>7</number>
+      </property>
+      <property name="minimum">
+       <double>-180.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>180.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.500000000000000</double>
+      </property>
+      <property name="value">
+       <double>0.000000000000000</double>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="input_latitude">
+      <property name="geometry">
+       <rect>
+        <x>110</x>
+        <y>30</y>
+        <width>91</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="decimals">
+       <number>7</number>
+      </property>
+      <property name="minimum">
+       <double>-90.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>90.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.500000000000000</double>
+      </property>
+      <property name="value">
+       <double>0.000000000000000</double>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="zoom_selected_point">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>31</y>
+        <width>31</width>
+        <height>28</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="history">
+     <property name="geometry">
+      <rect>
+       <x>480</x>
+       <y>10</y>
+       <width>251</width>
+       <height>261</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Coordinates History (EPSG: 4326)</string>
+     </property>
+     <widget class="QListWidget" name="history_list">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>231</width>
+        <height>221</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="start_date_group">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>350</y>
+       <width>221</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Start Date:</string>
+     </property>
+     <widget class="QDateEdit" name="start_date">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>20</y>
+        <width>221</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="dateTime">
+       <datetime>
+        <hour>0</hour>
+        <minute>0</minute>
+        <second>0</second>
+        <year>1999</year>
+        <month>1</month>
+        <day>1</day>
+       </datetime>
+      </property>
+      <property name="displayFormat">
+       <string>dd/MM/yyyy</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="end_date_group">
+     <property name="geometry">
+      <rect>
+       <x>250</x>
+       <y>350</y>
+       <width>211</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>End Date:</string>
+     </property>
+     <widget class="QDateEdit" name="end_date">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>20</y>
+        <width>211</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="dateTime">
+       <datetime>
+        <hour>0</hour>
+        <minute>0</minute>
+        <second>0</second>
+        <year>2020</year>
+        <month>1</month>
+        <day>1</day>
+       </datetime>
+      </property>
+      <property name="displayFormat">
+       <string>dd/MM/yyyy</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="advanced_options_group">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>410</y>
+       <width>451</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Options</string>
+     </property>
+     <widget class="QCheckBox" name="normalize_data">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>131</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Normalize data</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="interpolate_data">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>30</y>
+        <width>131</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Interpolate data</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="enable_canvas_point">
+      <property name="geometry">
+       <rect>
+        <x>300</x>
+        <y>30</y>
+        <width>141</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Enable Selection</string>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="tab">
+    <attribute name="title">
+     <string>Virtual Raster Options</string>
+    </attribute>
+    <widget class="QGroupBox" name="rgb_options_group">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>721</width>
+       <height>101</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>RGB Options</string>
+     </property>
+     <widget class="QGroupBox" name="red_option_group">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>221</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Red</string>
+      </property>
+      <widget class="QComboBox" name="red_input">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>30</y>
+         <width>201</width>
+         <height>27</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="green_option_group">
+      <property name="geometry">
+       <rect>
+        <x>250</x>
+        <y>30</y>
+        <width>221</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Green</string>
+      </property>
+      <widget class="QComboBox" name="green_input">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>30</y>
+         <width>201</width>
+         <height>27</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="blue_option_group">
+      <property name="geometry">
+       <rect>
+        <x>490</x>
+        <y>30</y>
+        <width>221</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Blue</string>
+      </property>
+      <widget class="QComboBox" name="blue_input">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>30</y>
+         <width>201</width>
+         <height>27</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="virtual_raster_list_group">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>190</y>
+       <width>721</width>
+       <height>281</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Virtual Rasters History</string>
+     </property>
+     <widget class="QListWidget" name="virtual_raster_list">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>701</width>
+        <height>241</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="output_path_raster_group">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>120</y>
+       <width>721</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Output virtual raster path</string>
+     </property>
+     <widget class="QLineEdit" name="user_output_path_raster">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>601</width>
+        <height>27</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="change_output_path_raster">
+      <property name="geometry">
+       <rect>
+        <x>620</x>
+        <y>30</y>
+        <width>91</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Update</string>
+      </property>
+     </widget>
+    </widget>
    </widget>
   </widget>
   <widget class="QLabel" name="loading_label">
@@ -535,11 +777,8 @@
      <x>0</x>
      <y>0</y>
      <width>741</width>
-     <height>541</height>
+     <height>511</height>
     </rect>
-   </property>
-   <property name="autoFillBackground">
-    <bool>false</bool>
    </property>
    <property name="text">
     <string/>
@@ -550,38 +789,5 @@
   </widget>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>dialogButtonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>wtss_qgisDialogBase</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>20</x>
-     <y>20</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>20</x>
-     <y>20</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>dialogButtonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>wtss_qgisDialogBase</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>20</x>
-     <y>20</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>20</x>
-     <y>20</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

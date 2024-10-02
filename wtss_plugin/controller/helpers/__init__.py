@@ -18,15 +18,7 @@
 
 """Python QGIS Plugin for WTSS."""
 
-import os
-
-
-class Config:
-    """Base configuration for global variables.
-
-    :attribute BASE_DIR(str): Returns app root path.
-    """
-
-    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-
-    STAC_HOST = os.getenv("STAC_HOST", "https://data.inpe.br/bdc/stac/v1/")
+from .pystac_helper import  Channels, \
+                            STAC_ARGS, \
+                            stac_args, \
+                            get_source_from_click

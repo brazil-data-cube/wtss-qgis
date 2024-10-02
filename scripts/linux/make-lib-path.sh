@@ -15,9 +15,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 #
+#!/bin/bash
 
-pydocstyle wtss_plugin/*.py wtss_plugin/controller/*.py wtss_plugin/controller/files_export/*.py setup.py && \
-isort wtss_plugin setup.py --check-only --diff && \
-check-manifest --ignore ".drone.yml,.readthedocs.yml" && \
-sphinx-build -qnW --color -b doctest wtss_plugin/help/source wtss_plugin/help/_build && \
-pytest
+LIB_PATH="./wtss_plugin/lib"
+SCRIPTS_PATH="./scripts"
+
+mkdir -p $LIB_PATH
+
+cat $SCRIPTS_PATH/lib-paths.txt | while read path || [[ -n $path ]];
+do
+    echo "Copying all dependencies for "$path" to "$LIB_PATH
+    cp -R $path $LIB_PATH
+done
+
+echo "Removing backends for matplotlib..."
+rm -R  $LIB_PATH/matplotlib/backends/web_backend/jquery
+
+echo "Removing _pycache__..."
+find $LIB_PATH -type f -name "__pycache__" -exec rm -r {} \;

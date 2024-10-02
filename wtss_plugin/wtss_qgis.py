@@ -18,15 +18,20 @@
 
 """Python QGIS Plugin for WTSS."""
 
-import getpass
 import os.path
-import secrets
+import time
+from datetime import datetime
 from pathlib import Path
 
+import pystac_client
 import qgis.utils
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from qgis.core import QgsProject, QgsVectorLayer
+from qgis.core import (QgsCoordinateReferenceSystem, QgsFeature, QgsPoint,
+                       QgsProject, QgsRasterMarkerSymbolLayer, QgsRectangle,
+                       QgsSingleSymbolRenderer, QgsSymbol, QgsVectorLayer,
+                       QgsWkbTypes)
 from qgis.gui import QgsMapToolEmitPoint
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator
 from qgis.PyQt.QtGui import QIcon, QMovie
@@ -35,6 +40,8 @@ from qgis.PyQt.QtWidgets import QAction
 from .controller.config import Config
 # Import files exporting controls
 from .controller.files_export import FilesExport
+# Import the STAC args
+from .controller.helpers.pystac_helper import stac_args
 # Import the controls for the plugin
 from .controller.wtss_qgis_controller import Controls, Services
 # Initialize Qt resources from file resources.py
@@ -199,15 +206,22 @@ class wtss_qgis:
 
     def initControls(self):
         """Init basic controls to generate files and manage services."""
+        self.dlg.setWindowFlag(Qt.WindowMaximizeButtonHint, False)
         self.basic_controls = Controls()
         self.server_controls = Services(user = "application")
         self.files_controls = FilesExport()
         self.enabled_click = False
+        self.dlg.enable_canvas_point.setChecked(self.enabled_click)
+        self.dlg.enable_canvas_point.stateChanged.connect(self.enableGetLatLng)
+        self.dlg.input_longitude.valueChanged.connect(self.checkFilters)
+        self.dlg.input_latitude.valueChanged.connect(self.checkFilters)
+        self.enableGetLatLng()
 
     def initLoadingControls(self):
         """Enable loading label."""
         self.movie = QMovie(str(Path(Config.BASE_DIR) / 'assets' / 'loading.gif'))
         self.movie.start()
+        self.dlg.loading_label.setStyleSheet("background-color: rgba(216, 216, 216, 0.5)")
         self.dlg.loading_label.setMovie(self.movie)
         self.endLoading()
 
@@ -225,6 +239,11 @@ class wtss_qgis:
         self.dlg.show_help_button.setIcon(icon)
         icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'info-icon.png'))
         self.dlg.show_coverage_description.setIcon(icon)
+        icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'location-icon.png'))
+        self.dlg.search_button.setIcon(icon)
+        icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'zoom-icon.png'))
+        self.dlg.zoom_selected_point.setIcon(icon)
+        self.points_layer_icon_path = str(Path(Config.BASE_DIR) / 'assets' / 'marker-icon.png')
 
     def initButtons(self):
         """Init the main buttons to manage services and the results."""
@@ -236,12 +255,16 @@ class wtss_qgis:
         self.dlg.export_as_python.clicked.connect(self.exportPython)
         self.dlg.export_as_csv.clicked.connect(self.exportCSV)
         self.dlg.export_as_json.clicked.connect(self.exportJSON)
-        self.dlg.search_button.clicked.connect(self.enableGetLatLng)
+        self.dlg.zoom_selected_point.clicked.connect(self.zoom_to_selected_point)
+        self.dlg.zoom_selected_point.setEnabled(False)
+        self.dlg.search_button.clicked.connect(self.getTimeSeriesButton)
         self.dlg.search_button.setEnabled(False)
 
     def initHistory(self):
         """Init and update location history."""
         self.dlg.history_list.clear()
+        self.points_layer = None
+        self.points_layer_data_provider = None
         self.selected_location = None
         try:
             self.dlg.history_list.addItems(list(self.locations.keys()))
@@ -250,6 +273,10 @@ class wtss_qgis:
         self.dlg.history_list.itemActivated.connect(self.getFromHistory)
         self.getLayers()
 
+    def initRasterHistory(self):
+        """Add a event listener when a layer is added to check the history of vrt layers."""
+        QgsProject.instance().layersAdded.connect(self.updateRasterHistory)
+
     def initServices(self):
         """Load the registered services based on JSON file."""
         service_names = self.server_controls.getServiceNames()
@@ -257,6 +284,7 @@ class wtss_qgis:
             self.basic_controls.alert("error","502 Error", "The main services are not available!")
         self.dlg.service_selection.addItems(service_names)
         self.dlg.service_selection.activated.connect(self.selectCoverage)
+        self.selectCoverage()
         self.data = self.server_controls.loadServices()
         self.model = QStandardItemModel()
         self.basic_controls.addItemsTreeView(self.model, self.data)
@@ -264,6 +292,22 @@ class wtss_qgis:
         self.dlg.data.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.dlg.data.clicked.connect(self.updateDescription)
         self.updateDescription()
+
+    def initRasterPathControls(self):
+        """Init raster path location controls."""
+        self.enabled_output_path_raster_edit = False
+        self.dlg.user_output_path_raster.setText(str(stac_args.get_raster_vrt_folder()))
+        self.dlg.user_output_path_raster.setEnabled(self.enabled_output_path_raster_edit)
+        self.dlg.change_output_path_raster.clicked.connect(self.updateOutputRasterPath)
+
+    def initRGBoptions(self):
+        """Load RGB options with not enabled controls."""
+        self.dlg.red_input.setEnabled(False)
+        self.dlg.red_input.activated.connect(self.loadRGBOptions)
+        self.dlg.green_input.setEnabled(False)
+        self.dlg.green_input.activated.connect(self.loadRGBOptions)
+        self.dlg.blue_input.setEnabled(False)
+        self.dlg.blue_input.activated.connect(self.loadRGBOptions)
 
     def saveService(self):
         """Save the service based on name and host input."""
@@ -285,10 +329,26 @@ class wtss_qgis:
         except (ValueError, AttributeError, ConnectionRefusedError) as error:
             self.basic_controls.alert("error", "(ValueError, AttributeError)", str(error))
 
+    def updateOutputRasterPath(self):
+        """Update the output path for generated rasters."""
+        stac_args.update_raster_vrt_folder(self.dlg.user_output_path_raster.text())
+        self.enabled_output_path_raster_edit = not self.enabled_output_path_raster_edit
+        if self.enabled_output_path_raster_edit:
+            self.dlg.change_output_path_raster.setText('Save')
+        else:
+            self.dlg.change_output_path_raster.setText('Update')
+        self.dlg.user_output_path_raster.setEnabled(self.enabled_output_path_raster_edit)
+        self.dlg.user_output_path_raster.setText(stac_args.raster_vrt_folder)
+
+    def updateRasterHistory(self):
+        """Save a list of generated rasters."""
+        self.dlg.virtual_raster_list.clear()
+        self.dlg.virtual_raster_list.addItems(stac_args.vrt_history)
+
     def deleteService(self):
         """Delete the selected active service."""
         try:
-            host_to_delete = host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.text())
+            host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.text())
             if host_to_delete == None:
                 host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.parent().text())
             self.server_controls.deleteService(host_to_delete.name)
@@ -299,11 +359,11 @@ class wtss_qgis:
     def editService(self):
         """Edit the selected service."""
         try:
-            host_to_delete = host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.text())
-            if host_to_delete == None:
-                host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.parent().text())
-            self.dlg.service_name.setText(host_to_delete.name)
-            self.dlg.service_host.setText(host_to_delete.host)
+            host_to_update = self.server_controls.findServiceByName(self.metadata_selected.text())
+            if host_to_update == None:
+                host_to_update = self.server_controls.findServiceByName(self.metadata_selected.parent().text())
+            self.dlg.service_name.setText(host_to_update.name)
+            self.dlg.service_host.setText(host_to_update.host)
         except (ValueError, AttributeError) as error:
             self.basic_controls.alert("error", "(ValueError, AttributeError)", str(error))
 
@@ -348,39 +408,110 @@ class wtss_qgis:
             str(self.dlg.service_selection.currentText()),
             str(self.dlg.coverage_selection.currentText())
         )
-        bands = description.get("attributes",{})
-        timeline = description.get("timeline",[])
+        stac_args.coverage = str(self.dlg.coverage_selection.currentText())
+        stac_args.set_channels(
+            pystac_client.Client.open(Config.STAC_HOST),
+            config = "true_color"
+        )
+        timeline = description.get("timeline", [])
+        timeline = sorted(
+            description.get("timeline",[]),
+            key = lambda x:
+                datetime.strptime(x, '%Y-%m-%d')
+        )
+        bands = description.get("attributes", {})
+        bands = sorted(bands, key = lambda d: d['name'])
         self.bands_checks = {}
+        self.dlg.red_input.setEnabled(True)
+        self.dlg.green_input.setEnabled(True)
+        self.dlg.blue_input.setEnabled(True)
+        self.rgb_band_options = {
+            'names': [],
+            'titles': []
+        }
         for band in bands:
-            self.bands_checks[band.get('name')] = QCheckBox(str(band.get('name')))
-            self.vbox.addWidget(self.bands_checks.get(band.get('name')))
+            band_name = band.get('name')
+            band_common_name = band.get('common_name')
+            band_title = f"{str(band_name)} ({str(band_common_name)})"
+            band.get('scale_factor', 0)
+            self.bands_checks[band_name] = band
+            self.bands_checks[band_name]['check'] = QCheckBox(band_title)
+            self.bands_checks[band_name]['check'].stateChanged.connect(self.checkFilters)
+            self.vbox.addWidget(self.bands_checks.get(band_name).get('check'))
+            # Load RGB default options based on selected service to generate vrt rasters.
+            self.rgb_band_options['names'].append(band_name)
+            self.rgb_band_options['titles'].append(band_title)
+        # Load RGB default options to QComboBox for RED Channel
+        self.dlg.red_input.clear()
+        self.dlg.red_input.addItems(self.rgb_band_options['titles'])
+        self.dlg.red_input.setCurrentIndex(self.rgb_band_options['names'].index(stac_args.channels.red))
+        # Load RGB default options to QComboBox for GREEN Channel
+        self.dlg.green_input.clear()
+        self.dlg.green_input.addItems(self.rgb_band_options['titles'])
+        self.dlg.green_input.setCurrentIndex(self.rgb_band_options['names'].index(stac_args.channels.green))
+        # Load RGB default options to QComboBox for BLUE Channel
+        self.dlg.blue_input.clear()
+        self.dlg.blue_input.addItems(self.rgb_band_options['titles'])
+        self.dlg.blue_input.setCurrentIndex(self.rgb_band_options['names'].index(stac_args.channels.blue))
+        # #
         self.widget.setLayout(self.vbox)
         self.dlg.bands_scroll.setWidgetResizable(True)
         self.dlg.bands_scroll.setWidget(self.widget)
         # Update dates for start and end to coverage selection
         self.dlg.start_date.setDate(self.basic_controls.formatForQDate(timeline[0]))
         self.dlg.end_date.setDate(self.basic_controls.formatForQDate(timeline[len(timeline) - 1]))
-        self.dlg.search_button.setEnabled(True)
+        self.checkFilters()
+
+    def loadSelectedBands(self):
+        """Verify the selected attributes in check list and save in array."""
+        selected_attributes = {}
+        for band_name in list(self.bands_checks.keys()):
+            if self.bands_checks and self.bands_checks.get(band_name).get('check').isChecked():
+                selected_attributes[band_name] = self.bands_checks.get(band_name)
+        return selected_attributes
 
     def loadAtributtes(self):
         """Verify the selected attributes in check list and save in array."""
-        selected_attributes = []
-        for band in list(self.bands_checks.keys()):
-            if self.bands_checks and self.bands_checks.get(band).isChecked():
-                selected_attributes.append(band)
+        selected_attributes = [str(band) for band in self.loadSelectedBands().keys()]
         return selected_attributes
 
     def loadTimeSeries(self):
         """Load time series product data from selected values."""
-        return self.server_controls.productTimeSeries(
-            str(self.dlg.service_selection.currentText()),
-            str(self.dlg.coverage_selection.currentText()),
-            tuple(self.loadAtributtes()),
-            self.transformSelectedLocation().get('lat', 0),
-            self.transformSelectedLocation().get('long', 0),
-            str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
-            str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
-        )
+        try:
+            time_series = self.server_controls.productTimeSeries(
+                str(self.dlg.service_selection.currentText()),
+                str(self.dlg.coverage_selection.currentText()),
+                tuple(self.loadAtributtes()),
+                float(self.selected_location.get("long")),
+                float(self.selected_location.get("lat")),
+                str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
+                str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
+            )
+            if time_series == None:
+                self.basic_controls.alert("error", "requests.exceptions.HTTPError", "500 Server Error: INTERNAL SERVER ERROR!")
+            return time_series
+        except:
+            return None
+
+    def loadSTACArgs(self, time_series) -> None:
+        """Load selected arguments for STAC search."""
+        try:
+            stac_args.qgis_project = QgsProject.instance()
+            stac_args.longitude = time_series.get('query').get('longitude')
+            stac_args.latitude = time_series.get('query').get('latitude')
+            stac_args.set_timeline(time_series.get('result').get("timeline"))
+            self.loadRGBOptions()
+        except:
+            pass
+
+    def loadRGBOptions(self, time_series) -> None:
+        """Load selected arguments for STAC search."""
+        try:
+            stac_args.channels.red = self.rgb_band_options['names'][self.dlg.red_input.currentIndex()]
+            stac_args.channels.green = self.rgb_band_options['names'][self.dlg.green_input.currentIndex()]
+            stac_args.channels.blue = self.rgb_band_options['names'][self.dlg.blue_input.currentIndex()]
+        except:
+            pass
 
     def exportPython(self):
         """Export python code to file system filling blank spaces with coverage metadata."""
@@ -452,7 +583,14 @@ class wtss_qgis:
         """Generate the plot image with time series data."""
         time_series = self.loadTimeSeries()
         if time_series.get('result', {}).get("timeline", []) != []:
-            self.files_controls.generatePlotFig(time_series)
+            self.loadSTACArgs(time_series)
+            self.files_controls.generatePlotFig(
+                time_series = time_series,
+                interpolate_data = self.dlg.interpolate_data.isChecked(),
+                normalize_data = self.dlg.normalize_data.isChecked(),
+                bands_description = self.loadSelectedBands(),
+                stac_args=stac_args
+            )
         else:
             self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
 
@@ -465,64 +603,161 @@ class wtss_qgis:
     def getFromHistory(self, item):
         """Select location from history storage as selected location."""
         self.selected_location = self.locations.get(item.text(), {})
+        self.dlg.input_longitude.setValue(self.selected_location.get('long'))
+        self.dlg.input_latitude.setValue(self.selected_location.get('lat'))
+        self.draw_point(
+            self.selected_location.get('long'),
+            self.selected_location.get('lat')
+        )
+
+    def getTimeSeriesButton(self):
+        """Get time series using canvas click or selected location"""
+        self.display_point(None)
+        try:
+            self.plotTimeSeries()
+        except AttributeError:
+            pass
+
+    def remove_layer_by_name(self, layer_name):
+        """Remove a layer using name."""
+        for layer in QgsProject.instance().mapLayers().values():
+            if layer.name() == layer_name:
+                QgsProject.instance().removeMapLayer(layer.id())
+
+    def zoom_to_point(self, longitude, latitude, scale = None):
+        """Zoom in to selected location using longitude and latitude."""
+        time.sleep(0.30)
+        canvas = self.iface.mapCanvas()
+        if not scale:
+            scale = 200 * (1 / canvas.scale())
+        canvas.setExtent(
+            QgsRectangle(
+                float(longitude) - scale,
+                float(latitude) - scale,
+                float(longitude) + scale,
+                float(latitude) + scale
+            )
+        )
+        canvas.refresh()
+
+    def zoom_to_selected_point(self):
+        """Zoom to selected point."""
+        self.zoom_to_point(
+            self.selected_location['long'],
+            self.selected_location['lat'],
+            scale = 0.1
+        )
+
+    def draw_point(self, longitude, latitude):
+        """Draw the selected points in canvas."""
+        points_layer_name = "wtss_coordinates_history"
+        points_layer_icon_size = 10
+
+        def add_featute():
+            feature = QgsFeature()
+            feature.setGeometry(QgsPoint(float(longitude), float(latitude)))
+            self.points_layer_data_provider.truncate()
+            self.points_layer_data_provider.addFeatures([feature])
+            self.points_layer_data_provider.forceReload()
+
+        try:
+            add_featute()
+        except:
+            self.remove_layer_by_name(points_layer_name)
+            self.points_layer = QgsVectorLayer(
+                "Point?crs=epsg:4326&index=yes",
+                points_layer_name, "memory"
+            )
+            symbol = QgsSymbol.defaultSymbol(QgsWkbTypes.PointGeometry)
+            symbol.deleteSymbolLayer(0)
+            symbol.appendSymbolLayer(QgsRasterMarkerSymbolLayer(self.points_layer_icon_path))
+            symbol.setSize(points_layer_icon_size)
+            self.points_layer.setRenderer(QgsSingleSymbolRenderer(symbol))
+            self.points_layer.triggerRepaint()
+            QgsProject.instance().addMapLayer(self.points_layer)
+            self.points_layer_data_provider = self.points_layer.dataProvider()
+            add_featute()
 
     def display_point(self, pointTool):
         """Get the mouse possition and storage as selected location."""
+        x = None
+        y = None
+        if pointTool == None:
+            x = self.dlg.input_longitude.value()
+            y = self.dlg.input_latitude.value()
+        else:
+            x = float(pointTool.x())
+            y = float(pointTool.y())
+            self.dlg.input_longitude.setValue(x)
+            self.dlg.input_latitude.setValue(y)
         try:
+            self.getLayers()
             self.selected_location = {
+                'long' : x,
+                'lat' : y,
                 'layer_name' : str(self.layer.name()),
-                'lat' : float(pointTool.y()),
-                'long' : float(pointTool.x()),
                 'crs' : str(self.layer.crs().authid())
             }
             history_key = str(
                 (
-                    "({lat:,.2f},{long:,.2f}) {crs}"
+                    "[{long:,.7f}, {lat:,.7f}]"
                 ).format(
-                    crs = self.selected_location.get('crs'),
-                    lat = self.selected_location.get('lat'),
-                    long = self.selected_location.get('long')
+                    long = self.selected_location.get('long'),
+                    lat = self.selected_location.get('lat')
                 )
             )
             self.locations[history_key] = self.selected_location
             self.dlg.history_list.clear()
             self.dlg.history_list.addItems(list(self.locations.keys()))
-            self.dlg.history_list.itemActivated.connect(self.getFromHistory)
-            self.plotTimeSeries()
+            self.draw_point(x, y)
         except AttributeError:
             pass
 
     def addCanvasControlPoint(self, enable):
         """Generate a canvas area to get mouse position."""
-        self.enabled_click = False
+        crs_id = "4326"
         self.point_tool = None
-        self.display_point(self.point_tool)
+        self.canvas = None
         if enable:
             self.canvas = self.iface.mapCanvas()
+            if crs_id not in QgsProject.instance().crs().authid():
+                self.basic_controls.alert(
+                    "warning", "Update CRS!",
+                    "The WTSS search uses WGS 84 'EPSG:4326'!"
+                )
+            QgsProject.instance().setCrs(QgsCoordinateReferenceSystem(int(crs_id)))
             self.point_tool = QgsMapToolEmitPoint(self.canvas)
             self.point_tool.canvasClicked.connect(self.display_point)
             self.canvas.setMapTool(self.point_tool)
-            self.display_point(self.point_tool)
-            self.enabled_click = True
-
-    def transformSelectedLocation(self):
-        """Use basic controls to transform any selected projection to EPSG:4326."""
-        transformed = self.selected_location
-        if self.selected_location.get("crs"):
-            transformed = self.basic_controls.transformProjection(
-                self.selected_location.get("crs"),
-                self.selected_location.get("lat"),
-                self.selected_location.get("long")
-            )
-        return transformed
 
     def enableGetLatLng(self):
         """Enable get lat lng to search time series."""
+        self.enabled_click = self.dlg.enable_canvas_point.isChecked()
         if self.enabled_click:
-            self.plotTimeSeries()
-            self.addCanvasControlPoint(False)
-        else:
+            self.dlg.input_longitude.setDisabled(True)
+            self.dlg.input_latitude.setDisabled(True)
             self.addCanvasControlPoint(True)
+        else:
+            self.dlg.input_longitude.setDisabled(False)
+            self.dlg.input_latitude.setDisabled(False)
+            self.addCanvasControlPoint(False)
+
+    def checkFilters(self):
+        """Check if lat lng are selected."""
+        try:
+            if (self.dlg.input_longitude.value() != 0 and self.dlg.input_latitude.value() != 0):
+                self.dlg.zoom_selected_point.setEnabled(True)
+            else:
+                self.dlg.zoom_selected_point.setEnabled(False)
+            if (str(self.dlg.coverage_selection.currentText()) != '' and
+                    len(self.loadAtributtes()) > 0 and
+                        self.dlg.input_longitude.value() != 0 and
+                            self.dlg.input_latitude.value() != 0):
+                self.dlg.search_button.setEnabled(True)
+            else:
+                self.dlg.search_button.setEnabled(False)
+        except:
+            self.dlg.search_button.setEnabled(False)
 
     def updateDescription(self):
         """Load label on scroll area with product description."""
@@ -572,6 +807,12 @@ class wtss_qgis:
         self.initControls()
         # Services
         self.initServices()
+        # Virtual Raster History
+        self.initRasterHistory()
+        # Output vrt path
+        self.initRasterPathControls()
+        # RGB Options
+        self.initRGBoptions()
         # History
         self.initHistory()
         # Add icons to buttons
@@ -588,9 +829,4 @@ class wtss_qgis:
         if result:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
-            try:
-                self.plotTimeSeries()
-            except AttributeError:
-                pass
             self.addCanvasControlPoint(False)
-            pass

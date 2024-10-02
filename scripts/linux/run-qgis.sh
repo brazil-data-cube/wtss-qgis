@@ -15,18 +15,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 #
+#!/bin/bash
 
-"""Python QGIS Plugin for WTSS."""
+xhost +
 
-import os
+docker run --rm \
+	--interactive \
+    --tty \
+	--name qgis3 \
+	-i -t \
+	-v ${PWD}:/home/wtss_plugin \
+	-v ${PWD}/plugins:/root/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ \
+	-v /tmp/.X11-unix:/tmp/.X11-unix \
+	-e DISPLAY=unix$DISPLAY \
+	qgis/qgis qgis
 
-
-class Config:
-    """Base configuration for global variables.
-
-    :attribute BASE_DIR(str): Returns app root path.
-    """
-
-    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-
-    STAC_HOST = os.getenv("STAC_HOST", "https://data.inpe.br/bdc/stac/v1/")
+xhost -

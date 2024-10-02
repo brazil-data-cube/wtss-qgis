@@ -16,17 +16,23 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 #
 
-"""Python QGIS Plugin for WTSS."""
+import csv
+import distutils.core
+from pathlib import Path
 
-import os
+dist = distutils.core.run_setup("setup.py")
 
+file = open(Path('wtss_plugin') / 'requirements.txt','w')
+for req in dist.install_requires:
+	file.write(str(req) + "\n")
+file.close()
 
-class Config:
-    """Base configuration for global variables.
+rule = '>='
 
-    :attribute BASE_DIR(str): Returns app root path.
-    """
-
-    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-
-    STAC_HOST = os.getenv("STAC_HOST", "https://data.inpe.br/bdc/stac/v1/")
+file = open(Path('wtss_plugin') / 'requirements.csv', 'w', newline='')
+writer = csv.DictWriter(file, delimiter=',', fieldnames=['package', 'version'])
+writer.writeheader()
+for req in dist.install_requires:
+	pkg_ = req.split(rule)
+	writer.writerow({'package': pkg_[0], 'version': pkg_[1]})
+file.close()

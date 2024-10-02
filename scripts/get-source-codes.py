@@ -16,17 +16,40 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 #
 
-"""Python QGIS Plugin for WTSS."""
+"""Python Script to list Path libraries."""
 
-import os
+from pathlib import Path
 
+lib_paths = []
 
-class Config:
-    """Base configuration for global variables.
+import json
+lib_paths.append(json.__file__)
 
-    :attribute BASE_DIR(str): Returns app root path.
-    """
+import numpy
+lib_paths.append(numpy.__file__)
 
-    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+import seaborn
+lib_paths.append(seaborn.__file__)
 
-    STAC_HOST = os.getenv("STAC_HOST", "https://data.inpe.br/bdc/stac/v1/")
+import matplotlib
+lib_paths.append(matplotlib.__file__)
+
+import pandas
+lib_paths.append(pandas.__file__)
+
+import jsonschema
+lib_paths.append(jsonschema.__file__)
+
+import pystac
+lib_paths.append(pystac.__file__)
+
+import pystac_client
+lib_paths.append(pystac_client.__file__)
+
+import wtss
+lib_paths.append(wtss.__file__)
+
+file = open(Path('scripts') / 'lib-paths.txt', 'w')
+for path in lib_paths:
+	file.write(str(path).replace('__init__.py', '') + "\n")
+file.close()

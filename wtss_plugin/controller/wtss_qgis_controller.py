@@ -28,7 +28,7 @@ import requests
 from pyproj import CRS, Proj, transform
 from PyQt5.QtCore import QDate
 from PyQt5.QtGui import QStandardItem
-from PyQt5.QtWidgets import QDialog, QInputDialog, QLineEdit, QMessageBox
+from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox
 from wtss import *
 
 from .config import Config
@@ -318,7 +318,7 @@ class Services:
         else:
             return {}
 
-    def productTimeSeries(self, service_name, product, bands, lat, lon, start_date, end_date):
+    def productTimeSeries(self, service_name, product, bands, lon, lat, start_date, end_date):
         """Return a dictionary with product time series data.
 
         :param service_name<string>: the service registered name.
@@ -331,15 +331,18 @@ class Services:
         """
         host = self.findServiceByName(service_name).host
         if self.testServiceConnection(host):
-            client_wtss = WTSS(host)
-            time_series = client_wtss[product].ts(
-                attributes=bands,
-                latitude=lat,
-                longitude=lon,
-                start_date=start_date,
-                end_date=end_date
-            )
-            return time_series
+            try:
+                client_wtss = WTSS(host)
+                time_series = client_wtss[product].ts(
+                    attributes=bands,
+                    longitude=lon,
+                    latitude=lat,
+                    start_date=start_date,
+                    end_date=end_date
+                )
+                return time_series
+            except:
+                return None
         else:
             response = requests.get(
                 ("{}/wtss/time_series").format(
@@ -348,8 +351,8 @@ class Services:
                 {
                     "coverage": product,
                     "attributes": ",".join(list(bands)),
-                    "latitude": lat,
                     "longitude": lon,
+                    "latitude": lat,
                     "start_date": start_date,
                     "end_date": end_date
                 },
@@ -362,7 +365,7 @@ class Services:
                 response["result"]["timeline"] = tl
                 return response
             else:
-                return {}
+                return None
 
     def addService(self, name, host):
         """Register an active service.

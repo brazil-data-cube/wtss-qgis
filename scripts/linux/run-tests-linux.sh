@@ -15,18 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 #
+#!/bin/bash
 
-"""Python QGIS Plugin for WTSS."""
-
-import os
-
-
-class Config:
-    """Base configuration for global variables.
-
-    :attribute BASE_DIR(str): Returns app root path.
-    """
-
-    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-
-    STAC_HOST = os.getenv("STAC_HOST", "https://data.inpe.br/bdc/stac/v1/")
+pydocstyle wtss_plugin/*.py wtss_plugin/controller/*.py wtss_plugin/controller/files_export/*.py setup.py && \
+isort wtss_plugin setup.py --check-only --diff && \
+check-manifest --ignore ".drone.yml,.readthedocs.yml" && \
+sphinx-build -qnW --color -b doctest wtss_plugin/help/source wtss_plugin/help/_build && \
+pytest
