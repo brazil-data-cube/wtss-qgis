@@ -19,6 +19,21 @@
 Changes
 *******
 
+Version 0.3.0 (2024-10-02)
+--------------------------
+
+- Add plot STAC images by clicking (`#72 <https://github.com/brazil-data-cube/wtss-qgis/issues/72>`_)
+- Add a check before attempting to retrieve time series (`#63 <https://github.com/brazil-data-cube/wtss-qgis/issues/63>`_)
+- Review plot library with `seaborn` (`#53 <https://github.com/brazil-data-cube/wtss-qgis/issues/53>`_)
+- Add option or checkbox for user to choose whether to normalize data or not (`#64 <https://github.com/brazil-data-cube/wtss-qgis/issues/64>`_)
+- Resolve `nodata` in plot time series with seaborn (`#65 <https://github.com/brazil-data-cube/wtss-qgis/issues/65>`_)
+- Resolve coordinates/layers projection in enable canvas points selection (`#66 <https://github.com/brazil-data-cube/wtss-qgis/issues/66>`_)
+- Add menu with advanced options to control virtual raster generation (`#67 <https://github.com/brazil-data-cube/wtss-qgis/issues/67>`_)
+- Review and update methods for the installation and build steps for plugin (`#68 <https://github.com/brazil-data-cube/wtss-qgis/issues/68>`_)
+- Draw and zoom in the points based on selected coordinates to get time series (`#69 <https://github.com/brazil-data-cube/wtss-qgis/issues/69>`_)
+- Add user data path to save virtual rasters from STAC (`#70 <https://github.com/brazil-data-cube/wtss-qgis/issues/70>`_)
+
+
 Version 0.2.0 (2024-08-19)
 --------------------------
 
