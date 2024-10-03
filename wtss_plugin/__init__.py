@@ -21,10 +21,15 @@
 import csv
 import importlib
 import os
+import platform
 import subprocess
 from pathlib import Path
-from PyQt5.QtWidgets import QMessageBox, QCheckBox
 
+from PyQt5.QtWidgets import QCheckBox, QMessageBox
+
+enable_shell = (
+    str(platform.uname().system).lower() == 'windows'
+)
 
 def lib_path():
     """Get the path for python installed lib path."""
@@ -87,6 +92,14 @@ def set_lib_path():
         sys.path.remove(lib_path_end())
     sys.path = get_lib_paths() + sys.path
 
+def pip_install(pkg_name, pkg_required_version, options=[]):
+    """Install the requires using pip install."""
+    subprocess.run(
+        ['pip', 'install'] + options +
+        [f"{pkg_name}>={pkg_required_version}"],
+        shell = enable_shell
+    )
+
 def run_install_pkgs_process():
     """Run subprocess to install packages through."""
     install_requirements, checkbox, buttons = warning(
@@ -109,7 +122,7 @@ def run_install_pkgs_process():
                 'pip', 'install', '--upgrade',
                 '-r', requirements_file('txt')
             ] + target,
-            shell = True
+            shell = enable_shell
         )
         #
         # Request restart
@@ -129,7 +142,7 @@ def run_install_pkgs_process():
                 pkg_installed_version = None
                 if pkg:
                     pkg_installed_version = float('.'.join(pkg.__version__.split('.')[0:2]))
-                if pkg_installed_version and pkg_required_version >= pkg_installed_version:
+                if pkg_installed_version and pkg_required_version > pkg_installed_version:
                     install_existing_lib, _, buttons_lib = warning(
                         "warning",
                         "Found conflicts!",
@@ -140,12 +153,7 @@ def run_install_pkgs_process():
                         cancel = ['Cancel', QMessageBox.RejectRole]
                     )
                     if install_existing_lib.clickedButton() == buttons_lib['update']:
-                        subprocess.run(
-                            ['pip', 'install'] + target +
-                            ['--upgrade'] +
-                            [f"{pkg_name}>={pkg_required_version}"],
-                            shell = True
-                        )
+                        pip_install(pkg_name, pkg_required_version, options=target)
                     else:
                         pass
                 elif pkg == None:
@@ -157,11 +165,7 @@ def run_install_pkgs_process():
                         cancel = ['Cancel', QMessageBox.RejectRole]
                     )
                     if install_lib.clickedButton() == buttons_lib['install']:
-                        subprocess.run(
-                            ['pip', 'install'] + target +
-                            [f"{pkg_name}>={pkg_required_version}"],
-                            shell = True
-                        )
+                        pip_install(pkg_name, pkg_required_version, options=target)
                     else:
                         pass
         #
