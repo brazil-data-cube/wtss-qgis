@@ -267,10 +267,11 @@ class wtss_qgis:
         self.points_layer_data_provider = None
         self.selected_location = None
         try:
-            self.dlg.history_list.addItems(list(self.locations.keys()))
+            locations_keys = list(self.locations.keys())
+            self.dlg.history_list.addItems(locations_keys)
         except AttributeError:
             self.locations = {}
-        self.dlg.history_list.itemActivated.connect(self.getFromHistory)
+        self.dlg.history_list.itemClicked.connect(self.getFromHistory)
         self.getLayers()
 
     def initRasterHistory(self):
@@ -707,8 +708,10 @@ class wtss_qgis:
                 )
             )
             self.locations[history_key] = self.selected_location
+            locations_keys = list(self.locations.keys())
             self.dlg.history_list.clear()
-            self.dlg.history_list.addItems(list(self.locations.keys()))
+            self.dlg.history_list.addItems(locations_keys)
+            self.dlg.history_list.setCurrentRow(len(locations_keys) - 1)
             self.draw_point(x, y)
         except AttributeError:
             pass
@@ -720,11 +723,6 @@ class wtss_qgis:
         self.canvas = None
         if enable:
             self.canvas = self.iface.mapCanvas()
-            if crs_id not in QgsProject.instance().crs().authid():
-                self.basic_controls.alert(
-                    "warning", "Update CRS!",
-                    "The WTSS search uses WGS 84 'EPSG:4326'!"
-                )
             QgsProject.instance().setCrs(QgsCoordinateReferenceSystem(int(crs_id)))
             self.point_tool = QgsMapToolEmitPoint(self.canvas)
             self.point_tool.canvasClicked.connect(self.display_point)
