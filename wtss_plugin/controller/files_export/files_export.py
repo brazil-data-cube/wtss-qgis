@@ -28,6 +28,7 @@ import pandas
 import seaborn
 
 from ..helpers.pystac_helper import STAC_ARGS, get_source_from_click
+from ..wtss_qgis_controller import Controls
 
 
 class FilesExport:
@@ -194,5 +195,6 @@ class FilesExport:
             plt.ylabel(None)
             plt.legend()
             plt.show()
-        except:
-            pass
+        except Exception as e:
+            controls = Controls()
+            controls.alert("error", "Error while generate an image!", str(e))
