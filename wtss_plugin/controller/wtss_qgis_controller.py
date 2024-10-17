@@ -224,7 +224,7 @@ class Services:
 
     def resetAvailableServices(self):
         """Restart the list of services with default sevices available."""
-        self.addService("Brazil Data Cube", "https://data.inpe.br/bdc/wtss/v4/")
+        self.addService("Brazil Data Cube", Config.WTSS_HOST)
         if not self.getServiceNames():
             to_save = json_loads(json.dumps(ServiceList([]).__dict__))
             with open(str(self.getPath()), 'w') as outfile:

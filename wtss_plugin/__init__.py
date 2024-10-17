@@ -18,16 +18,17 @@
 
 """Python QGIS Plugin for WTSS."""
 
+import sys
 import csv
 import importlib
 import os
 import platform
-import subprocess
+import pip
 from pathlib import Path
 
 from PyQt5.QtWidgets import QCheckBox, QMessageBox
 
-enable_shell = (
+WINDOWS = (
     str(platform.uname().system).lower() == 'windows'
 )
 
@@ -85,20 +86,39 @@ def raise_restart():
 
 def set_lib_path():
     """Setting lib path for installed libraries."""
-    import sys
     if lib_path() in sys.path:
         sys.path.remove(lib_path())
     if lib_path_end() in sys.path:
         sys.path.remove(lib_path_end())
     sys.path = get_lib_paths() + sys.path
+    join_paths_ = ';' if WINDOWS else ':'
+    os.environ['PYTHONPATH'] = join_paths_.join(get_lib_paths())
 
-def pip_install(pkg_name, pkg_required_version, options=[]):
+def pip_install(pkg_name, pkg_required_version, options=[], upgrade=False):
     """Install the requires using pip install."""
-    subprocess.run(
-        ['pip', 'install'] + options +
-        [f"{pkg_name}>={pkg_required_version}"],
-        shell = enable_shell
+    if upgrade:
+        options.append('--upgrade')
+        options.append('--force-reinstall')
+    pip.main(
+        ['install'] + options +
+        [f"{pkg_name}>={pkg_required_version}"]
     )
+
+def format_pkg_name(pkg_name):
+    return pkg_name.replace('<', '-') \
+        .replace('>', '-') \
+            .replace('<=', '-') \
+                .replace('>=', '-') \
+                    .split('-')[0]
+
+def resolve_pkg_paths(pkg_name):
+    try:
+        pkg = importlib.import_module(pkg_name)
+        pkg_python_path = pkg.__path__[0].replace(f'/{pkg_name}', '')
+        sys.path.remove(pkg_python_path)
+        os.environ['PYTHONPATH_WTSS_PLUGIN'] = ':'.join(sys.path)
+    except:
+        pass
 
 def run_install_pkgs_process():
     """Run subprocess to install packages through."""
@@ -117,13 +137,9 @@ def run_install_pkgs_process():
     if not checkbox.isChecked():
         target = ['--target', lib_path()]
     if install_requirements.clickedButton() == buttons['install_all']:
-        subprocess.run(
-            [
-                'pip', 'install', '--upgrade',
-                '-r', requirements_file('txt')
-            ] + target,
-            shell = enable_shell
-        )
+        pip.main([
+            'install', '-r', requirements_file('txt')
+        ] + target)
         #
         # Request restart
         raise_restart()
@@ -132,13 +148,14 @@ def run_install_pkgs_process():
         with open(requirements_file('csv'), newline='') as csvfile:
             reader = csv.DictReader(csvfile, delimiter=',')
             for row in reader:
-                pkg_name = row['package']
+                pkg_name = format_pkg_name(row['package'])
                 pkg_required_version = float('.'.join(row['version'].split('.')[0:2]))
+                error_msg = ""
                 pkg = None
                 try:
                     pkg = importlib.import_module(pkg_name)
-                except (ModuleNotFoundError, ImportError) as error:
-                    pass
+                except Exception as error:
+                    error_msg = str(error)
                 pkg_installed_version = None
                 if pkg:
                     pkg_installed_version = float('.'.join(pkg.__version__.split('.')[0:2]))
@@ -153,14 +170,14 @@ def run_install_pkgs_process():
                         cancel = ['Cancel', QMessageBox.RejectRole]
                     )
                     if install_existing_lib.clickedButton() == buttons_lib['update']:
-                        pip_install(pkg_name, pkg_required_version, options=target)
+                        pip_install(pkg_name, pkg_required_version, options=target, upgrade=True)
                     else:
                         pass
                 elif pkg == None:
                     install_lib, _, buttons_lib = warning(
                         "warning",
                         "ImportError!",
-                        (f"The WTSS Plugin needs package {pkg_name} version >= {pkg_required_version}."),
+                        (f"{error_msg}\n\nThe WTSS Plugin needs package {pkg_name} version >= {pkg_required_version}."),
                         install = ['Install', QMessageBox.YesRole],
                         cancel = ['Cancel', QMessageBox.RejectRole]
                     )
@@ -177,6 +194,9 @@ def run_install_pkgs_process():
 
 def start(iface):
     """Start WTSS QGIS Plugin"""
+    #
+    # Resolve conflicts for packages
+    resolve_pkg_paths('numpy')
     #
     # Setting PYTHONPATH to use dependencies
     set_lib_path()

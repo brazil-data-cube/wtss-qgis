@@ -797,6 +797,18 @@ class wtss_qgis:
             self.dlg.metadata_scroll_area.setWidgetResizable(True)
             self.dlg.metadata_scroll_area.setWidget(widget)
 
+    def finish_session(self):
+        """Methods to finish when dialog close"""
+        #
+        # Remove mouse click
+        self.addCanvasControlPoint(False)
+        #
+        # Restore sys.path
+        if Config.PYTHONPATH_WTSS_PLUGIN:
+            import sys
+            sys.path = os.environ['PYTHONPATH_WTSS_PLUGIN'].split(':')
+            os.environ.pop('PYTHONPATH_WTSS_PLUGIN')
+
     def run(self):
         """Run method that performs all the real work."""
         # Init Application
@@ -821,10 +833,5 @@ class wtss_qgis:
         self.initButtons()
         # show the dialog
         self.dlg.show()
-        # Run the dialog event loop
-        result = self.dlg.exec_()
-        # See if OK was pressed
-        if result:
-            # Do something useful here - delete the line containing pass and
-            # substitute with your code.
-            self.addCanvasControlPoint(False)
+        # Methods to finish session
+        self.dlg.finished.connect(self.finish_session)
