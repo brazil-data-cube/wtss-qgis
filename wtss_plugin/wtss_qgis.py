@@ -805,9 +805,12 @@ class wtss_qgis:
         #
         # Restore sys.path
         if Config.PYTHONPATH_WTSS_PLUGIN:
-            import sys
-            sys.path = os.environ['PYTHONPATH_WTSS_PLUGIN'].split(':')
-            os.environ.pop('PYTHONPATH_WTSS_PLUGIN')
+            try:
+                import sys
+                sys.path = os.environ['PYTHONPATH_WTSS_PLUGIN'].split(':')
+                os.environ.pop('PYTHONPATH_WTSS_PLUGIN')
+            except:
+                pass
 
     def run(self):
         """Run method that performs all the real work."""

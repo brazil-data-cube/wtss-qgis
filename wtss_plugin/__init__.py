@@ -44,9 +44,9 @@ def get_lib_paths():
     """Get the path for python installed lib path."""
     return [lib_path(), lib_path_end()]
 
-def requirements_file(ext):
+def requirements_file():
     """Get the path for requirements file."""
-    return str(Path(os.path.abspath(os.path.dirname(__file__))) / f'requirements.{ext}')
+    return str(Path(os.path.abspath(os.path.dirname(__file__))) / f'requirements.txt')
 
 def warning(type_message, title, message, checkbox = None, **add_buttons):
     """Show a simple warning when ImportError."""
@@ -93,20 +93,42 @@ def set_lib_path():
     os.environ['PYTHONPATH_WTSS_PLUGIN'] = ':'.join(sys.path)
     sys.path = get_lib_paths() + sys.path
 
-def pip_install(pkg_name, pkg_required_version, options=[], upgrade=False):
+def pip_install(
+        pkg_name, pkg_version_rule,
+        options=[], upgrade=False,
+        reinstall=False, break_=False
+    ):
     """Install the requires using pip install."""
     if upgrade:
         options.append('--upgrade')
+    if reinstall:
         options.append('--force-reinstall')
+    if break_:
+        options.append('--break-system-packages')
     pip.main(
         ['install'] + options +
-        [f"{pkg_name}>={pkg_required_version}"]
+        [f"{pkg_name}{pkg_version_rule}"]
     )
 
-def format_pkg_name(pkg_name):
-    return pkg_name.replace('-', '_').replace('<', '-') \
-        .replace('>', '-').replace('<=', '-').replace('>=', '-') \
-            .replace('!=', '-').split('-')[0]
+def format_(name):
+    return name.replace('-', '_').replace('<=', '-')  \
+        .replace('>=', '-').replace('!=', '-')  \
+            .replace('<', '-').replace('>', '-')  \
+                .split('-')
+
+def get_pkg_name(package):
+    return format_(package)[0]
+
+def get_pkg_version_rule(package):
+    return package.split(get_pkg_name(package))[1]
+
+def get_pkg_versions(package):
+    versions = get_pkg_version_rule(package).split(',')
+    versions_ = []
+    for version in versions:
+        version_ = format_(version)[1]
+        versions_.append(float('.'.join(version_.split('.')[0:2])))
+    return versions_
 
 def run_install_pkgs_process(error_msg=""):
     """Run subprocess to install packages through."""
@@ -126,53 +148,51 @@ def run_install_pkgs_process(error_msg=""):
     if not checkbox.isChecked():
         target = ['--target', lib_path()]
     if install_requirements.clickedButton() == buttons['install_all']:
-        pip.main([
-            'install', '-r', requirements_file('txt')
-        ] + target)
+        pip.main(['install', '-r', requirements_file()] + target)
         #
         # Request restart
         raise_restart()
         #
     elif install_requirements.clickedButton() == buttons['install_by']:
-        with open(requirements_file('csv'), newline='') as csvfile:
-            reader = csv.DictReader(csvfile, delimiter=',')
-            for row in reader:
-                pkg_name = format_pkg_name(row['package'])
-                pkg_required_version = float('.'.join(row['version'].split('.')[0:2]))
+        with open(requirements_file(), 'r', newline='') as requirements:
+            requirements = requirements.split('\n')
+            for row in requirements:
+                pkg_name = get_pkg_name(row)
+                pkg_required_versions = get_pkg_versions(row)
+                pkg_version_rule = get_pkg_version_rule(row)
                 error_msg = ""
                 pkg = None
+                pkg_installed_version = None
                 try:
                     pkg = importlib.import_module(pkg_name)
+                    pkg_installed_version = float('.'.join(pkg.__version__.split('.')[0:2]))
                 except Exception as error:
                     error_msg = str(error)
                     pass
-                pkg_installed_version = None
-                if pkg:
-                    pkg_installed_version = float('.'.join(pkg.__version__.split('.')[0:2]))
-                if pkg_installed_version and pkg_required_version > pkg_installed_version:
+                if pkg_installed_version and any(pkg_installed_version < version for version in pkg_required_versions):
                     install_existing_lib, _, buttons_lib = warning(
                         "warning",
                         "Found conflicts!",
                         (f"Found existing installation for {pkg_name} version {pkg.__version__} in" +
                             f"\n\n{pkg.__file__}.\n\n" +
-                            f"The WTSS Plugin needs version >= {pkg_required_version}."),
+                            f"The WTSS Plugin needs version {pkg_version_rule}."),
                         update = ['Update', QMessageBox.YesRole],
                         cancel = ['Cancel', QMessageBox.RejectRole]
                     )
                     if install_existing_lib.clickedButton() == buttons_lib['update']:
-                        pip_install(pkg_name, pkg_required_version, options=target, upgrade=True)
+                        pip_install(pkg_name, pkg_version_rule, options=target, upgrade=True, reinstall=True)
                     else:
                         pass
                 elif pkg == None:
                     install_lib, _, buttons_lib = warning(
                         "warning",
                         "ImportError!",
-                        (f"{error_msg}\n\nThe WTSS Plugin needs package {pkg_name} version >= {pkg_required_version}."),
+                        (f"{error_msg}\n\nThe WTSS Plugin needs package {pkg_name} version {pkg_version_rule}."),
                         install = ['Install', QMessageBox.YesRole],
                         cancel = ['Cancel', QMessageBox.RejectRole]
                     )
                     if install_lib.clickedButton() == buttons_lib['install']:
-                        pip_install(pkg_name, pkg_required_version, options=target)
+                        pip_install(pkg_name, pkg_version_rule, options=target)
                     else:
                         pass
         #
