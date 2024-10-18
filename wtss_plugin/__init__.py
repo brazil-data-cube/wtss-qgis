@@ -64,7 +64,7 @@ def warning(type_message, title, message, checkbox = None, **add_buttons):
         for button in add_buttons.keys():
             buttons[button] = msg.addButton(add_buttons[button][0], add_buttons[button][1])
     if checkbox:
-        checkbox.setChecked(True)
+        checkbox.setChecked(False)
         msg.setCheckBox(checkbox)
     msg.exec_()
     msg.deleteLater()
@@ -90,9 +90,8 @@ def set_lib_path():
         sys.path.remove(lib_path())
     if lib_path_end() in sys.path:
         sys.path.remove(lib_path_end())
+    os.environ['PYTHONPATH_WTSS_PLUGIN'] = ':'.join(sys.path)
     sys.path = get_lib_paths() + sys.path
-    join_paths_ = ';' if WINDOWS else ':'
-    os.environ['PYTHONPATH'] = join_paths_.join(get_lib_paths())
 
 def pip_install(pkg_name, pkg_required_version, options=[], upgrade=False):
     """Install the requires using pip install."""
@@ -105,27 +104,17 @@ def pip_install(pkg_name, pkg_required_version, options=[], upgrade=False):
     )
 
 def format_pkg_name(pkg_name):
-    return pkg_name.replace('<', '-') \
-        .replace('>', '-') \
-            .replace('<=', '-') \
-                .replace('>=', '-') \
-                    .split('-')[0]
+    return pkg_name.replace('-', '_').replace('<', '-') \
+        .replace('>', '-').replace('<=', '-').replace('>=', '-') \
+            .replace('!=', '-').split('-')[0]
 
-def resolve_pkg_paths(pkg_name):
-    try:
-        pkg = importlib.import_module(pkg_name)
-        pkg_python_path = pkg.__path__[0].replace(f'/{pkg_name}', '')
-        sys.path.remove(pkg_python_path)
-        os.environ['PYTHONPATH_WTSS_PLUGIN'] = ':'.join(sys.path)
-    except:
-        pass
-
-def run_install_pkgs_process():
+def run_install_pkgs_process(error_msg=""):
     """Run subprocess to install packages through."""
     install_requirements, checkbox, buttons = warning(
         "error",
         "ImportError!",
-        ("Your environment does not have the minimal " +
+        (f"{error_msg}\n\n" +
+        "Your environment does not have the minimal " +
         "requirements to run WTSS Plugin, " +
         "click OK to install them."),
         checkbox = QCheckBox("Use python home?"),
@@ -156,6 +145,7 @@ def run_install_pkgs_process():
                     pkg = importlib.import_module(pkg_name)
                 except Exception as error:
                     error_msg = str(error)
+                    pass
                 pkg_installed_version = None
                 if pkg:
                     pkg_installed_version = float('.'.join(pkg.__version__.split('.')[0:2]))
@@ -195,9 +185,6 @@ def run_install_pkgs_process():
 def start(iface):
     """Start WTSS QGIS Plugin"""
     #
-    # Resolve conflicts for packages
-    resolve_pkg_paths('numpy')
-    #
     # Setting PYTHONPATH to use dependencies
     set_lib_path()
     #
@@ -216,6 +203,6 @@ def classFactory(iface):
     except (ModuleNotFoundError, ImportError) as error:
         #
         # Run packages installation
-        run_install_pkgs_process()
+        run_install_pkgs_process(error_msg=error)
         #
         return start(iface)

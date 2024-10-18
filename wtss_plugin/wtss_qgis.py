@@ -832,6 +832,7 @@ class wtss_qgis:
         # Add functions to buttons
         self.initButtons()
         # show the dialog
-        self.dlg.show()
+        if not self.dlg.isVisible():
+            self.dlg.show()
         # Methods to finish session
         self.dlg.finished.connect(self.finish_session)
