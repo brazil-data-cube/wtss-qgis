@@ -18,14 +18,13 @@
 
 """Python QGIS Plugin for WTSS."""
 
-import sys
-import csv
 import importlib
 import os
 import platform
-import pip
+import sys
 from pathlib import Path
 
+import pip
 from PyQt5.QtWidgets import QCheckBox, QMessageBox
 
 WINDOWS = (
@@ -110,14 +109,17 @@ def pip_install(
         [f"{pkg_name}{pkg_version_rule}"]
     )
 
-def format_(name):
-    return name.replace('-', '_').replace('<=', '-')  \
+def format_(name, to_import=False):
+    name_ = name.replace('-', '_').replace('<=', '-')  \
         .replace('>=', '-').replace('!=', '-')  \
-            .replace('<', '-').replace('>', '-')  \
+            .replace('<', '-').replace('>', '-') \
                 .split('-')
+    if not to_import:
+        name_[0] = name_[0].replace('_', '-')
+    return name_
 
-def get_pkg_name(package):
-    return format_(package)[0]
+def get_pkg_name(package, to_import=False):
+    return format_(package, to_import)[0]
 
 def get_pkg_version_rule(package):
     return package.split(get_pkg_name(package))[1]
@@ -155,46 +157,47 @@ def run_install_pkgs_process(error_msg=""):
         #
     elif install_requirements.clickedButton() == buttons['install_by']:
         with open(requirements_file(), 'r', newline='') as requirements:
-            requirements = requirements.split('\n')
+            requirements = str(requirements.read()).split('\n')
             for row in requirements:
-                pkg_name = get_pkg_name(row)
-                pkg_required_versions = get_pkg_versions(row)
-                pkg_version_rule = get_pkg_version_rule(row)
-                error_msg = ""
-                pkg = None
-                pkg_installed_version = None
-                try:
-                    pkg = importlib.import_module(pkg_name)
-                    pkg_installed_version = float('.'.join(pkg.__version__.split('.')[0:2]))
-                except Exception as error:
-                    error_msg = str(error)
-                    pass
-                if pkg_installed_version and any(pkg_installed_version < version for version in pkg_required_versions):
-                    install_existing_lib, _, buttons_lib = warning(
-                        "warning",
-                        "Found conflicts!",
-                        (f"Found existing installation for {pkg_name} version {pkg.__version__} in" +
-                            f"\n\n{pkg.__file__}.\n\n" +
-                            f"The WTSS Plugin needs version {pkg_version_rule}."),
-                        update = ['Update', QMessageBox.YesRole],
-                        cancel = ['Cancel', QMessageBox.RejectRole]
-                    )
-                    if install_existing_lib.clickedButton() == buttons_lib['update']:
-                        pip_install(pkg_name, pkg_version_rule, options=target, upgrade=True, reinstall=True)
-                    else:
+                if len(row) > 0:
+                    pkg_name = get_pkg_name(row)
+                    pkg_required_versions = get_pkg_versions(row)
+                    pkg_version_rule = get_pkg_version_rule(row)
+                    error_msg = ""
+                    pkg = None
+                    pkg_installed_version = None
+                    try:
+                        pkg = importlib.import_module(get_pkg_name(row, to_import=True))
+                        pkg_installed_version = float('.'.join(pkg.__version__.split('.')[0:2]))
+                    except Exception as error:
+                        error_msg = str(error)
                         pass
-                elif pkg == None:
-                    install_lib, _, buttons_lib = warning(
-                        "warning",
-                        "ImportError!",
-                        (f"{error_msg}\n\nThe WTSS Plugin needs package {pkg_name} version {pkg_version_rule}."),
-                        install = ['Install', QMessageBox.YesRole],
-                        cancel = ['Cancel', QMessageBox.RejectRole]
-                    )
-                    if install_lib.clickedButton() == buttons_lib['install']:
-                        pip_install(pkg_name, pkg_version_rule, options=target)
-                    else:
-                        pass
+                    if pkg_installed_version and any(pkg_installed_version < version for version in pkg_required_versions):
+                        install_existing_lib, _, buttons_lib = warning(
+                            "warning",
+                            "Found conflicts!",
+                            (f"Found existing installation for {pkg_name} version {pkg.__version__} in" +
+                                f"\n\n{pkg.__file__}.\n\n" +
+                                f"The WTSS Plugin needs version {pkg_version_rule}."),
+                            update = ['Update', QMessageBox.YesRole],
+                            cancel = ['Cancel', QMessageBox.RejectRole]
+                        )
+                        if install_existing_lib.clickedButton() == buttons_lib['update']:
+                            pip_install(pkg_name, pkg_version_rule, options=target, upgrade=True, reinstall=True)
+                        else:
+                            pass
+                    elif pkg == None:
+                        install_lib, _, buttons_lib = warning(
+                            "warning",
+                            "ImportError!",
+                            (f"{error_msg}\n\nThe WTSS Plugin needs package {pkg_name} version {pkg_version_rule}."),
+                            install = ['Install', QMessageBox.YesRole],
+                            cancel = ['Cancel', QMessageBox.RejectRole]
+                        )
+                        if install_lib.clickedButton() == buttons_lib['install']:
+                            pip_install(pkg_name, pkg_version_rule, options=target)
+                        else:
+                            pass
         #
         # Request restart
         raise_restart()
