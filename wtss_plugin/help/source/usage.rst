@@ -16,11 +16,9 @@
     along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
 
-Usage
-*****
-
+=======================
 Enable WTSS-QGIS Plugin
-+++++++++++++++++++++++
+=======================
 
 Open QGIS Desktop and add a vector layer as the figure below:
 
@@ -28,20 +26,24 @@ Open QGIS Desktop and add a vector layer as the figure below:
     :width: 100%
     :alt: QGIS Desktop
 
+
 Go to ``Plugins`` tab in ``Management Plugins`` option to verify if WTSS-QGIS is enable. You will find the follow information such a figure below:
 
 .. image:: ./assets/screenshots/step2.jpg
     :width: 100%
     :alt: Enable WTSS-PLUGIN
 
+
+====================
 Run WTSS-QGIS Plugin
-++++++++++++++++++++
+====================
 
 You can open the WTSS-QGIS Plugin in ``Web`` tab. The following screen will appear:
 
 .. image:: ./assets/screenshots/step3.jpg
     :width: 100%
     :alt: WTSS-PLUGIN
+
 
 You must select an active ``WTSS server`` that you want to use. And choose the parameters for active ``coverages`` to retrieve the time series information. You must select the available ``bands`` and set a ``start`` and ``end date`` for coverage filter. Finally click on map to get a ``latitude`` and ``longitude`` in vector layer with mouse.
 

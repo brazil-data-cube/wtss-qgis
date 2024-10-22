@@ -16,40 +16,4 @@
     along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
 
-.. include:: ./about.rst
-
-.. toctree::
-    :maxdepth: 3
-    :caption: About:
-
-    self
-
-
-.. toctree::
-    :maxdepth: 3
-    :caption: Installation:
-
-    dev_install
-    user_install
-    faq
-
-
-.. toctree::
-    :maxdepth: 3
-    :caption: Usage:
-
-    usage
-
-
-.. toctree::
-    :maxdepth: 3
-    :caption: Releases:
-
-    history
-
-
-.. toctree::
-    :maxdepth: 3
-    :caption: Additional Notes
-
-    license
+.. include:: ../../../docs/DEV_INSTALL.rst

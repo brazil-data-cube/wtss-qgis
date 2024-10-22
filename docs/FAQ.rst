@@ -15,6 +15,11 @@
     You should have received a copy of the GNU General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
+
+==========================
+Frequently Asked Questions
+==========================
+
 The most commom way to check your python environemnt is running `sys.path` in a python compiler in your command line and compare to
 
 .. code-block:: text
@@ -22,10 +27,10 @@ The most commom way to check your python environemnt is running `sys.path` in a 
     $ git clone h
 
 
- requirements, to deploy and publish QGIS Python plugin:
+Requirements, to deploy and publish QGIS Python plugin:
 
 
-in some case update your pip
+in some cases update your pip
 
 
 .. note::

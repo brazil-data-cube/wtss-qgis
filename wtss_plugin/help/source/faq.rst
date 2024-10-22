@@ -15,17 +15,5 @@
     You should have received a copy of the GNU General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
-download the zip file for `wtss_plugin`
 
-Or if you download to install by `zip` file, use:
-
-.. code-block:: text
-
-    $ pip3 install git+https://github.com/brazil-data-cube/wtss-qgis.git@v0.3.0
-
-
-If you download to install by `zip` file, use:
-
-.. code-block:: text
-
-    \> pip3 install git+https://github.com/brazil-data-cube/wtss-qgis.git@v0.3.0
+.. include:: ../../../docs/FAQ.rst

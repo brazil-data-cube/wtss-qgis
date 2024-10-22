@@ -16,40 +16,22 @@
     along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
 
-.. include:: ./about.rst
-
-.. toctree::
-    :maxdepth: 3
-    :caption: About:
-
-    self
+=================
+User Installation
+=================
 
 
-.. toctree::
-    :maxdepth: 3
-    :caption: Installation:
+download the zip file for `wtss_plugin`
 
-    dev_install
-    user_install
-    faq
+Or if you download to install by `zip` file, use:
 
+.. code-block:: text
 
-.. toctree::
-    :maxdepth: 3
-    :caption: Usage:
-
-    usage
+    $ pip3 install git+https://github.com/brazil-data-cube/wtss-qgis.git@v0.3.0
 
 
-.. toctree::
-    :maxdepth: 3
-    :caption: Releases:
+If you download to install by `zip` file, use:
 
-    history
+.. code-block:: text
 
-
-.. toctree::
-    :maxdepth: 3
-    :caption: Additional Notes
-
-    license
+    \> pip3 install git+https://github.com/brazil-data-cube/wtss-qgis.git@v0.3.0

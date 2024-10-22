@@ -16,23 +16,20 @@
     along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
 
+========================
 Development Installation
 ========================
 
 The Python QGIS Plugin for WTSS depends essentially on:
 
-- [ ] `QGIS version > 3 <https://qgis.org/en/site/>`_
-- [ ] `Python version > 3.10 <https://www.python.org/>`_
-- [ ] `Python QT version > 5 <https://www.qt.io/download>`_
+ - `QGIS > 3 <https://qgis.org/en/site/>`_
+ - `Python > 3.10 <https://www.python.org/>`_
+ - `Python QT Package > 5 <https://www.qt.io/download>`_
 
 For **development environment**, you will need to set your python QGIS environment variables basing on your operation system. This means that your QGIS must be configured with your python variables using a terminal or CMD.
 
 This **development environment** consist in a environment with all dependencies required to **compile** and **build** the plugin installer for WTSS QGIS Plugin.
 
-QGIS Plugin Reloader
---------------------
-
-To develop in WTSS QGIS Plugin in all operation systems, you will need to install the `Plugin Reloader <https://plugins.qgis.org/plugins/plugin_reloader/>`_. This plugin will reload any updates after deploys during a QGIS, it is useful to test new methods.
 
 Linux
 -----
@@ -79,6 +76,7 @@ After `requirements.txt`, you will need to compile the `resources.qrc`, then go 
 
     $ cd wtss_plugin
 
+
 The plugin source code is located at `./wtss_plugin <../wtss_plugin>`_, this folder will be compressed to generate the final zip to user installation.
 
 In source code folder, use `pb_tool` to compile the `requirements.qrc`. The `pb_tool compile` will generate a file named `resources.py`, check this file before deploy:
@@ -107,6 +105,13 @@ To generate the zip file for plugin installer, use:
 
 This command will compress the files configured in `pb_tool.cfg <../wtss_plugin/pb_tool.cfg>`_, any errors are related to past steps of a no found for generated files for `requirements.txt` and `resources.py`.
 
+
+Docker
+------
+
+    TO DO...
+
+
 Windows
 -------
 
@@ -124,6 +129,7 @@ To set `PYTHONHOME`, find the `Python` and `Grass` version installed by QGIS, yo
 .. code-block:: text
 
    \wtss-qgis> dir "%OSGEO4W_ROOT%"\apps\grass
+
 
 You can set the environment variables in panel control if you were a experient windows user or run the script in `set_pyqgis_win.cmd <../wtss_plugin/scripts/set_pyqgis_win.cmd>`_.
 
@@ -172,11 +178,8 @@ To deploy the plugin in Windows, run the script `deploy_win.cmd <../wtss_plugin/
 
 To zip generation is only for Linux environemnt, to do so in Windows, you will need to execute some compressing app like `WinRAR <https://www.win-rar.com/start.html?&L=0>`_.
 
-Docker
-------
-
-    TO DO...
 
 .. note::
 
-    The final step for all environments is run QGIS and open the **Plugins Manager** and enable the WTSS or for **development environment** use `Plugin Reloader`.
+    - The final step for all environments is run QGIS and open the **Plugins Manager** and enable the WTSS or for **development environment** use `Plugin Reloader`;
+    - To develop in WTSS QGIS Plugin in all operation systems, you will need to install the `QGIS Plugin Reloader <https://plugins.qgis.org/plugins/plugin_reloader/>`_. This plugin will reload any updates after deploys during a QGIS, it is useful to test new methods.

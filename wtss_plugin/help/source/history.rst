@@ -17,3 +17,4 @@
 ..
 
 .. include:: ../../../docs/CHANGES.rst
+    :start-after: Changes
