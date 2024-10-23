@@ -66,22 +66,33 @@ For more information on WTSS, see:
 
 - `WTSS Specification <https://github.com/brazil-data-cube/wtss-spec>`_: the WTSS specification using `OpenAPI 3.0 <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md>`_ notation.
 
+The WTSS Plugin was developed by the Brazil Data Cube project, which offers a straightforward and efficient representation of time series data.
+
+The primary goal of the presented plugin is to streamline and enhance access to the WTSS service by providing users with a graphical interface that integrates directly into the QGIS environment.
+
+This significantly reduces the reliance on command-line inputs, routines, and scripts for retrieving and formatting large datasets of time series, enabling comprehensive analyses of study areas without requiring users to have advanced programming skills.
+
 The following image presents an overview of the plugin:
 
-.. image:: https://github.com/brazil-data-cube/wtss-qgis/raw/master/wtss_plugin/help/source/assets/img/wtss-qgis.png
-        :target: https://github.com/brazil-data-cube/wtss-qgis/blob/master/wtss_plugin/help/source/assets/img
-        :width: 100%
-        :alt: WTSS-QGIS
+.. image:: https://github.com/brazil-data-cube/wtss-qgis/tree/master/wtss_plugin/help/source/assets/screenshots/wtss_plugin.png
+    :target: https://github.com/brazil-data-cube/wtss-qgis/tree/master/wtss_plugin/help/source/assets/screnshots/wtss_plugin.png
+    :width: 100%
+    :alt: WTSS-PLUGIN
+
+
+The plugin WTSS for QGIS is based on the Python programming language with the Python QT library, and its graphical interface with the software QT Designer.
 
 Installation
 ------------
 
-See `INSTALL.rst <https://github.com/brazil-data-cube/wtss-qgis/blob/master/docs/INSTALL.rst>`_.
+See `Development Installation <./docs/INSTALL.rst>`_.
+
+See `User Installation <./wtss_plugin/help/source/user_install.rst>`_.
 
 Unit Tests
 ----------
 
-See `TESTS.rst <https://github.com/brazil-data-cube/wtss-qgis/blob/master/docs/TESTS.rst>`_.
+See `TESTS.rst <./docs/TESTS.rst>`_.
 
 References
 ----------
@@ -93,9 +104,4 @@ References
 License
 -------
 
-.. admonition::
-
-    Copyright (C) 2020 INPE.
-
-    Python QGIS Plugin for Web Time Series Service is free software; you can redistribute it and/or modify it
-    under the terms of the MIT License; see LICENSE file for more details.
+See `LICENSE <./LICENSE>`_.
