@@ -92,7 +92,7 @@ See `User Installation <./wtss_plugin/help/source/user_install.rst>`_.
 Unit Tests
 ----------
 
-See `TESTS.rst <./docs/TESTS.rst>`_.
+See `Tests <./docs/TESTS.rst>`_.
 
 References
 ----------
