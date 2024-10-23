@@ -207,6 +207,7 @@ class wtss_qgis:
     def initControls(self):
         """Init basic controls to generate files and manage services."""
         self.dlg.setWindowFlag(Qt.WindowMaximizeButtonHint, False)
+        self.dlg.setFixedSize(self.dlg.size().width(), self.dlg.size().height())
         self.basic_controls = Controls()
         self.server_controls = Services(user = "application")
         self.files_controls = FilesExport()
@@ -835,7 +836,6 @@ class wtss_qgis:
         # Add functions to buttons
         self.initButtons()
         # show the dialog
-        if not self.dlg.isVisible():
-            self.dlg.show()
+        self.dlg.show()
         # Methods to finish session
         self.dlg.finished.connect(self.finish_session)
