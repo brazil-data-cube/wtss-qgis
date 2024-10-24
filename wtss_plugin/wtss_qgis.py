@@ -813,6 +813,14 @@ class wtss_qgis:
             except:
                 pass
 
+    def dialogShow(self):
+        """Rules to start dialog."""
+        wtss_qgis = qgis.utils.plugins.get("wtss_qgis", None)
+        if wtss_qgis and not wtss_qgis.dlg.isVisible():
+            self.dlg.show()
+        else:
+            wtss_qgis.dlg.activateWindow()
+
     def run(self):
         """Run method that performs all the real work."""
         # Init Application
@@ -836,6 +844,6 @@ class wtss_qgis:
         # Add functions to buttons
         self.initButtons()
         # show the dialog
-        self.dlg.show()
+        self.dialogShow()
         # Methods to finish session
         self.dlg.finished.connect(self.finish_session)
