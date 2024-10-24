@@ -26,13 +26,3 @@ file = open(Path('wtss_plugin') / 'requirements.txt','w')
 for req in dist.install_requires:
 	file.write(str(req) + "\n")
 file.close()
-
-rule = '>='
-
-file = open(Path('wtss_plugin') / 'requirements.csv', 'w', newline='')
-writer = csv.DictWriter(file, delimiter=',', fieldnames=['package', 'version'])
-writer.writeheader()
-for req in dist.install_requires:
-	pkg_ = req.split(rule)
-	writer.writerow({'package': pkg_[0], 'version': pkg_[1]})
-file.close()

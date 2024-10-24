@@ -197,16 +197,17 @@ class wtss_qgis:
         """Open html doc on default browser."""
         helpfile = (
             Path(os.path.abspath(os.path.dirname(__file__)))
-                / 'help' / 'build' / 'html' / 'about.html'
+                / 'help' / 'build' / 'html' / 'usage.html'
         )
         if os.path.exists(helpfile):
             url = "file://" + str(helpfile)
             self.iface.openURL(url, False)
-        qgis.utils.showPluginHelp(packageName="wtss_qgis", filename="index", section="about")
+        qgis.utils.showPluginHelp(packageName="wtss_qgis", filename="index", section="usage")
 
     def initControls(self):
         """Init basic controls to generate files and manage services."""
         self.dlg.setWindowFlag(Qt.WindowMaximizeButtonHint, False)
+        self.dlg.setFixedSize(self.dlg.size().width(), self.dlg.size().height())
         self.basic_controls = Controls()
         self.server_controls = Services(user = "application")
         self.files_controls = FilesExport()
@@ -267,10 +268,11 @@ class wtss_qgis:
         self.points_layer_data_provider = None
         self.selected_location = None
         try:
-            self.dlg.history_list.addItems(list(self.locations.keys()))
+            locations_keys = list(self.locations.keys())
+            self.dlg.history_list.addItems(locations_keys)
         except AttributeError:
             self.locations = {}
-        self.dlg.history_list.itemActivated.connect(self.getFromHistory)
+        self.dlg.history_list.itemClicked.connect(self.getFromHistory)
         self.getLayers()
 
     def initRasterHistory(self):
@@ -707,8 +709,10 @@ class wtss_qgis:
                 )
             )
             self.locations[history_key] = self.selected_location
+            locations_keys = list(self.locations.keys())
             self.dlg.history_list.clear()
-            self.dlg.history_list.addItems(list(self.locations.keys()))
+            self.dlg.history_list.addItems(locations_keys)
+            self.dlg.history_list.setCurrentRow(len(locations_keys) - 1)
             self.draw_point(x, y)
         except AttributeError:
             pass
@@ -720,11 +724,6 @@ class wtss_qgis:
         self.canvas = None
         if enable:
             self.canvas = self.iface.mapCanvas()
-            if crs_id not in QgsProject.instance().crs().authid():
-                self.basic_controls.alert(
-                    "warning", "Update CRS!",
-                    "The WTSS search uses WGS 84 'EPSG:4326'!"
-                )
             QgsProject.instance().setCrs(QgsCoordinateReferenceSystem(int(crs_id)))
             self.point_tool = QgsMapToolEmitPoint(self.canvas)
             self.point_tool.canvasClicked.connect(self.display_point)
@@ -799,6 +798,29 @@ class wtss_qgis:
             self.dlg.metadata_scroll_area.setWidgetResizable(True)
             self.dlg.metadata_scroll_area.setWidget(widget)
 
+    def finish_session(self):
+        """Methods to finish when dialog close"""
+        #
+        # Remove mouse click
+        self.addCanvasControlPoint(False)
+        #
+        # Restore sys.path
+        if Config.PYTHONPATH_WTSS_PLUGIN:
+            try:
+                import sys
+                sys.path = os.environ['PYTHONPATH_WTSS_PLUGIN'].split(':')
+                os.environ.pop('PYTHONPATH_WTSS_PLUGIN')
+            except:
+                pass
+
+    def dialogShow(self):
+        """Rules to start dialog."""
+        wtss_qgis = qgis.utils.plugins.get("wtss_qgis", None)
+        if wtss_qgis and not wtss_qgis.dlg.isVisible():
+            self.dlg.show()
+        else:
+            wtss_qgis.dlg.activateWindow()
+
     def run(self):
         """Run method that performs all the real work."""
         # Init Application
@@ -822,11 +844,6 @@ class wtss_qgis:
         # Add functions to buttons
         self.initButtons()
         # show the dialog
-        self.dlg.show()
-        # Run the dialog event loop
-        result = self.dlg.exec_()
-        # See if OK was pressed
-        if result:
-            # Do something useful here - delete the line containing pass and
-            # substitute with your code.
-            self.addCanvasControlPoint(False)
+        self.dialogShow()
+        # Methods to finish session
+        self.dlg.finished.connect(self.finish_session)

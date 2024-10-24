@@ -36,9 +36,6 @@ Python QGIS Plugin for Web Time Series Service
         :target: https://discord.com/channels/689541907621085198#
         :alt: Join us at Discord
 
-About
-=====
-
 This is an implementation of the `Web Time Series Service specification <https://github.com/brazil-data-cube/wtss-spec>`_.
 
 **W**\ eb **T**\ ime **S**\ eries **S**\ ervice (WTSS) is a lightweight web service for handling time series data from remote sensing imagery. Given a location and a time interval you can retrieve the according time series as a JSON array of numbers.
@@ -69,35 +66,42 @@ For more information on WTSS, see:
 
 - `WTSS Specification <https://github.com/brazil-data-cube/wtss-spec>`_: the WTSS specification using `OpenAPI 3.0 <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md>`_ notation.
 
+The WTSS Plugin was developed by the Brazil Data Cube project, which offers a straightforward and efficient representation of time series data.
+
+The primary goal of the presented plugin is to streamline and enhance access to the WTSS service by providing users with a graphical interface that integrates directly into the QGIS environment.
+
+This significantly reduces the reliance on command-line inputs, routines, and scripts for retrieving and formatting large datasets of time series, enabling comprehensive analyses of study areas without requiring users to have advanced programming skills.
+
 The following image presents an overview of the plugin:
 
-.. image:: https://github.com/brazil-data-cube/wtss-qgis/raw/master/wtss_plugin/help/source/assets/img/wtss-qgis.png
-        :target: https://github.com/brazil-data-cube/wtss-qgis/blob/master/wtss_plugin/help/source/assets/img
-        :width: 100%
-        :alt: WTSS-QGIS
+.. image:: https://github.com/brazil-data-cube/wtss-qgis/tree/master/wtss_plugin/help/source/assets/screenshots/wtss_plugin.png
+    :target: https://github.com/brazil-data-cube/wtss-qgis/tree/master/wtss_plugin/help/source/assets/screnshots/wtss_plugin.png
+    :width: 100%
+    :alt: WTSS-PLUGIN
+
+
+The plugin WTSS for QGIS is based on the Python programming language with the Python QT library, and its graphical interface with the software QT Designer.
 
 Installation
-============
+------------
 
-See `INSTALL.rst <https://github.com/brazil-data-cube/wtss-qgis/blob/master/docs/INSTALL.rst>`_.
+See `Development Installation <./wtss_plugin/help/source/dev_install.rst>`_.
 
-Unit Tests
-==========
+See `User Installation <./wtss_plugin/help/source/user_install.rst>`_.
 
-See `TESTS.rst <https://github.com/brazil-data-cube/wtss-qgis/blob/master/docs/TESTS.rst>`_.
+Changes
+-------
+
+See `History changes <./CHANGES.rst>`_.
 
 References
-==========
+----------
 
 - VINHAS, L. ; QUEIROZ, G. R. ; FERREIRA, K. R. ; C MARA, G.  Web Services for Big Earth Observation Data. RBC. REVISTA BRASILEIRA DE CARTOGRAFIA (ONLINE), v. 69, p. 6, 2016.
 
 - QUEIROZ, G. R.; FERREIRA, K. R.; VINHAS, L.; CAMARA, G.; COSTA, R. W.; Souza, R. C. M.; Maus,V. W.; Sanchez, A. WTSS: um serviço web para extração de séries temporais de imagens de sensoriamento remoto. In: Proceedings of the XVII Brazilian Symposium on Remote Sensing, pages 7553–7560. 2015.
 
 License
-=======
+-------
 
-.. admonition::
-    Copyright (C) 2020 INPE.
-
-    Python QGIS Plugin for Web Time Series Service is free software; you can redistribute it and/or modify it
-    under the terms of the MIT License; see LICENSE file for more details.
+See `LICENSE <./LICENSE>`_.

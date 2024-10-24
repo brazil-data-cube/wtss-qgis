@@ -28,6 +28,7 @@ import pandas
 import seaborn
 
 from ..helpers.pystac_helper import STAC_ARGS, get_source_from_click
+from ..wtss_qgis_controller import Controls
 
 
 class FilesExport:
@@ -74,8 +75,8 @@ class FilesExport:
             for band in attributes.get("bands"):
                 bands_string = bands_string + "'" + str(band) + "', "
             bands_string = bands_string[:len(bands_string)-2] + ")"
-            lat = "{:,.2f}".format(attributes.get("coordinates").get("lat"))
-            lon = "{:,.2f}".format(attributes.get("coordinates").get("long"))
+            lat = str(attributes.get("coordinates").get("lat"))
+            lon = str(attributes.get("coordinates").get("long"))
             mapping = {
                 "service_host": attributes.get("host"),
                 "selected_coverage": attributes.get("coverage"),
@@ -151,7 +152,7 @@ class FilesExport:
             })
             fig = plt.figure(figsize = (12, 5))
             fig.suptitle(
-                ("Coverage {name} [{lng:,.2f}, {lat:,.2f}] WGS 84 EPSG:4326 ").format(
+                ("Coverage {name} [{lng:,.7f}, {lat:,.7f}]\nWGS 84 EPSG:4326 ").format(
                     name=str(time_series.get('query').get('coverage')),
                     lng=time_series.get('query').get('longitude'),
                     lat=time_series.get('query').get('latitude')
@@ -194,5 +195,6 @@ class FilesExport:
             plt.ylabel(None)
             plt.legend()
             plt.show()
-        except:
-            pass
+        except Exception as e:
+            controls = Controls()
+            controls.alert("error", "Error while generate an image!", str(e))

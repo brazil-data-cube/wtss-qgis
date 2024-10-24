@@ -17,17 +17,23 @@
 #
 #!/bin/bash
 
+if [ "$QGIS_RELEASE" = "" ];
+then
+	echo "Using latest..."
+	QGIS_RELEASE=latest
+fi
+
 xhost +
 
 docker run --rm \
 	--interactive \
     --tty \
-	--name qgis3 \
+	--name qgis-docker \
 	-i -t \
 	-v ${PWD}:/home/wtss_plugin \
 	-v ${PWD}/plugins:/root/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ \
 	-v /tmp/.X11-unix:/tmp/.X11-unix \
 	-e DISPLAY=unix$DISPLAY \
-	qgis/qgis qgis
+	qgis/qgis:$QGIS_RELEASE qgis
 
 xhost -

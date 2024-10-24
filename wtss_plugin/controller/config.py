@@ -30,3 +30,7 @@ class Config:
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
     STAC_HOST = os.getenv("STAC_HOST", "https://data.inpe.br/bdc/stac/v1/")
+
+    WTSS_HOST = os.getenv("WTSS_HOST", "https://data.inpe.br/bdc/wtss/v4/")
+
+    PYTHONPATH_WTSS_PLUGIN = os.getenv("PYTHONPATH_WTSS_PLUGIN", None)
