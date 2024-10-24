@@ -140,7 +140,7 @@ def run_install_pkgs_process(error_msg=""):
         (f"{error_msg}\n\n" +
         "Your environment does not have the minimal " +
         "requirements to run WTSS Plugin, " +
-        "click OK to install them."),
+        "select an option to install them."),
         checkbox = QCheckBox("Use python home?"),
         install_all = ['Install All', QMessageBox.YesRole],
         install_by = ['Install By', QMessageBox.YesRole],
