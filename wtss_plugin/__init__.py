@@ -171,7 +171,6 @@ def run_install_pkgs_process(error_msg=""):
                         pkg_installed_version = float('.'.join(pkg.__version__.split('.')[0:2]))
                     except Exception as error:
                         error_msg = str(error)
-                        pass
                     if pkg_installed_version and any(pkg_installed_version < version for version in pkg_required_versions):
                         install_existing_lib, _, buttons_lib = warning(
                             "warning",
@@ -184,8 +183,6 @@ def run_install_pkgs_process(error_msg=""):
                         )
                         if install_existing_lib.clickedButton() == buttons_lib['update']:
                             pip_install(pkg_name, pkg_version_rule, options=target, upgrade=True, reinstall=True)
-                        else:
-                            pass
                     elif pkg == None:
                         install_lib, _, buttons_lib = warning(
                             "warning",
@@ -196,14 +193,10 @@ def run_install_pkgs_process(error_msg=""):
                         )
                         if install_lib.clickedButton() == buttons_lib['install']:
                             pip_install(pkg_name, pkg_version_rule, options=target)
-                        else:
-                            pass
         #
         # Request restart
         raise_restart()
         #
-    else:
-        pass
 
 def start(iface):
     """Start WTSS QGIS Plugin"""

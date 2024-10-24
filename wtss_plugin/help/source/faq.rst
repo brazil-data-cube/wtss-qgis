@@ -67,6 +67,7 @@ The most common way to check your python environemnt is running `sys.path`.
         PYTHONHOME => C:\OSGeo4W\apps\Python312
         PYTHONPATH => C:\OSGeo4W\apps\qgis\python
 
+
 How to fix packages conflicts?
 ------------------------------
 
@@ -96,6 +97,7 @@ The same may be done for ``matplotlib``:
 .. code-block:: shell
 
     python3 -m pip install matplotlib==3.7 --force-reinstall
+
 
 .. note::
 
