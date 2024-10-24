@@ -16,8 +16,9 @@
     along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
 
+=======
 Changes
-*******
+=======
 
 Version 0.3.0 (2024-10-02)
 --------------------------

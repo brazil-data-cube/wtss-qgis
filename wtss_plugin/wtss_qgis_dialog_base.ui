@@ -497,6 +497,9 @@
         <height>221</height>
        </rect>
       </property>
+      <property name="editTriggers">
+       <set>QAbstractItemView::CurrentChanged</set>
+      </property>
      </widget>
     </widget>
     <widget class="QGroupBox" name="start_date_group">

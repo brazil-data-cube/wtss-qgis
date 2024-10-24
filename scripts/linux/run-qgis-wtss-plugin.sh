@@ -15,20 +15,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 #
+#!/bin/bash
 
-FROM qgis/qgis:release-3_32
+xhost +
 
-COPY . /wtss-qgis
+docker run --rm \
+	--interactive \
+    --tty \
+	--name qgis-docker-wtss-plugin \
+	-i -t \
+	-v ${PWD}:/home/wtss_plugin \
+	-v /tmp/.X11-unix:/tmp/.X11-unix \
+	-e DISPLAY=unix$DISPLAY \
+	wtss-qgis:latest qgis
 
-WORKDIR ./wtss-qgis
-
-RUN pip3 install --upgrade pip \
-    && pip3 install -e .[all]
-
-RUN python3 ./scripts/build_requirements.py
-
-RUN cd wtss_plugin \
-    && pb_tool deploy \
-        --plugin_path /root/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ -y
-
-ENTRYPOINT qgis
+xhost -

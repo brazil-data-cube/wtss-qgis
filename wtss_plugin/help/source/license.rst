@@ -16,6 +16,7 @@
     along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 ..
 
+=======
 License
 =======
 
@@ -23,7 +24,8 @@ License
 .. include:: ../../../LICENSE
 
 
+=======
 Contact
 =======
 
-`Brazil Data Cube Team <mailto:data.suporte@inpe.br>`_
+`Brazil Data Cube Team <mailto:bdc.team@inpe.br>`_

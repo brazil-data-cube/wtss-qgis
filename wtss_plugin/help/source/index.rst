@@ -15,29 +15,41 @@
     You should have received a copy of the GNU General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 
-.. include:: ../../../README.rst
-   :end-before: About
 
+.. include:: ./about.rst
 
 .. toctree::
-    :hidden:
+    :maxdepth: 3
+    :caption: About:
 
     self
 
 
 .. toctree::
-    :maxdepth: 2
-    :caption: Documentation:
+    :maxdepth: 3
+    :caption: Installation:
 
-    about
-    install
-    usage
-    history
-
+    dev_install
+    user_install
+    faq
 
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 3
+    :caption: Usage:
+
+    usage
+
+
+.. toctree::
+    :maxdepth: 3
+    :caption: Releases:
+
+    history
+
+
+.. toctree::
+    :maxdepth: 3
     :caption: Additional Notes
 
     license
