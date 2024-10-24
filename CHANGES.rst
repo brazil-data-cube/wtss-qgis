@@ -20,6 +20,19 @@
 Changes
 =======
 
+Version 0.3.1 (2024-10-24)
+--------------------------
+
+- Fix numpy version conflicts (`#74 <https://github.com/brazil-data-cube/wtss-qgis/issues/74>`_)
+- Add warning and dialog when plot time series crash (`#75 <https://github.com/brazil-data-cube/wtss-qgis/issues/75>`_)
+- Update the plugin installation and usage guide in documentation (`#77 <https://github.com/brazil-data-cube/wtss-qgis/issues/77>`_)
+- Remove the warning about setting CRS (`#79 <https://github.com/brazil-data-cube/wtss-qgis/issues/79>`_)
+- Add single click to set coordinates based on history list (`#80 <https://github.com/brazil-data-cube/wtss-qgis/issues/80>`_)
+- Add user data path to save virtual rasters from STAC (`#70 <https://github.com/brazil-data-cube/wtss-qgis/issues/70>`_)
+- Manter apenas uma janela do plugin aberta e conectada ao QGIS (`#81 <https://github.com/brazil-data-cube/wtss-qgis/issues/81>`_)
+- Garantir a precisão das coordenadas ao selecionar no histórico e ao exportar arquivos (`#82 <https://github.com/brazil-data-cube/wtss-qgis/issues/82>`_)
+
+
 Version 0.3.0 (2024-10-02)
 --------------------------
 
