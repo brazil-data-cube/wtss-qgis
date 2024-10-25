@@ -311,6 +311,10 @@ class wtss_qgis:
         self.dlg.blue_input.setEnabled(False)
         self.dlg.blue_input.activated.connect(self.loadRGBOptions)
 
+    def setCRS(self):
+        """Set the CRS in project instance."""
+        QgsProject.instance().setCrs(QgsCoordinateReferenceSystem(int("4326")))
+
     def saveService(self):
         """Save the service based on name and host input."""
         name_to_save = str(self.dlg.service_name.text())
@@ -652,33 +656,62 @@ class wtss_qgis:
 
     def draw_point(self, longitude, latitude):
         """Draw the selected points in canvas."""
-        points_layer_name = "wtss_coordinates_history"
-        points_layer_icon_size = 10
+        self.getLayers()
+        if len(self.layers) > 0:
+            self.setCRS()
+            points_layer_name = "wtss_coordinates_history"
+            points_layer_icon_size = 10
 
-        def add_featute():
-            feature = QgsFeature()
-            feature.setGeometry(QgsPoint(float(longitude), float(latitude)))
-            self.points_layer_data_provider.truncate()
-            self.points_layer_data_provider.addFeatures([feature])
-            self.points_layer_data_provider.forceReload()
+            def add_featute():
+                feature = QgsFeature()
+                feature.setGeometry(QgsPoint(float(longitude), float(latitude)))
+                self.points_layer_data_provider.truncate()
+                self.points_layer_data_provider.addFeatures([feature])
+                self.points_layer_data_provider.forceReload()
 
-        try:
-            add_featute()
-        except:
-            self.remove_layer_by_name(points_layer_name)
-            self.points_layer = QgsVectorLayer(
-                "Point?crs=epsg:4326&index=yes",
-                points_layer_name, "memory"
+            try:
+                add_featute()
+            except:
+                self.remove_layer_by_name(points_layer_name)
+                self.points_layer = QgsVectorLayer(
+                    "Point?crs=epsg:4326&index=yes",
+                    points_layer_name, "memory"
+                )
+                symbol = QgsSymbol.defaultSymbol(QgsWkbTypes.PointGeometry)
+                symbol.deleteSymbolLayer(0)
+                symbol.appendSymbolLayer(QgsRasterMarkerSymbolLayer(self.points_layer_icon_path))
+                symbol.setSize(points_layer_icon_size)
+                self.points_layer.setRenderer(QgsSingleSymbolRenderer(symbol))
+                self.points_layer.triggerRepaint()
+                QgsProject.instance().addMapLayer(self.points_layer)
+                self.points_layer_data_provider = self.points_layer.dataProvider()
+                add_featute()
+
+    def save_on_history(self, x, y):
+        """Get lng/lat coordinates and save on history list."""
+        self.getLayers()
+        layer_name = '<none>'
+        if self.layer:
+            layer_name = str(self.layer.name())
+        self.selected_location = {
+            'long' : x,
+            'lat' : y,
+            'layer_name' : layer_name,
+            'crs' : 'epsg:4326'
+        }
+        history_key = str(
+            (
+                "[{long:,.7f}, {lat:,.7f}]"
+            ).format(
+                long = self.selected_location.get('long'),
+                lat = self.selected_location.get('lat')
             )
-            symbol = QgsSymbol.defaultSymbol(QgsWkbTypes.PointGeometry)
-            symbol.deleteSymbolLayer(0)
-            symbol.appendSymbolLayer(QgsRasterMarkerSymbolLayer(self.points_layer_icon_path))
-            symbol.setSize(points_layer_icon_size)
-            self.points_layer.setRenderer(QgsSingleSymbolRenderer(symbol))
-            self.points_layer.triggerRepaint()
-            QgsProject.instance().addMapLayer(self.points_layer)
-            self.points_layer_data_provider = self.points_layer.dataProvider()
-            add_featute()
+        )
+        self.locations[history_key] = self.selected_location
+        locations_keys = list(self.locations.keys())
+        self.dlg.history_list.clear()
+        self.dlg.history_list.addItems(locations_keys)
+        self.dlg.history_list.setCurrentRow(len(locations_keys) - 1)
 
     def display_point(self, pointTool):
         """Get the mouse possition and storage as selected location."""
@@ -693,38 +726,18 @@ class wtss_qgis:
             self.dlg.input_longitude.setValue(x)
             self.dlg.input_latitude.setValue(y)
         try:
-            self.getLayers()
-            self.selected_location = {
-                'long' : x,
-                'lat' : y,
-                'layer_name' : str(self.layer.name()),
-                'crs' : str(self.layer.crs().authid())
-            }
-            history_key = str(
-                (
-                    "[{long:,.7f}, {lat:,.7f}]"
-                ).format(
-                    long = self.selected_location.get('long'),
-                    lat = self.selected_location.get('lat')
-                )
-            )
-            self.locations[history_key] = self.selected_location
-            locations_keys = list(self.locations.keys())
-            self.dlg.history_list.clear()
-            self.dlg.history_list.addItems(locations_keys)
-            self.dlg.history_list.setCurrentRow(len(locations_keys) - 1)
+            self.save_on_history(x, y)
             self.draw_point(x, y)
         except AttributeError:
             pass
 
     def addCanvasControlPoint(self, enable):
         """Generate a canvas area to get mouse position."""
-        crs_id = "4326"
         self.point_tool = None
         self.canvas = None
         if enable:
+            self.setCRS()
             self.canvas = self.iface.mapCanvas()
-            QgsProject.instance().setCrs(QgsCoordinateReferenceSystem(int(crs_id)))
             self.point_tool = QgsMapToolEmitPoint(self.canvas)
             self.point_tool.canvasClicked.connect(self.display_point)
             self.canvas.setMapTool(self.point_tool)
