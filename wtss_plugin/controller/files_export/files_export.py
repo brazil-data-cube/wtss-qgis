@@ -18,7 +18,6 @@
 
 """Python QGIS Plugin for WTSS."""
 
-import csv
 import json
 import os
 from pathlib import Path
@@ -27,7 +26,7 @@ import matplotlib.pyplot as plt
 import pandas
 import seaborn
 
-from ..helpers.pystac_helper import STAC_ARGS, get_source_from_click
+from ..helpers.pystac_helper import get_source_from_click
 from ..wtss_qgis_controller import Controls
 
 
@@ -36,10 +35,10 @@ class FilesExport:
 
     :Methods:
         defaultCode
+        to_dataframe
         generateCode
         generateCSV
         generateJSON
-        generatePlotFIG
     """
 
     def defaultCode(self):
@@ -50,6 +49,53 @@ class FilesExport:
                     / 'times_series_export_template.txt'
         )
         return open(template, 'r').read()
+
+    def to_dataframe(self, time_series):
+        """Convert time series dict to dataframe."""
+        time_series_df = pandas.DataFrame({
+            "Index": [pandas.to_datetime(date) for date in time_series['result']['timeline']]
+        })
+        for result in time_series["result"]["attributes"]:
+            band = str(result["attribute"])
+            time_series_df[band] = result.get("values")
+        return time_series_df
+
+    def apply_to_time_series(
+            self, time_series_df: any,
+            bands_description: any,
+            normalize_data: bool,
+            interpolate_data: bool
+        ):
+        """Apply normalize and interpolation to time series data."""
+        for band in self.get_bands_from_df(time_series_df):
+            if normalize_data:
+                def _normalize(value):
+                    if value != bands_description.get(band).get('missing_value'):
+                        return value * bands_description.get(band).get('scale_factor')
+                    else:
+                        return None
+                time_series_df[band] = time_series_df[band].apply(_normalize)
+            if interpolate_data:
+                if not normalize_data:
+                    def _set_NaN(value):
+                        if value != bands_description.get(band).get('missing_value'):
+                            return value
+                        else:
+                            return None
+                    time_series_df[band] = time_series_df[band].apply(_set_NaN)
+                time_series_df[band] = time_series_df[band] \
+                    .interpolate(
+                        method='linear',
+                        limit_direction = 'forward',
+                        order = 2
+                    )
+        return time_series_df
+
+    def get_bands_from_df(self, time_series_df: any):
+        """Get bands from time series DataFrame."""
+        bands = list(time_series_df.keys())
+        bands.remove("Index")
+        return bands
 
     def generateCode(self, file_name, attributes):
         """Generate a python code file filling WTSS blank spaces.
@@ -93,41 +139,8 @@ class FilesExport:
         except FileNotFoundError:
             pass
 
-    def generateCSV(self, file_name, time_series):
-        """Generate a CSV file with time series data.
-
-        :param file_name<str>: file to save path.
-        :param time_series<dict>: the time series service reponse dictionary.
-        """
-        try:
-            dates = [str(date_str) for date_str in time_series.get('result').get("timeline")]
-            with open(file_name, 'w', newline='') as csvfile:
-                fieldnames = ['coverage','latitude','longitude','timeline']
-                for result in time_series.get('result').get('attributes'):
-                    fieldnames.append(result.get('attribute'))
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=',')
-                writer.writeheader()
-                ind = 0
-                for date in dates:
-                    line = {
-                        'coverage': time_series.get('query').get('coverage'),
-                        'latitude': time_series.get('query').get('latitude'),
-                        'longitude': time_series.get('query').get('longitude'),
-                        'timeline': date
-                    }
-                    for result in time_series.get('result').get('attributes'):
-                        line[result.get('attribute')] = result.get('values')[ind]
-                    ind += 1
-                    writer.writerow(line)
-        except FileNotFoundError:
-            pass
-
     def generateJSON(self, file_name, time_series):
-        """Generate a JSON file with time series data.
-
-        :param file_name<str>: file to save path.
-        :param time_series<dict>: the time series service reponse dictionary.
-        """
+        """Generate a JSON file with time series data."""
         try:
             data = time_series
             data.get('result')['timeline'] = [str(date_str) for date_str in time_series.get('result').get("timeline")]
@@ -136,20 +149,36 @@ class FilesExport:
         except FileNotFoundError:
             pass
 
+    def generateCSV(
+            self, file_name, time_series,
+            bands_description: any,
+            normalize_data: bool,
+            interpolate_data: bool
+        ):
+        """Generate a CSV file with time series data."""
+        try:
+            time_series_df = self.to_dataframe(time_series)
+            time_series_df = self.apply_to_time_series(
+                time_series_df, bands_description,
+                normalize_data, interpolate_data
+            )
+            time_series_df.to_csv(file_name, index=False)
+        except FileNotFoundError:
+            pass
+
     def generatePlotFig(
             self, time_series,
-            interpolate_data: bool, normalize_data: bool,
-            bands_description: any, stac_args: STAC_ARGS
+            bands_description: any,
+            normalize_data: bool,
+            interpolate_data: bool
         ):
-        """Generate an image .JPEG with time series data in a line chart.
-
-        :param time_series<dict>: the time series service reponse dictionary.
-        :param qgis_project_instance<QgsProject>: the qgis project instance.
-        """
+        """Generate an image .JPEG with time series data in a line chart."""
         try:
-            time_series_df = pandas.DataFrame({
-                "Index": stac_args.timeline
-            })
+            time_series_df = self.to_dataframe(time_series)
+            time_series_df = self.apply_to_time_series(
+                time_series_df, bands_description,
+                normalize_data, interpolate_data
+            )
             fig = plt.figure(figsize = (12, 5))
             fig.suptitle(
                 ("Coverage {name} [{lng:,.7f}, {lat:,.7f}]\nWGS 84 EPSG:4326 ").format(
@@ -159,30 +188,7 @@ class FilesExport:
                 )
             )
             seaborn.set_theme(style="darkgrid")
-            for result in time_series.get("result").get("attributes"):
-                band = str(result.get("attribute"))
-                time_series_df[band] = result.get("values")
-                if normalize_data:
-                    def _normalize(value):
-                        if value != bands_description.get(band).get('missing_value'):
-                            return value * bands_description.get(band).get('scale_factor')
-                        else:
-                            return None
-                    time_series_df[band] = time_series_df[band].apply(_normalize)
-                if interpolate_data:
-                    if not normalize_data:
-                        def _set_NaN(value):
-                            if value != bands_description.get(band).get('missing_value'):
-                                return value
-                            else:
-                                return None
-                        time_series_df[band] = time_series_df[band].apply(_set_NaN)
-                    time_series_df[band] = time_series_df[band] \
-                        .interpolate(
-                            method='linear',
-                            limit_direction = 'forward',
-                            order = 2
-                        )
+            for band in self.get_bands_from_df(time_series_df):
                 seaborn.lineplot(
                     data = time_series_df,
                     x = "Index", y = band, label = band,
