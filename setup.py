@@ -24,7 +24,7 @@ from setuptools import find_packages, setup
 
 readme = open('README.rst').read()
 
-history = open('docs/CHANGES.rst').read()
+history = open('CHANGES.rst').read()
 
 docs_require = [
     'Sphinx>=2.2',
