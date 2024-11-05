@@ -43,7 +43,7 @@ from .controller.files_export import FilesExport
 # Import the STAC args
 from .controller.helpers.pystac_helper import stac_args
 # Import the controls for the plugin
-from .controller.wtss_qgis_controller import Controls, Services
+from .controller.wtss_qgis_controller import Controls, WTSS_Controls
 # Initialize Qt resources from file resources.py
 from .resources import *
 # Import the code for the dialog
@@ -209,14 +209,14 @@ class wtss_qgis:
         self.dlg.setWindowFlag(Qt.WindowMaximizeButtonHint, False)
         self.dlg.setFixedSize(self.dlg.size().width(), self.dlg.size().height())
         self.basic_controls = Controls()
-        self.server_controls = Services(user = "application")
+        self.wtss_controls = WTSS_Controls()
         self.files_controls = FilesExport()
-        self.enabled_click = False
-        self.dlg.enable_canvas_point.setChecked(self.enabled_click)
-        self.dlg.enable_canvas_point.stateChanged.connect(self.enableGetLatLng)
+        self.normalize_data = True
+        self.interpolate_data = True
+        self.enabled_click = True
+        self.addCanvasControlPoint(self.enabled_click)
         self.dlg.input_longitude.valueChanged.connect(self.checkFilters)
         self.dlg.input_latitude.valueChanged.connect(self.checkFilters)
-        self.enableGetLatLng()
 
     def initLoadingControls(self):
         """Enable loading label."""
@@ -250,14 +250,14 @@ class wtss_qgis:
         """Init the main buttons to manage services and the results."""
         self.dlg.show_help_button.clicked.connect(self.showHelp)
         self.dlg.show_coverage_description.clicked.connect(self.showCoverageDescription)
-        self.dlg.save_service.clicked.connect(self.saveService)
-        self.dlg.delete_service.clicked.connect(self.deleteService)
-        self.dlg.edit_service.clicked.connect(self.editService)
-        self.dlg.export_as_python.clicked.connect(self.exportPython)
-        self.dlg.export_as_csv.clicked.connect(self.exportCSV)
         self.dlg.export_as_json.clicked.connect(self.exportJSON)
+        self.dlg.export_as_json.setEnabled(False)
+        self.dlg.export_as_csv.clicked.connect(self.exportCSV)
+        self.dlg.export_as_csv.setEnabled(False)
+        self.dlg.export_as_python.clicked.connect(self.exportPython)
+        self.dlg.export_as_python.setEnabled(False)
         self.dlg.zoom_selected_point.clicked.connect(self.zoom_to_selected_point)
-        self.dlg.zoom_selected_point.setEnabled(False)
+        self.dlg.zoom_selected_point.setEnabled(True)
         self.dlg.search_button.clicked.connect(self.getTimeSeriesButton)
         self.dlg.search_button.setEnabled(False)
 
@@ -280,20 +280,26 @@ class wtss_qgis:
         QgsProject.instance().layersAdded.connect(self.updateRasterHistory)
 
     def initServices(self):
-        """Load the registered services based on JSON file."""
-        service_names = self.server_controls.getServiceNames()
-        if not service_names:
-            self.basic_controls.alert("error","502 Error", "The main services are not available!")
-        self.dlg.service_selection.addItems(service_names)
-        self.dlg.service_selection.activated.connect(self.selectCoverage)
+        """Load the wtss server."""
+        self.wtss_server_edit = False
+        self.dlg.wtss_server_label.setText(self.wtss_controls.getService())
+        self.dlg.wtss_server_label.setEnabled(self.wtss_server_edit)
+        self.dlg.wtss_server_label_update.clicked.connect(self.updateService)
         self.selectCoverage()
-        self.data = self.server_controls.loadServices()
-        self.model = QStandardItemModel()
-        self.basic_controls.addItemsTreeView(self.model, self.data)
-        self.dlg.data.setModel(self.model)
-        self.dlg.data.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.dlg.data.clicked.connect(self.updateDescription)
-        self.updateDescription()
+
+    def updateService(self):
+        """Edit the selected service."""
+        self.wtss_server_edit = not self.wtss_server_edit
+        self.dlg.wtss_server_label.setEnabled(self.wtss_server_edit)
+        if self.wtss_server_edit:
+            self.dlg.coverage_selection.clear()
+            self.dlg.coverage_selection.setEnabled(False)
+            self.dlg.bands_scroll.setWidget(QWidget())
+            self.dlg.search_button.setEnabled(False)
+        else:
+            self.wtss_controls.setService(self.dlg.wtss_server_label.text())
+            self.dlg.coverage_selection.setEnabled(True)
+            self.selectCoverage()
 
     def initRasterPathControls(self):
         """Init raster path location controls."""
@@ -315,26 +321,6 @@ class wtss_qgis:
         """Set the CRS in project instance."""
         QgsProject.instance().setCrs(QgsCoordinateReferenceSystem(int("4326")))
 
-    def saveService(self):
-        """Save the service based on name and host input."""
-        name_to_save = str(self.dlg.service_name.text())
-        host_to_save = str(self.dlg.service_host.text())
-        try:
-            response = self.server_controls.editService(name_to_save, host_to_save)
-            if response != None:
-                self.selected_service = host_to_save
-                self.dlg.service_name.clear()
-                self.dlg.service_host.clear()
-                self.updateServicesList()
-            else:
-                self.basic_controls.alert(
-                    "error",
-                    "(ValueError, AttributeError)",
-                    "It is not a valid WTSS Server!"
-                )
-        except (ValueError, AttributeError, ConnectionRefusedError) as error:
-            self.basic_controls.alert("error", "(ValueError, AttributeError)", str(error))
-
     def updateOutputRasterPath(self):
         """Update the output path for generated rasters."""
         stac_args.update_raster_vrt_folder(self.dlg.user_output_path_raster.text())
@@ -351,58 +337,21 @@ class wtss_qgis:
         self.dlg.virtual_raster_list.clear()
         self.dlg.virtual_raster_list.addItems(stac_args.vrt_history)
 
-    def deleteService(self):
-        """Delete the selected active service."""
-        try:
-            host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.text())
-            if host_to_delete == None:
-                host_to_delete = self.server_controls.findServiceByName(self.metadata_selected.parent().text())
-            self.server_controls.deleteService(host_to_delete.name)
-            self.updateServicesList()
-        except (ValueError, AttributeError) as error:
-            self.basic_controls.alert("error", "(ValueError, AttributeError)", str(error))
-
-    def editService(self):
-        """Edit the selected service."""
-        try:
-            host_to_update = self.server_controls.findServiceByName(self.metadata_selected.text())
-            if host_to_update == None:
-                host_to_update = self.server_controls.findServiceByName(self.metadata_selected.parent().text())
-            self.dlg.service_name.setText(host_to_update.name)
-            self.dlg.service_host.setText(host_to_update.host)
-        except (ValueError, AttributeError) as error:
-            self.basic_controls.alert("error", "(ValueError, AttributeError)", str(error))
-
-    def updateServicesList(self):
-        """Update the service list when occurs some change in JSON file."""
-        self.data = self.server_controls.loadServices()
-        self.model = QStandardItemModel()
-        self.basic_controls.addItemsTreeView(self.model, self.data)
-        self.dlg.data.setModel(self.model)
-        self.dlg.service_selection.clear()
-        self.dlg.service_selection.addItems(self.server_controls.getServiceNames())
-        self.dlg.service_selection.activated.connect(self.selectCoverage)
-
     def selectCoverage(self):
         """Fill the blank spaces with coverage metadata for selection."""
         self.dlg.coverage_selection.clear()
-        self.dlg.coverage_selection.addItems(
-            self.server_controls.listProducts(
-                str(self.dlg.service_selection.currentText())
-            )
-        )
+        self.dlg.coverage_selection.addItems(self.wtss_controls.listProducts())
         self.dlg.coverage_selection.activated.connect(self.selectAtributtes)
 
     def showCoverageDescription(self):
         """Show a information coverage window."""
-        if str(self.dlg.coverage_selection.currentText()):
+        selected_coverage = str(self.dlg.coverage_selection.currentText())
+        if selected_coverage:
             self.basic_controls.alert(
                 "info",
-                "Coverage {}".format(str(self.dlg.coverage_selection.currentText())),
-                self.basic_controls.getCoverageDescription(
-                    self.server_controls,
-                    str(self.dlg.service_selection.currentText()),
-                    str(self.dlg.coverage_selection.currentText())
+                "Coverage {}".format(selected_coverage),
+                self.basic_controls.formatCoverageDescription(
+                    self.wtss_controls.productDescription(selected_coverage)
                 )
             )
 
@@ -410,8 +359,7 @@ class wtss_qgis:
         """Get attributes based on coverage metadata and create the check list."""
         self.widget = QWidget()
         self.vbox = QVBoxLayout()
-        description = self.server_controls.productDescription(
-            str(self.dlg.service_selection.currentText()),
+        description = self.wtss_controls.productDescription(
             str(self.dlg.coverage_selection.currentText())
         )
         stac_args.coverage = str(self.dlg.coverage_selection.currentText())
@@ -484,8 +432,7 @@ class wtss_qgis:
     def loadTimeSeries(self):
         """Load time series product data from selected values."""
         try:
-            time_series = self.server_controls.productTimeSeries(
-                str(self.dlg.service_selection.currentText()),
+            time_series = self.wtss_controls.productTimeSeries(
                 str(self.dlg.coverage_selection.currentText()),
                 tuple(self.loadAtributtes()),
                 float(self.selected_location.get("long")),
@@ -532,9 +479,7 @@ class wtss_qgis:
                 filter='*.py'
             )
             attributes = {
-                "host": str(self.server_controls.findServiceByName(
-                    self.dlg.service_selection.currentText()
-                ).host),
+                "host": str(self.wtss_controls.getService()),
                 "coverage": str(self.dlg.coverage_selection.currentText()),
                 "bands": tuple(self.loadAtributtes()),
                 "coordinates": {
@@ -564,7 +509,13 @@ class wtss_qgis:
                 filter='*.csv'
             )
             time_series = self.loadTimeSeries()
-            self.files_controls.generateCSV(name[0], time_series)
+            self.files_controls.generateCSV(
+                file_name=name[0],
+                time_series = time_series,
+                bands_description = self.loadSelectedBands(),
+                normalize_data = self.normalize_data,
+                interpolate_data = self.interpolate_data
+            )
         except AttributeError as error:
             self.basic_controls.alert("warning", "AttributeError", str(error))
 
@@ -592,10 +543,9 @@ class wtss_qgis:
             self.loadSTACArgs(time_series)
             self.files_controls.generatePlotFig(
                 time_series = time_series,
-                interpolate_data = self.dlg.interpolate_data.isChecked(),
-                normalize_data = self.dlg.normalize_data.isChecked(),
                 bands_description = self.loadSelectedBands(),
-                stac_args=stac_args
+                normalize_data = self.normalize_data,
+                interpolate_data = self.interpolate_data
             )
         else:
             self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
@@ -648,11 +598,14 @@ class wtss_qgis:
 
     def zoom_to_selected_point(self):
         """Zoom to selected point."""
-        self.zoom_to_point(
-            self.selected_location['long'],
-            self.selected_location['lat'],
-            scale = 0.1
-        )
+        self.addCanvasControlPoint(self.enabled_click)
+        if (self.dlg.input_longitude.value() != 0 and self.dlg.input_latitude.value() != 0):
+            self.dlg.zoom_selected_point.setEnabled(True)
+            self.zoom_to_point(
+                self.selected_location['long'],
+                self.selected_location['lat'],
+                scale = 0.1
+            )
 
     def draw_point(self, longitude, latitude):
         """Draw the selected points in canvas."""
@@ -742,74 +695,27 @@ class wtss_qgis:
             self.point_tool.canvasClicked.connect(self.display_point)
             self.canvas.setMapTool(self.point_tool)
 
-    def enableGetLatLng(self):
-        """Enable get lat lng to search time series."""
-        self.enabled_click = self.dlg.enable_canvas_point.isChecked()
-        if self.enabled_click:
-            self.dlg.input_longitude.setDisabled(True)
-            self.dlg.input_latitude.setDisabled(True)
-            self.addCanvasControlPoint(True)
-        else:
-            self.dlg.input_longitude.setDisabled(False)
-            self.dlg.input_latitude.setDisabled(False)
-            self.addCanvasControlPoint(False)
-
     def checkFilters(self):
         """Check if lat lng are selected."""
         try:
-            if (self.dlg.input_longitude.value() != 0 and self.dlg.input_latitude.value() != 0):
-                self.dlg.zoom_selected_point.setEnabled(True)
-            else:
-                self.dlg.zoom_selected_point.setEnabled(False)
             if (str(self.dlg.coverage_selection.currentText()) != '' and
                     len(self.loadAtributtes()) > 0 and
                         self.dlg.input_longitude.value() != 0 and
                             self.dlg.input_latitude.value() != 0):
                 self.dlg.search_button.setEnabled(True)
+                self.dlg.export_as_python.setEnabled(True)
+                self.dlg.export_as_csv.setEnabled(True)
+                self.dlg.export_as_json.setEnabled(True)
             else:
                 self.dlg.search_button.setEnabled(False)
+                self.dlg.export_as_python.setEnabled(False)
+                self.dlg.export_as_csv.setEnabled(False)
+                self.dlg.export_as_json.setEnabled(False)
         except:
             self.dlg.search_button.setEnabled(False)
-
-    def updateDescription(self):
-        """Load label on scroll area with product description."""
-        try:
-            index = self.dlg.data.selectedIndexes()[0]
-            self.metadata_selected = index.model().itemFromIndex(index)
-            widget = QWidget()
-            vbox = QVBoxLayout()
-            label = QLabel(
-                "{service_metadata}\n\n{coverage_metadata}".format(
-                    service_metadata=self.basic_controls.getDescription(
-                        name=str(self.metadata_selected.parent().text()),
-                        host=str(self.server_controls.findServiceByName(
-                            self.metadata_selected.parent().text()
-                        ).host),
-                        coverage=self.metadata_selected.text()
-                    ),
-                    coverage_metadata=self.basic_controls.getCoverageDescription(
-                        self.server_controls,
-                        str(self.metadata_selected.parent().text()),
-                        self.metadata_selected.text()
-                    )
-                )
-            )
-            label.setWordWrap(True)
-            label.heightForWidth(180)
-            vbox.addWidget(label)
-            widget.setLayout(vbox)
-            self.dlg.metadata_scroll_area.setWidgetResizable(True)
-            self.dlg.metadata_scroll_area.setWidget(widget)
-        except:
-            widget = QWidget()
-            vbox = QVBoxLayout()
-            label = QLabel("Select a coverage!")
-            label.setWordWrap(True)
-            label.heightForWidth(180)
-            vbox.addWidget(label)
-            widget.setLayout(vbox)
-            self.dlg.metadata_scroll_area.setWidgetResizable(True)
-            self.dlg.metadata_scroll_area.setWidget(widget)
+            self.dlg.export_as_python.setEnabled(False)
+            self.dlg.export_as_csv.setEnabled(False)
+            self.dlg.export_as_json.setEnabled(False)
 
     def finish_session(self):
         """Methods to finish when dialog close"""
