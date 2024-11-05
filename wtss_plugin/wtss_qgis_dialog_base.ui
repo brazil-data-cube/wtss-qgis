@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>742</width>
+    <width>741</width>
     <height>510</height>
    </rect>
   </property>
@@ -37,168 +37,6 @@
    <property name="currentIndex">
     <number>0</number>
    </property>
-   <widget class="QWidget" name="services_tab">
-    <attribute name="title">
-     <string>Time Series Services</string>
-    </attribute>
-    <widget class="QGroupBox" name="registry">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>10</y>
-       <width>401</width>
-       <height>461</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>REGISTERED SERVICES</string>
-     </property>
-     <widget class="QTreeView" name="data">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>381</width>
-        <height>331</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QGroupBox" name="groupBox">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>370</y>
-        <width>151</width>
-        <height>51</height>
-       </rect>
-      </property>
-      <property name="title">
-       <string>Service Name</string>
-      </property>
-      <widget class="QLineEdit" name="service_name">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>20</y>
-         <width>151</width>
-         <height>31</height>
-        </rect>
-       </property>
-      </widget>
-     </widget>
-     <widget class="QPushButton" name="save_service">
-      <property name="geometry">
-       <rect>
-        <x>270</x>
-        <y>430</y>
-        <width>123</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Add</string>
-      </property>
-     </widget>
-     <widget class="QGroupBox" name="host">
-      <property name="geometry">
-       <rect>
-        <x>180</x>
-        <y>370</y>
-        <width>211</width>
-        <height>51</height>
-       </rect>
-      </property>
-      <property name="title">
-       <string>Host</string>
-      </property>
-      <widget class="QLineEdit" name="service_host">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>20</y>
-         <width>211</width>
-         <height>31</height>
-        </rect>
-       </property>
-      </widget>
-     </widget>
-    </widget>
-    <widget class="QGroupBox" name="metadata">
-     <property name="geometry">
-      <rect>
-       <x>420</x>
-       <y>10</y>
-       <width>311</width>
-       <height>391</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>SERVICES METADATA</string>
-     </property>
-     <widget class="QScrollArea" name="metadata_scroll_area">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>291</width>
-        <height>351</height>
-       </rect>
-      </property>
-      <property name="widgetResizable">
-       <bool>true</bool>
-      </property>
-      <widget class="QWidget" name="metadata_content">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>289</width>
-         <height>349</height>
-        </rect>
-       </property>
-      </widget>
-     </widget>
-    </widget>
-    <widget class="QGroupBox" name="active_service_options">
-     <property name="geometry">
-      <rect>
-       <x>420</x>
-       <y>410</y>
-       <width>311</width>
-       <height>61</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>Active Service</string>
-     </property>
-     <widget class="QPushButton" name="edit_service">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>30</y>
-        <width>131</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Edit</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="delete_service">
-      <property name="geometry">
-       <rect>
-        <x>170</x>
-        <y>30</y>
-        <width>121</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Remove</string>
-      </property>
-     </widget>
-    </widget>
-   </widget>
    <widget class="QWidget" name="time_series_tab">
     <attribute name="title">
      <string>Get Time Series</string>
@@ -209,48 +47,12 @@
        <x>10</x>
        <y>80</y>
        <width>451</width>
-       <height>261</height>
+       <height>61</height>
       </rect>
      </property>
      <property name="title">
       <string>Active Coverage</string>
      </property>
-     <widget class="QGroupBox" name="bands_group">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>70</y>
-        <width>431</width>
-        <height>181</height>
-       </rect>
-      </property>
-      <property name="title">
-       <string>Attributes</string>
-      </property>
-      <widget class="QScrollArea" name="bands_scroll">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>20</y>
-         <width>431</width>
-         <height>161</height>
-        </rect>
-       </property>
-       <property name="widgetResizable">
-        <bool>true</bool>
-       </property>
-       <widget class="QWidget" name="band_list">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>429</width>
-          <height>159</height>
-         </rect>
-        </property>
-       </widget>
-      </widget>
-     </widget>
      <widget class="QComboBox" name="coverage_selection">
       <property name="geometry">
        <rect>
@@ -287,27 +89,27 @@
      <property name="title">
       <string>Active Service</string>
      </property>
-     <widget class="QComboBox" name="service_selection">
+     <widget class="QLineEdit" name="wtss_server_label">
       <property name="geometry">
        <rect>
         <x>10</x>
         <y>30</y>
-        <width>391</width>
-        <height>25</height>
+        <width>331</width>
+        <height>27</height>
        </rect>
       </property>
      </widget>
-     <widget class="QPushButton" name="show_help_button">
+     <widget class="QPushButton" name="wtss_server_label_update">
       <property name="geometry">
        <rect>
-        <x>410</x>
+        <x>350</x>
         <y>30</y>
-        <width>31</width>
+        <width>91</width>
         <height>25</height>
        </rect>
       </property>
       <property name="text">
-       <string/>
+       <string>Update</string>
       </property>
      </widget>
     </widget>
@@ -378,111 +180,13 @@
       </property>
      </widget>
     </widget>
-    <widget class="QPushButton" name="search_button">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>490</x>
-       <y>370</y>
-       <width>231</width>
-       <height>25</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Get Time Series</string>
-     </property>
-     <property name="checkable">
-      <bool>false</bool>
-     </property>
-     <property name="flat">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QGroupBox" name="longitudelatitudeBox">
-     <property name="geometry">
-      <rect>
-       <x>480</x>
-       <y>280</y>
-       <width>251</width>
-       <height>71</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>Longitude / Latitude</string>
-     </property>
-     <widget class="QDoubleSpinBox" name="input_longitude">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>91</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="decimals">
-       <number>7</number>
-      </property>
-      <property name="minimum">
-       <double>-180.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>180.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>0.500000000000000</double>
-      </property>
-      <property name="value">
-       <double>0.000000000000000</double>
-      </property>
-     </widget>
-     <widget class="QDoubleSpinBox" name="input_latitude">
-      <property name="geometry">
-       <rect>
-        <x>110</x>
-        <y>30</y>
-        <width>91</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="decimals">
-       <number>7</number>
-      </property>
-      <property name="minimum">
-       <double>-90.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>90.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>0.500000000000000</double>
-      </property>
-      <property name="value">
-       <double>0.000000000000000</double>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="zoom_selected_point">
-      <property name="geometry">
-       <rect>
-        <x>210</x>
-        <y>31</y>
-        <width>31</width>
-        <height>28</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </widget>
     <widget class="QGroupBox" name="history">
      <property name="geometry">
       <rect>
        <x>480</x>
        <y>10</y>
        <width>251</width>
-       <height>261</height>
+       <height>391</height>
       </rect>
      </property>
      <property name="title">
@@ -494,7 +198,7 @@
         <x>10</x>
         <y>30</y>
         <width>231</width>
-        <height>221</height>
+        <height>351</height>
        </rect>
       </property>
       <property name="editTriggers">
@@ -505,9 +209,9 @@
     <widget class="QGroupBox" name="start_date_group">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>350</y>
-       <width>221</width>
+       <x>20</x>
+       <y>300</y>
+       <width>201</width>
        <height>51</height>
       </rect>
      </property>
@@ -519,7 +223,7 @@
        <rect>
         <x>0</x>
         <y>20</y>
-        <width>221</width>
+        <width>201</width>
         <height>31</height>
        </rect>
       </property>
@@ -538,12 +242,159 @@
       </property>
      </widget>
     </widget>
+    <widget class="QGroupBox" name="bands_group">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>150</y>
+       <width>451</width>
+       <height>141</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Attributes</string>
+     </property>
+     <widget class="QScrollArea" name="bands_scroll">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>431</width>
+        <height>101</height>
+       </rect>
+      </property>
+      <property name="widgetResizable">
+       <bool>true</bool>
+      </property>
+      <widget class="QWidget" name="band_list">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>429</width>
+         <height>99</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+    <widget class="QPushButton" name="search_button">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>100</x>
+       <y>440</y>
+       <width>231</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Get Time Series</string>
+     </property>
+     <property name="checkable">
+      <bool>false</bool>
+     </property>
+     <property name="flat">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="longitudelatitudeBox">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>360</y>
+       <width>451</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Longitude / Latitude</string>
+     </property>
+     <widget class="QDoubleSpinBox" name="input_longitude">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>191</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="decimals">
+       <number>15</number>
+      </property>
+      <property name="minimum">
+       <double>-180.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>180.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.500000000000000</double>
+      </property>
+      <property name="value">
+       <double>0.000000000000000</double>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="zoom_selected_point">
+      <property name="geometry">
+       <rect>
+        <x>410</x>
+        <y>32</y>
+        <width>31</width>
+        <height>28</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="input_latitude">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>30</y>
+        <width>191</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="decimals">
+       <number>15</number>
+      </property>
+      <property name="minimum">
+       <double>-90.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>90.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.500000000000000</double>
+      </property>
+      <property name="value">
+       <double>0.000000000000000</double>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QPushButton" name="show_help_button">
+     <property name="geometry">
+      <rect>
+       <x>340</x>
+       <y>440</y>
+       <width>31</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
     <widget class="QGroupBox" name="end_date_group">
      <property name="geometry">
       <rect>
        <x>250</x>
-       <y>350</y>
-       <width>211</width>
+       <y>300</y>
+       <width>201</width>
        <height>51</height>
       </rect>
      </property>
@@ -555,7 +406,7 @@
        <rect>
         <x>0</x>
         <y>20</y>
-        <width>211</width>
+        <width>201</width>
         <height>31</height>
        </rect>
       </property>
@@ -571,58 +422,6 @@
       </property>
       <property name="displayFormat">
        <string>dd/MM/yyyy</string>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QGroupBox" name="advanced_options_group">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>410</y>
-       <width>451</width>
-       <height>61</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>Options</string>
-     </property>
-     <widget class="QCheckBox" name="normalize_data">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>131</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Normalize data</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="interpolate_data">
-      <property name="geometry">
-       <rect>
-        <x>150</x>
-        <y>30</y>
-        <width>131</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Interpolate data</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="enable_canvas_point">
-      <property name="geometry">
-       <rect>
-        <x>300</x>
-        <y>30</y>
-        <width>141</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Enable Selection</string>
       </property>
      </widget>
     </widget>
@@ -777,7 +576,7 @@
   <widget class="QLabel" name="loading_label">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>-1</x>
      <y>0</y>
      <width>741</width>
      <height>511</height>
