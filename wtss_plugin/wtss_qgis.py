@@ -509,13 +509,16 @@ class wtss_qgis:
                 filter='*.csv'
             )
             time_series = self.loadTimeSeries()
-            self.files_controls.generateCSV(
-                file_name=name[0],
-                time_series = time_series,
-                bands_description = self.loadSelectedBands(),
-                normalize_data = self.normalize_data,
-                interpolate_data = self.interpolate_data
-            )
+            if time_series.get('result', {}).get("timeline", []) != []:
+                self.files_controls.generateCSV(
+                    file_name = name[0],
+                    time_series = time_series,
+                    bands_description = self.loadSelectedBands(),
+                    normalize_data = self.normalize_data,
+                    interpolate_data = self.interpolate_data
+                )
+            else:
+                self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
         except AttributeError as error:
             self.basic_controls.alert("warning", "AttributeError", str(error))
 
@@ -532,7 +535,16 @@ class wtss_qgis:
                 filter='*.json'
             )
             time_series = self.loadTimeSeries()
-            self.files_controls.generateJSON(name[0], time_series)
+            if time_series.get('result', {}).get("timeline", []) != []:
+                self.files_controls.generateJSON(
+                    file_name = name[0],
+                    time_series = time_series,
+                    bands_description = self.loadSelectedBands(),
+                    normalize_data = self.normalize_data,
+                    interpolate_data = self.interpolate_data
+                )
+            else:
+                self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
         except AttributeError as error:
             self.basic_controls.alert("warning", "AttributeError", str(error))
 
@@ -652,14 +664,10 @@ class wtss_qgis:
             'layer_name' : layer_name,
             'crs' : 'epsg:4326'
         }
-        history_key = str(
-            (
-                "[{long:,.7f}, {lat:,.7f}]"
-            ).format(
-                long = self.selected_location.get('long'),
-                lat = self.selected_location.get('lat')
-            )
-        )
+        history_key = str(("[{long:,.7f}, {lat:,.7f}]").format(
+            long = self.selected_location.get('long'),
+            lat = self.selected_location.get('lat')
+        ))
         self.locations[history_key] = self.selected_location
         locations_keys = list(self.locations.keys())
         self.dlg.history_list.clear()
@@ -695,6 +703,13 @@ class wtss_qgis:
             self.point_tool.canvasClicked.connect(self.display_point)
             self.canvas.setMapTool(self.point_tool)
 
+    def enabledSearchButtons(self, enable):
+        """Enable the buttons to load time series."""
+        self.dlg.search_button.setEnabled(enable)
+        self.dlg.export_as_python.setEnabled(enable)
+        self.dlg.export_as_csv.setEnabled(enable)
+        self.dlg.export_as_json.setEnabled(enable)
+
     def checkFilters(self):
         """Check if lat lng are selected."""
         try:
@@ -702,20 +717,11 @@ class wtss_qgis:
                     len(self.loadAtributtes()) > 0 and
                         self.dlg.input_longitude.value() != 0 and
                             self.dlg.input_latitude.value() != 0):
-                self.dlg.search_button.setEnabled(True)
-                self.dlg.export_as_python.setEnabled(True)
-                self.dlg.export_as_csv.setEnabled(True)
-                self.dlg.export_as_json.setEnabled(True)
+                self.enabledSearchButtons(True)
             else:
-                self.dlg.search_button.setEnabled(False)
-                self.dlg.export_as_python.setEnabled(False)
-                self.dlg.export_as_csv.setEnabled(False)
-                self.dlg.export_as_json.setEnabled(False)
+                self.enabledSearchButtons(False)
         except:
-            self.dlg.search_button.setEnabled(False)
-            self.dlg.export_as_python.setEnabled(False)
-            self.dlg.export_as_csv.setEnabled(False)
-            self.dlg.export_as_json.setEnabled(False)
+            self.enabledSearchButtons(False)
 
     def finish_session(self):
         """Methods to finish when dialog close"""

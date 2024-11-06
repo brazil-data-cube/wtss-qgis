@@ -26,6 +26,7 @@ from pathlib import Path
 import pip
 from PyQt5.QtWidgets import QCheckBox, QMessageBox
 
+
 def lib_path():
     """Get the path for python installed lib path."""
     return str(Path(os.path.abspath(os.path.dirname(__file__))) / 'lib')

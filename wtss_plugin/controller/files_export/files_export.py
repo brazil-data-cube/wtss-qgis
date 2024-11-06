@@ -61,35 +61,64 @@ class FilesExport:
         return time_series_df
 
     def apply_to_time_series(
-            self, time_series_df: any,
+            self, time_series: any,
+            type: str,
             bands_description: any,
             normalize_data: bool,
             interpolate_data: bool
         ):
         """Apply normalize and interpolation to time series data."""
-        for band in self.get_bands_from_df(time_series_df):
-            if normalize_data:
-                def _normalize(value):
-                    if value != bands_description.get(band).get('missing_value'):
-                        return value * bands_description.get(band).get('scale_factor')
-                    else:
-                        return None
-                time_series_df[band] = time_series_df[band].apply(_normalize)
-            if interpolate_data:
-                if not normalize_data:
-                    def _set_NaN(value):
+        if type == "DataFrame":
+            for band in self.get_bands_from_df(time_series):
+                if normalize_data:
+                    def _normalize(value):
                         if value != bands_description.get(band).get('missing_value'):
-                            return value
+                            return value * bands_description.get(band).get('scale_factor')
                         else:
                             return None
-                    time_series_df[band] = time_series_df[band].apply(_set_NaN)
-                time_series_df[band] = time_series_df[band] \
-                    .interpolate(
-                        method='linear',
+                    time_series[band] = time_series[band].apply(_normalize)
+                if interpolate_data:
+                    if not normalize_data:
+                        def _set_NaN(value):
+                            if value != bands_description.get(band).get('missing_value'):
+                                return value
+                            else:
+                                return None
+                        time_series[band] = time_series[band].apply(_set_NaN)
+                    time_series[band] = time_series[band].interpolate(
+                        method = 'linear',
                         limit_direction = 'forward',
                         order = 2
                     )
-        return time_series_df
+        elif type == "JSON":
+            for i in range(0, (len(time_series['result']['attributes']))):
+                band = time_series['result']['attributes'][i]['attribute']
+                band_values = time_series.get('result')['attributes'][i]['values']
+                if normalize_data:
+                    def _normalize(value):
+                        if value != bands_description.get(band).get('missing_value'):
+                            return value * bands_description.get(band).get('scale_factor')
+                        else:
+                            return None
+                    band_values = list(pandas.Series(band_values).apply(_normalize))
+                if interpolate_data:
+                    if not normalize_data:
+                        def _set_NaN(value):
+                            if value != bands_description.get(band).get('missing_value'):
+                                return value
+                            else:
+                                return None
+                        band_values = list(pandas.Series(band_values).apply(_set_NaN))
+                    band_values = list(
+                        pandas.Series(band_values).interpolate(
+                            method='linear',
+                            limit_direction = 'forward',
+                            order = 2
+                        )
+                    )
+                time_series['result']['attributes'][i]['values'] = band_values
+                print(band_values)
+        return time_series
 
     def get_bands_from_df(self, time_series_df: any):
         """Get bands from time series DataFrame."""
@@ -139,11 +168,20 @@ class FilesExport:
         except FileNotFoundError:
             pass
 
-    def generateJSON(self, file_name, time_series):
+    def generateJSON(
+            self, file_name, time_series,
+            bands_description: any,
+            normalize_data: bool,
+            interpolate_data: bool
+        ):
         """Generate a JSON file with time series data."""
         try:
             data = time_series
             data.get('result')['timeline'] = [str(date_str) for date_str in time_series.get('result').get("timeline")]
+            data = self.apply_to_time_series(
+                data, "JSON", bands_description,
+                normalize_data, interpolate_data
+            )
             with open(file_name, 'w') as outfile:
                 json.dump(data, outfile)
         except FileNotFoundError:
@@ -159,7 +197,7 @@ class FilesExport:
         try:
             time_series_df = self.to_dataframe(time_series)
             time_series_df = self.apply_to_time_series(
-                time_series_df, bands_description,
+                time_series_df, "DataFrame", bands_description,
                 normalize_data, interpolate_data
             )
             time_series_df.to_csv(file_name, index=False)
@@ -176,7 +214,7 @@ class FilesExport:
         try:
             time_series_df = self.to_dataframe(time_series)
             time_series_df = self.apply_to_time_series(
-                time_series_df, bands_description,
+                time_series_df, "DataFrame", bands_description,
                 normalize_data, interpolate_data
             )
             fig = plt.figure(figsize = (12, 5))
