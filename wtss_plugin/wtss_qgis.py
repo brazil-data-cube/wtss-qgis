@@ -32,7 +32,7 @@ from qgis.core import (QgsCoordinateReferenceSystem, QgsFeature, QgsPoint,
                        QgsProject, QgsRasterMarkerSymbolLayer, QgsRectangle,
                        QgsSingleSymbolRenderer, QgsSymbol, QgsVectorLayer,
                        QgsWkbTypes)
-from qgis.gui import QgsMapToolEmitPoint
+from qgis.gui import QgsMapToolEmitPoint, QgsMapToolPan
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator
 from qgis.PyQt.QtGui import QIcon, QMovie
 from qgis.PyQt.QtWidgets import QAction
@@ -695,6 +695,7 @@ class wtss_qgis:
     def addCanvasControlPoint(self, enable):
         """Generate a canvas area to get mouse position."""
         self.point_tool = None
+        self.pan_map = None
         self.canvas = None
         if enable:
             self.setCRS()
@@ -702,6 +703,10 @@ class wtss_qgis:
             self.point_tool = QgsMapToolEmitPoint(self.canvas)
             self.point_tool.canvasClicked.connect(self.display_point)
             self.canvas.setMapTool(self.point_tool)
+        else:
+            self.canvas = self.iface.mapCanvas()
+            self.pan_map = QgsMapToolPan(self.canvas)
+            self.canvas.setMapTool(self.pan_map)
 
     def enabledSearchButtons(self, enable):
         """Enable the buttons to load time series."""
