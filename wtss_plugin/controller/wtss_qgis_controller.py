@@ -132,7 +132,6 @@ class WTSS_Controls:
 
     :Methods:
         setService
-        testServiceConnection
         listProducts
         productDescription
         productTimeSeries
@@ -141,6 +140,7 @@ class WTSS_Controls:
     def __init__(self):
         """Build controls for WTSS Servers."""
         self.wtss_host = Config.WTSS_HOST
+        self.wtss = WTSS(self.wtss_host)
 
     def getService(self):
         """Get the service data finding by name."""
@@ -152,25 +152,15 @@ class WTSS_Controls:
         :param server_host<string>: the URL service to edit.
         """
         self.wtss_host = server_host
-
-    def testServiceConnection(self):
-        """Check if sevice is available testing connection."""
-        try:
-            client_wtss = WTSS(Config.WTSS_HOST)
-            client_wtss.coverages
-            return True
-        except:
-            return False
+        self.wtss = WTSS(self.wtss_host)
 
     def listProducts(self):
         """Return a dictionary with the list of available products."""
-        client_wtss = WTSS(Config.WTSS_HOST)
-        return client_wtss.coverages
+        return self.wtss.coverages
 
     def productDescription(self, product):
         """Return a dictionary with product description."""
-        client_wtss = WTSS(Config.WTSS_HOST)
-        return client_wtss[product]
+        return self.wtss[product]
 
     def productTimeSeries(self, product, bands, lon, lat, start_date, end_date):
         """Return a dictionary with product time series data.
@@ -182,37 +172,14 @@ class WTSS_Controls:
         :param start_date<string>: start date string with 'yyyy-mm-dd' format.
         :param end_date<string>: end date string with 'yyyy-mm-dd' format.
         """
-        if self.testServiceConnection():
-            try:
-                client_wtss = WTSS(Config.WTSS_HOST)
-                time_series = client_wtss[product].ts(
-                    attributes=bands,
-                    longitude=lon,
-                    latitude=lat,
-                    start_date=start_date,
-                    end_date=end_date
-                )
-                return time_series
-            except:
-                return None
-        else:
-            response = requests.get(
-                ("{}/wtss/time_series").format(Config.WTSS_HOST),
-                {
-                    "coverage": product,
-                    "attributes": ",".join(list(bands)),
-                    "longitude": lon,
-                    "latitude": lat,
-                    "start_date": start_date,
-                    "end_date": end_date
-                },
-                timeout=100
+        try:
+            time_series = self.wtss[product].ts(
+                attributes=bands,
+                longitude=lon,
+                latitude=lat,
+                start_date=start_date,
+                end_date=end_date
             )
-            if response.status_code == 200:
-                response = response.json()
-                tl = response["result"]["timeline"]
-                tl = [datetime.strptime(t, "%Y-%m-%d").date() for t in tl]
-                response["result"]["timeline"] = tl
-                return response
-            else:
-                return None
+            return time_series
+        except:
+            return None

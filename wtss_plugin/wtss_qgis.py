@@ -518,9 +518,9 @@ class wtss_qgis:
                     interpolate_data = self.interpolate_data
                 )
             else:
-                self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
+                self.basic_controls.alert("warning", "Warning", "The times series service returns empty, no data to show!")
         except AttributeError as error:
-            self.basic_controls.alert("warning", "AttributeError", str(error))
+            self.basic_controls.alert("error", "AttributeError", str(error))
 
     def exportJSON(self):
         """Export the response of WTSS data."""
@@ -544,9 +544,9 @@ class wtss_qgis:
                     interpolate_data = self.interpolate_data
                 )
             else:
-                self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
+                self.basic_controls.alert("warning", "Warning", "The times series service returns empty, no data to show!")
         except AttributeError as error:
-            self.basic_controls.alert("warning", "AttributeError", str(error))
+            self.basic_controls.alert("error", "AttributeError", str(error))
 
     def plotTimeSeries(self):
         """Generate the plot image with time series data."""
@@ -619,6 +619,14 @@ class wtss_qgis:
                 scale = 0.1
             )
 
+    def set_draw_point(self, longitude, latitude):
+        """Create featur to draw temporary point in canvas."""
+        feature = QgsFeature()
+        feature.setGeometry(QgsPoint(float(longitude), float(latitude)))
+        self.points_layer_data_provider.truncate()
+        self.points_layer_data_provider.addFeatures([feature])
+        self.points_layer_data_provider.forceReload()
+
     def draw_point(self, longitude, latitude):
         """Draw the selected points in canvas."""
         self.getLayers()
@@ -626,16 +634,8 @@ class wtss_qgis:
             self.setCRS()
             points_layer_name = "wtss_coordinates_history"
             points_layer_icon_size = 10
-
-            def add_featute():
-                feature = QgsFeature()
-                feature.setGeometry(QgsPoint(float(longitude), float(latitude)))
-                self.points_layer_data_provider.truncate()
-                self.points_layer_data_provider.addFeatures([feature])
-                self.points_layer_data_provider.forceReload()
-
             try:
-                add_featute()
+                self.set_draw_point(longitude, latitude)
             except:
                 self.remove_layer_by_name(points_layer_name)
                 self.points_layer = QgsVectorLayer(
@@ -650,7 +650,7 @@ class wtss_qgis:
                 self.points_layer.triggerRepaint()
                 QgsProject.instance().addMapLayer(self.points_layer)
                 self.points_layer_data_provider = self.points_layer.dataProvider()
-                add_featute()
+                self.set_draw_point(longitude, latitude)
 
     def save_on_history(self, x, y):
         """Get lng/lat coordinates and save on history list."""
@@ -696,15 +696,13 @@ class wtss_qgis:
         """Generate a canvas area to get mouse position."""
         self.point_tool = None
         self.pan_map = None
-        self.canvas = None
+        self.canvas = self.iface.mapCanvas()
         if enable:
             self.setCRS()
-            self.canvas = self.iface.mapCanvas()
             self.point_tool = QgsMapToolEmitPoint(self.canvas)
             self.point_tool.canvasClicked.connect(self.display_point)
             self.canvas.setMapTool(self.point_tool)
         else:
-            self.canvas = self.iface.mapCanvas()
             self.pan_map = QgsMapToolPan(self.canvas)
             self.canvas.setMapTool(self.pan_map)
 

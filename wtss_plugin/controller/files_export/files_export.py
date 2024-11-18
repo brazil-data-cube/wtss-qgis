@@ -30,15 +30,49 @@ from ..helpers.pystac_helper import get_source_from_click
 from ..wtss_qgis_controller import Controls
 
 
-class FilesExport:
-    """Exporting WTSS data in different formats.
+class ApplyTimeSeries:
+    """Methods to apply in time series in panda Series format.
+
+    :Methods:
+        _normalize
+        _set_NaN
+        _interpolate
+    """
+
+    def setBandDescription(self, band_description):
+        """Set the value for band description."""
+        self.band_description = band_description
+
+    def _normalize(self, value):
+        """Normalize the values of time series using missing value and scale factor."""
+        if value != self.band_description.get('missing_value'):
+            return value * self.band_description.get('scale_factor')
+        else:
+            return None
+
+    def _set_NaN(self, value):
+        """Set none to missing values of time series."""
+        if value != self.band_description.get('missing_value'):
+            return value
+        else:
+            return None
+
+    def _interpolate(self, time_series_values):
+        """Interpolate the time series using none values in pandas Series."""
+        return time_series_values.interpolate(
+            method = 'linear',
+            limit_direction = 'forward',
+            order = 2
+        )
+
+class FilesFormat:
+    """Files Format Methods.
 
     :Methods:
         defaultCode
         to_dataframe
-        generateCode
-        generateCSV
-        generateJSON
+        apply_to_time_series
+        get_bands_from_df
     """
 
     def defaultCode(self):
@@ -68,56 +102,28 @@ class FilesExport:
             interpolate_data: bool
         ):
         """Apply normalize and interpolation to time series data."""
+        apply_to_ts = ApplyTimeSeries()
         if type == "DataFrame":
             for band in self.get_bands_from_df(time_series):
+                apply_to_ts.setBandDescription(bands_description.get(band))
                 if normalize_data:
-                    def _normalize(value):
-                        if value != bands_description.get(band).get('missing_value'):
-                            return value * bands_description.get(band).get('scale_factor')
-                        else:
-                            return None
-                    time_series[band] = time_series[band].apply(_normalize)
+                    time_series[band] = time_series[band].apply(apply_to_ts._normalize)
                 if interpolate_data:
                     if not normalize_data:
-                        def _set_NaN(value):
-                            if value != bands_description.get(band).get('missing_value'):
-                                return value
-                            else:
-                                return None
-                        time_series[band] = time_series[band].apply(_set_NaN)
-                    time_series[band] = time_series[band].interpolate(
-                        method = 'linear',
-                        limit_direction = 'forward',
-                        order = 2
-                    )
+                        time_series[band] = time_series[band].apply(apply_to_ts._set_NaN)
+                    time_series[band] = apply_to_ts._interpolate(time_series[band])
         elif type == "JSON":
             for i in range(0, (len(time_series['result']['attributes']))):
                 band = time_series['result']['attributes'][i]['attribute']
                 band_values = time_series.get('result')['attributes'][i]['values']
+                apply_to_ts.setBandDescription(bands_description.get(band))
                 if normalize_data:
-                    def _normalize(value):
-                        if value != bands_description.get(band).get('missing_value'):
-                            return value * bands_description.get(band).get('scale_factor')
-                        else:
-                            return None
-                    band_values = list(pandas.Series(band_values).apply(_normalize))
+                    band_values = list(pandas.Series(band_values).apply(apply_to_ts._normalize))
                 if interpolate_data:
                     if not normalize_data:
-                        def _set_NaN(value):
-                            if value != bands_description.get(band).get('missing_value'):
-                                return value
-                            else:
-                                return None
-                        band_values = list(pandas.Series(band_values).apply(_set_NaN))
-                    band_values = list(
-                        pandas.Series(band_values).interpolate(
-                            method='linear',
-                            limit_direction = 'forward',
-                            order = 2
-                        )
-                    )
+                        band_values = list(pandas.Series(band_values).apply(apply_to_ts._set_NaN))
+                    band_values = list(apply_to_ts._interpolate(pandas.Series(band_values)))
                 time_series['result']['attributes'][i]['values'] = band_values
-                print(band_values)
         return time_series
 
     def get_bands_from_df(self, time_series_df: any):
@@ -125,6 +131,19 @@ class FilesExport:
         bands = list(time_series_df.keys())
         bands.remove("Index")
         return bands
+
+class FilesExport:
+    """Exporting WTSS data in different formats.
+
+    :Methods:
+        generateCode
+        generateCSV
+        generateJSON
+    """
+
+    def __init__(self):
+        """Set the default values for files format."""
+        self.files_format = FilesFormat()
 
     def generateCode(self, file_name, attributes):
         """Generate a python code file filling WTSS blank spaces.
@@ -161,7 +180,7 @@ class FilesExport:
                 "start_date" : attributes.get("time_interval").get("start"),
                 "end_date" : attributes.get("time_interval").get("end")
             }
-            code_to_save = self.defaultCode().format(**mapping)
+            code_to_save = self.files_format.defaultCode().format(**mapping)
             file = open(file_name, "w")
             file.write(code_to_save)
             file.close()
@@ -178,7 +197,7 @@ class FilesExport:
         try:
             data = time_series
             data.get('result')['timeline'] = [str(date_str) for date_str in time_series.get('result').get("timeline")]
-            data = self.apply_to_time_series(
+            data = self.files_format.apply_to_time_series(
                 data, "JSON", bands_description,
                 normalize_data, interpolate_data
             )
@@ -195,8 +214,8 @@ class FilesExport:
         ):
         """Generate a CSV file with time series data."""
         try:
-            time_series_df = self.to_dataframe(time_series)
-            time_series_df = self.apply_to_time_series(
+            time_series_df = self.files_format.to_dataframe(time_series)
+            time_series_df = self.files_format.apply_to_time_series(
                 time_series_df, "DataFrame", bands_description,
                 normalize_data, interpolate_data
             )
@@ -212,8 +231,8 @@ class FilesExport:
         ):
         """Generate an image .JPEG with time series data in a line chart."""
         try:
-            time_series_df = self.to_dataframe(time_series)
-            time_series_df = self.apply_to_time_series(
+            time_series_df = self.files_format.to_dataframe(time_series)
+            time_series_df = self.files_format.apply_to_time_series(
                 time_series_df, "DataFrame", bands_description,
                 normalize_data, interpolate_data
             )
@@ -226,7 +245,7 @@ class FilesExport:
                 )
             )
             seaborn.set_theme(style="darkgrid")
-            for band in self.get_bands_from_df(time_series_df):
+            for band in self.files_format.get_bands_from_df(time_series_df):
                 seaborn.lineplot(
                     data = time_series_df,
                     x = "Index", y = band, label = band,
