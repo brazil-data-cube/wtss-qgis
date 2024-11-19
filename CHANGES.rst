@@ -20,6 +20,21 @@
 Changes
 =======
 
+
+Version 0.4.0 (2024-11-19)
+--------------------------
+
+- Disable file export when there is no selected filters (`#92 <https://github.com/brazil-data-cube/wtss-qgis/issues/92>`_)
+- Add rules to normalize and interpolate data to exported data as CSV and JSON files (`#78 <https://github.com/brazil-data-cube/wtss-qgis/issues/78>`_)
+- Add menu with advanced options to draw selected points (`#71 <https://github.com/brazil-data-cube/wtss-qgis/issues/71>`_)
+- Allow to open multiple images when clicking in the Point (`#73 <https://github.com/brazil-data-cube/wtss-qgis/issues/73>`_)
+- Review script template to export as Python code (`#76 <https://github.com/brazil-data-cube/wtss-qgis/issues/76>`_)
+- Review the GUI Input to deal with longitude/latitude (`#93 <https://github.com/brazil-data-cube/wtss-qgis/issues/93>`_)
+- Remove the GUI option `enable selection``, and keep it always active by default (`#83 <https://github.com/brazil-data-cube/wtss-qgis/issues/83>`_)
+- Remove the GUI option `normalize`, and ensure that all time series values are being normalized automatically using "scale factor" (`#84 <https://github.com/brazil-data-cube/wtss-qgis/issues/84>`_)
+- Remove the tab to deal with WTSS endpoints (`#85 <https://github.com/brazil-data-cube/wtss-qgis/issues/85>`_)
+
+
 Version 0.3.1 (2024-10-24)
 --------------------------
 

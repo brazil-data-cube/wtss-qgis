@@ -24,7 +24,7 @@
 name=WTSS
 qgisMinimumVersion=3.0
 description=QGIS Plugin for Brazil Data Cube Web Time Series Service
-version=0.3.1
+version=0.4.0
 author=INPE
 email=bdc.team@inpe.br
 

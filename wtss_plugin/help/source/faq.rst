@@ -83,7 +83,7 @@ This errors is because the plugin install a version of ``numpy`` in a local path
 
 If your command line python is using the same of your installed QGIS, you can fix the version of ``matplotlib`` and ``numpy``.
 
-The required versions for WTSS Plugin 0.3 is ``numpy !=1.24.0, <2, >=1.23`` and ``matplotlib >= 3.7``.
+The required versions for WTSS Plugin 0.4 is ``numpy !=1.24.0, <2, >=1.23`` and ``matplotlib >= 3.7``.
 
 You can force the reinstall of ``numpy`` using equals (==) to fix the version:
 
@@ -121,14 +121,14 @@ The plugin dependencies can be installed using this command:
 
 .. code-block:: shell
 
-    python3 -m pip install git+https://github.com/brazil-data-cube/wtss-qgis.git@v0.3.1
+    python3 -m pip install git+https://github.com/brazil-data-cube/wtss-qgis.git@v0.4.0
 
 
 Another way is cloning the repository from ``github`` and run ``pip``:
 
 .. code-block:: shell
 
-    git clone https://github.com/brazil-data-cube/wtss-qgis.git@v0.3.1
+    git clone https://github.com/brazil-data-cube/wtss-qgis.git@v0.4.0
 
 
 .. code-block:: shell
