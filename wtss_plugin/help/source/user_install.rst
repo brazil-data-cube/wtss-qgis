@@ -22,7 +22,7 @@ User Installation
 
 The first step for commom users to install the plugin is download the latest release of zip file from `https://github.com/brazil-data-cube/wtss-qgis/releases <https://github.com/brazil-data-cube/wtss-qgis/releases>`_.
 
-After download this file, start tyour QGIS and go to ``Plugins >> Manage and Install Plugins`` and install the plugin via zip by selecting the file and clicking in ``Install Plugin``.
+After download this file, start your QGIS and go to ``Plugins >> Manage and Install Plugins`` and install the plugin via zip by selecting the file and clicking in ``Install Plugin``.
 
 .. image:: ./assets/screenshots/install_zip.png
     :width: 100%

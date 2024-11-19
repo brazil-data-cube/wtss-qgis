@@ -29,6 +29,7 @@ from osgeo import gdal
 from qgis.core import QgsApplication, QgsRasterLayer
 
 from ..config import Config
+from ..wtss_qgis_controller import Controls
 
 
 class Channels:
@@ -153,13 +154,16 @@ def get_source_from_click(event):
         separate = True
     )
 
-    layer_names = [
-        layer.name()
-        for layer in stac_args.qgis_project.mapLayers().values()
-    ]
-
-    if layer_name not in layer_names:
-        stac_args.vrt_history.append(layer_name)
-        stac_args.qgis_project.addMapLayer(
-            QgsRasterLayer(vrt_raster_file, layer_name), True
-        )
+    if vrt_raster_file:
+        layer_names = [
+            layer.name()
+            for layer in stac_args.qgis_project.mapLayers().values()
+        ]
+        if layer_name not in layer_names:
+            stac_args.vrt_history.append(layer_name)
+            stac_args.qgis_project.addMapLayer(
+                QgsRasterLayer(vrt_raster_file, layer_name), True
+            )
+    else:
+        controls = Controls()
+        controls.alert("error", "Data not found!", "Could not find the request data.")

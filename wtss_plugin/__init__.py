@@ -20,16 +20,12 @@
 
 import importlib
 import os
-import platform
 import sys
 from pathlib import Path
 
 import pip
 from PyQt5.QtWidgets import QCheckBox, QMessageBox
 
-WINDOWS = (
-    str(platform.uname().system).lower() == 'windows'
-)
 
 def lib_path():
     """Get the path for python installed lib path."""

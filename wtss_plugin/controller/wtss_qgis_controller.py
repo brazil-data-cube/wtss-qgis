@@ -19,10 +19,6 @@
 """Python QGIS Plugin for WTSS."""
 
 import datetime
-import json
-from json import loads as json_loads
-from pathlib import Path
-from types import SimpleNamespace
 
 import requests
 from pyproj import CRS, Proj, transform
@@ -42,7 +38,6 @@ class Controls:
         addItemsTreeView
         formatForQDate
         transformProjection
-        getDescription
     """
 
     def alert(self, type_message, title, text):
@@ -117,27 +112,11 @@ class Controls:
             "crs": "EPSG:4326"
         }
 
-    def getDescription(self, name = "Null", host = "Null", coverage = "Null"):
-        """Return a service description format string.
-
-        :param name<string> optional: service name.
-        :param host<string> optional: service host.
-        :param coverage<string> optional: activate coverage.
-        """
-        return (
-            "Service name: " + name + "\n" +
-            "Host: " + host + "\n" +
-            "Active coverage: " + coverage + "\n"
-        )
-
-    def getCoverageDescription(self, server_controls = None, service = "", coverage = ""):
+    def formatCoverageDescription(self, description = None):
         """Get description from WTSS Server and format for show.
 
-        :param server_controls<Services>: server controls to set services.
-        :param service<string>: the service name save on server controls.
-        :param coverage<string>: the coverage name selected.
+        :param description<dict>: description object from wtss.
         """
-        description = server_controls.productDescription(service, coverage)
         return "{description}\n\n{spatial}".format(
             description=str(description.get("description")),
             spatial= "*Dimensions*\n\nXmin: {xmin:,.2f}\nXmax: {xmax:,.2f}\nYmin: {ymin:,.2f}\nYmax: {ymax:,.2f}".format(
@@ -148,180 +127,44 @@ class Controls:
             )
         )
 
-class Service:
-    """Service class to map json dumps."""
-
-    def __init__(self, index, name, host):
-        """Build the Service Object.
-
-        :param index<str>: service saved id.
-        :param name<str>: service saved name.
-        :param host<str>: service url.
-        """
-        self.id = index
-        self.name = name
-        self.host = host
-
-class ServiceList:
-    """Service list class to store like json file."""
-
-    def __init__(self, services):
-        """Build the Service List Object.
-
-        :param services<Service[]>: list of Service objects.
-        """
-        self.services = services
-
-class Services:
+class WTSS_Controls:
     """Class for the service storage rule.
 
     :Methods:
-        getPath
-        testServiceConnection
-        resetAvailableServices
-        getServices
-        getServiceNames
-        loadServices
-        findServiceByName
+        setService
         listProducts
         productDescription
         productTimeSeries
-        addService
-        deleteService
-        editService
     """
 
-    def __init__(self, user):
-        """Build controls for WTSS Servers.
+    def __init__(self):
+        """Build controls for WTSS Servers."""
+        self.wtss_host = Config.WTSS_HOST
+        self.wtss = WTSS(self.wtss_host)
 
-        :param user<string>: users control to storage services in a JSON file.
+    def getService(self):
+        """Get the service data finding by name."""
+        return self.wtss_host
+
+    def setService(self, server_host):
+        """Edit the service data finding by name.
+
+        :param server_host<string>: the URL service to edit.
         """
-        self.user = user
-        try:
-            self.services = self.getServices()
-        except FileNotFoundError:
-            self.resetAvailableServices()
+        self.wtss_host = server_host
+        self.wtss = WTSS(self.wtss_host)
 
-    def getPath(self):
-        """Return the location of JSON with registered services."""
-        return (
-            Path(Config.BASE_DIR)
-                / 'json-schemas'
-                    / ('services_storage_user_' + self.user + '.json')
-        )
+    def listProducts(self):
+        """Return a dictionary with the list of available products."""
+        return self.wtss.coverages
 
-    def testServiceConnection(self, host):
-        """Check if sevice is available testing connection.
+    def productDescription(self, product):
+        """Return a dictionary with product description."""
+        return self.wtss[product]
 
-        :param host<string>: the service host string
-        """
-        try:
-            client_wtss = WTSS(host)
-            client_wtss.coverages
-            return True
-        except:
-            return False
-
-    def resetAvailableServices(self):
-        """Restart the list of services with default sevices available."""
-        self.addService("Brazil Data Cube", Config.WTSS_HOST)
-        if not self.getServiceNames():
-            to_save = json_loads(json.dumps(ServiceList([]).__dict__))
-            with open(str(self.getPath()), 'w') as outfile:
-                    json.dump(to_save, outfile)
-
-    def getServices(self):
-        """Return a dictionary with registered services."""
-        with self.getPath().open() as f:
-            return json.loads(
-                f.read(),
-                object_hook = lambda d: SimpleNamespace(**d)
-            )
-
-    def getServiceNames(self):
-        """Return a list of registered service names."""
-        try:
-            service_names = []
-            for server in self.getServices().services:
-                if self.testServiceConnection(server.host):
-                    service_names.append(server.name)
-            return service_names
-        except (FileNotFoundError, FileExistsError):
-            return []
-
-    def getServicesDict(self):
-        """Return the services object like dict."""
-        try:
-            serviceList = self.getServices()
-            for i in range(len(serviceList.services)):
-                serviceList.services[i] = json_loads(
-                    json.dumps(serviceList.services[i].__dict__)
-                )
-            serviceList = json_loads(json.dumps(serviceList.__dict__))
-            return serviceList
-        except (FileNotFoundError, FileExistsError):
-            return {}
-
-    def loadServices(self):
-        """Return the services in a data struct based on QGIS Tree View."""
-        try:
-            servers = []
-            for server in self.getServices().services:
-                if self.testServiceConnection(server.host):
-                    client_wtss = WTSS(server.host)
-                    coverage_tree = []
-                    for coverage in client_wtss.coverages:
-                        coverage_tree.append((coverage, []))
-                    servers.append((server.name, coverage_tree))
-                else:
-                    self.deleteService(server.name)
-            return [('Services', servers)]
-        except (FileNotFoundError, FileExistsError):
-            return [('Services', servers)]
-
-    def findServiceByName(self, service_name):
-        """Return the service in a dictionary finding by name.
-
-        :param service_name<string>: the service registered name.
-        """
-        try:
-            service = None
-            for server in self.getServices().services:
-                if str(server.name) == str(service_name):
-                    service = server
-            return service
-        except (FileNotFoundError, FileExistsError):
-            return None
-
-    def listProducts(self, service_name):
-        """Return a dictionary with the list of available products.
-
-        :param service_name<string>: the service registered name.
-        """
-        host = self.findServiceByName(service_name).host
-        if self.testServiceConnection(host):
-            client_wtss = WTSS(host)
-            return client_wtss.coverages
-        else:
-            return []
-
-    def productDescription(self, service_name, product):
-        """Return a dictionary with product description.
-
-        :param service_name<string>: the service registered name.
-        :param product<string>: the product name.
-        """
-        host = self.findServiceByName(service_name).host
-        if self.testServiceConnection(host):
-            client_wtss = WTSS(host)
-            return client_wtss[product]
-        else:
-            return {}
-
-    def productTimeSeries(self, service_name, product, bands, lon, lat, start_date, end_date):
+    def productTimeSeries(self, product, bands, lon, lat, start_date, end_date):
         """Return a dictionary with product time series data.
 
-        :param service_name<string>: the service registered name.
         :param product<string>: the product name.
         :param bands<tuple>: the selected bands available on product.
         :param lon<float>: the point longitude.
@@ -329,103 +172,14 @@ class Services:
         :param start_date<string>: start date string with 'yyyy-mm-dd' format.
         :param end_date<string>: end date string with 'yyyy-mm-dd' format.
         """
-        host = self.findServiceByName(service_name).host
-        if self.testServiceConnection(host):
-            try:
-                client_wtss = WTSS(host)
-                time_series = client_wtss[product].ts(
-                    attributes=bands,
-                    longitude=lon,
-                    latitude=lat,
-                    start_date=start_date,
-                    end_date=end_date
-                )
-                return time_series
-            except:
-                return None
-        else:
-            response = requests.get(
-                ("{}/wtss/time_series").format(
-                    self.findServiceByName(service_name).host
-                ),
-                {
-                    "coverage": product,
-                    "attributes": ",".join(list(bands)),
-                    "longitude": lon,
-                    "latitude": lat,
-                    "start_date": start_date,
-                    "end_date": end_date
-                },
-                timeout=100
+        try:
+            time_series = self.wtss[product].ts(
+                attributes=bands,
+                longitude=lon,
+                latitude=lat,
+                start_date=start_date,
+                end_date=end_date
             )
-            if response.status_code == 200:
-                response = response.json()
-                tl = response["result"]["timeline"]
-                tl = [datetime.strptime(t, "%Y-%m-%d").date() for t in tl]
-                response["result"]["timeline"] = tl
-                return response
-            else:
-                return None
-
-    def addService(self, name, host):
-        """Register an active service.
-
-        :param name<string>: the service name to save.
-        :param host<string>: the URL service to save.
-        """
-        try:
-            server_to_save = self.findServiceByName(name)
-            if self.testServiceConnection(host) and server_to_save == None:
-                try:
-                    to_save = self.getServices()
-                    index = to_save.services[len(to_save.services) - 1].id + 1
-                except (IndexError, FileNotFoundError, FileExistsError):
-                    to_save = ServiceList([])
-                    index = 0
-                server_to_save = Service(index, str(name), str(host))
-                to_save.services.append(server_to_save)
-                for i in range(len(to_save.services)):
-                    to_save.services[i] = json_loads(
-                        json.dumps(to_save.services[i].__dict__)
-                    )
-                to_save = json_loads(json.dumps(to_save.__dict__))
-                with open(str(self.getPath()), 'w') as outfile:
-                    json.dump(to_save, outfile)
-            return server_to_save
-        except (FileNotFoundError, FileExistsError):
+            return time_series
+        except:
             return None
-
-    def deleteService(self, server_name):
-        """Delete a service finding by name.
-
-        :param server_name<string>: the service name to delete.
-        """
-        try:
-            server_to_delete = self.findServiceByName(server_name)
-            if server_to_delete != None:
-                to_delete = self.getServices()
-                to_delete.services.pop(
-                    to_delete.services.index(server_to_delete)
-                )
-                for i in range(len(to_delete.services)):
-                    to_delete.services[i] = json_loads(json.dumps(to_delete.services[i].__dict__))
-                to_delete = json_loads(json.dumps(to_delete.__dict__))
-                with open(str(self.getPath()), 'w') as outfile:
-                    json.dump(to_delete, outfile)
-            return server_to_delete
-        except (FileNotFoundError, FileExistsError):
-            return None
-
-    def editService(self, server_name, server_host):
-        """Edit the service data finding by name.
-
-        :param server_name<string>: the service name to find.
-        :param server_host<string>: the URL service to edit.
-        """
-        server_to_edit = self.findServiceByName(server_name)
-        if server_to_edit != None:
-            self.deleteService(server_name)
-        return self.addService(
-            server_name,
-            server_host
-        )

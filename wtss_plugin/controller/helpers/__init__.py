@@ -18,7 +18,5 @@
 
 """Python QGIS Plugin for WTSS."""
 
-from .pystac_helper import  Channels, \
-                            STAC_ARGS, \
-                            stac_args, \
-                            get_source_from_click
+from .pystac_helper import (STAC_ARGS, Channels, get_source_from_click,
+                            stac_args)
