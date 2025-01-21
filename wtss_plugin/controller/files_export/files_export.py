@@ -145,6 +145,10 @@ class FilesExport:
         """Set the default values for files format."""
         self.files_format = FilesFormat()
 
+    def getExportOptions(self):
+        """Set options to export result."""
+        return ["CSV", "JSON", "Python"]
+
     def generateCode(self, file_name, attributes):
         """Generate a python code file filling WTSS blank spaces.
 

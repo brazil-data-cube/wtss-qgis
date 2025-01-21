@@ -217,6 +217,7 @@ class wtss_qgis:
         self.addCanvasControlPoint(self.enabled_click)
         self.dlg.input_longitude.valueChanged.connect(self.checkFilters)
         self.dlg.input_latitude.valueChanged.connect(self.checkFilters)
+        self.selectCoverage()
 
     def initLoadingControls(self):
         """Enable loading label."""
@@ -244,22 +245,25 @@ class wtss_qgis:
         self.dlg.search_button.setIcon(icon)
         icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'zoom-icon.png'))
         self.dlg.zoom_selected_point.setIcon(icon)
+        icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'save-icon.png'))
+        self.dlg.export_result.setIcon(icon)
         self.points_layer_icon_path = str(Path(Config.BASE_DIR) / 'assets' / 'marker-icon.png')
 
     def initButtons(self):
         """Init the main buttons to manage services and the results."""
         self.dlg.show_help_button.clicked.connect(self.showHelp)
         self.dlg.show_coverage_description.clicked.connect(self.showCoverageDescription)
-        self.dlg.export_as_json.clicked.connect(self.exportJSON)
-        self.dlg.export_as_json.setEnabled(False)
-        self.dlg.export_as_csv.clicked.connect(self.exportCSV)
-        self.dlg.export_as_csv.setEnabled(False)
-        self.dlg.export_as_python.clicked.connect(self.exportPython)
-        self.dlg.export_as_python.setEnabled(False)
+        self.dlg.export_result.clicked.connect(self.exportAsType)
         self.dlg.zoom_selected_point.clicked.connect(self.zoom_to_selected_point)
         self.dlg.zoom_selected_point.setEnabled(True)
         self.dlg.search_button.clicked.connect(self.getTimeSeriesButton)
         self.dlg.search_button.setEnabled(False)
+        self.initExportOptions()
+        self.enabledSearchButtons(False)
+
+    def initExportOptions(self):
+        """Init the combo box select option to export"""
+        self.dlg.export_result_as_type.addItems(self.files_controls.getExportOptions())
 
     def initHistory(self):
         """Init and update location history."""
@@ -278,28 +282,6 @@ class wtss_qgis:
     def initRasterHistory(self):
         """Add a event listener when a layer is added to check the history of vrt layers."""
         QgsProject.instance().layersAdded.connect(self.updateRasterHistory)
-
-    def initServices(self):
-        """Load the wtss server."""
-        self.wtss_server_edit = False
-        self.dlg.wtss_server_label.setText(self.wtss_controls.getService())
-        self.dlg.wtss_server_label.setEnabled(self.wtss_server_edit)
-        self.dlg.wtss_server_label_update.clicked.connect(self.updateService)
-        self.selectCoverage()
-
-    def updateService(self):
-        """Edit the selected service."""
-        self.wtss_server_edit = not self.wtss_server_edit
-        self.dlg.wtss_server_label.setEnabled(self.wtss_server_edit)
-        if self.wtss_server_edit:
-            self.dlg.coverage_selection.clear()
-            self.dlg.coverage_selection.setEnabled(False)
-            self.dlg.bands_scroll.setWidget(QWidget())
-            self.dlg.search_button.setEnabled(False)
-        else:
-            self.wtss_controls.setService(self.dlg.wtss_server_label.text())
-            self.dlg.coverage_selection.setEnabled(True)
-            self.selectCoverage()
 
     def initRasterPathControls(self):
         """Init raster path location controls."""
@@ -562,6 +544,16 @@ class wtss_qgis:
         else:
             self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
 
+    def exportAsType(self):
+        """Export result based on combo box selection."""
+        ext = self.dlg.export_result_as_type.currentText()
+        if ext == "CSV":
+            self.exportCSV()
+        elif ext == "JSON":
+            self.exportJSON()
+        elif ext == "Python":
+            self.exportPython()
+
     def getLayers(self):
         """Storage the layers in QGIS project."""
         self.layers = QgsProject.instance().layerTreeRoot().children()
@@ -709,9 +701,8 @@ class wtss_qgis:
     def enabledSearchButtons(self, enable):
         """Enable the buttons to load time series."""
         self.dlg.search_button.setEnabled(enable)
-        self.dlg.export_as_python.setEnabled(enable)
-        self.dlg.export_as_csv.setEnabled(enable)
-        self.dlg.export_as_json.setEnabled(enable)
+        self.dlg.export_result_as_type.setEnabled(enable)
+        self.dlg.export_result.setEnabled(enable)
 
     def checkFilters(self):
         """Check if lat lng are selected."""
@@ -755,8 +746,6 @@ class wtss_qgis:
         self.dlg = wtss_qgisDialog()
         # Init Controls
         self.initControls()
-        # Services
-        self.initServices()
         # Virtual Raster History
         self.initRasterHistory()
         # Output vrt path
