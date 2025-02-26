@@ -109,7 +109,8 @@ def format_(name, to_import=False):
     name_ = name.replace('-', '_').replace('<=', '-')  \
         .replace('>=', '-').replace('!=', '-')  \
             .replace('<', '-').replace('>', '-') \
-                .split('-')
+                .replace('@', '-') \
+                    .split('-')
     if not to_import:
         name_[0] = name_[0].replace('_', '-')
     return name_
@@ -124,8 +125,9 @@ def get_pkg_versions(package):
     versions = get_pkg_version_rule(package).split(',')
     versions_ = []
     for version in versions:
-        version_ = format_(version)[1]
-        versions_.append(float('.'.join(version_.split('.')[0:2])))
+        if (len(version) > 1):
+            version_ = format_(version)[1]
+            versions_.append(float('.'.join(version_.split('.')[0:2])))
     return versions_
 
 def run_install_pkgs_process(error_msg=""):
