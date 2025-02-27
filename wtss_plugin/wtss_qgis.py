@@ -50,7 +50,7 @@ from .resources import *
 from .wtss_qgis_dialog import wtss_qgisDialog
 
 
-class wtss_qgis:
+class WTSSQgis:
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface):
@@ -742,25 +742,29 @@ class wtss_qgis:
 
     def run(self):
         """Run method that performs all the real work."""
-        # Init Application
-        self.dlg = wtss_qgisDialog()
-        # Init Controls
-        self.initControls()
-        # Virtual Raster History
-        self.initRasterHistory()
-        # Output vrt path
-        self.initRasterPathControls()
-        # RGB Options
-        self.initRGBoptions()
-        # History
-        self.initHistory()
-        # Add icons to buttons
-        self.initIcons()
-        # Start loading label
-        self.initLoadingControls()
-        # Add functions to buttons
-        self.initButtons()
-        # show the dialog
-        self.dialogShow()
-        # Methods to finish session
-        self.dlg.finished.connect(self.finish_session)
+        try:
+            # Init Application
+            self.dlg = wtss_qgisDialog()
+            # Init Controls
+            self.initControls()
+            # Virtual Raster History
+            self.initRasterHistory()
+            # Output vrt path
+            self.initRasterPathControls()
+            # RGB Options
+            self.initRGBoptions()
+            # History
+            self.initHistory()
+            # Add icons to buttons
+            self.initIcons()
+            # Start loading label
+            self.initLoadingControls()
+            # Add functions to buttons
+            self.initButtons()
+            # show the dialog
+            self.dialogShow()
+            # Methods to finish session
+            self.dlg.finished.connect(self.finish_session)
+        except Exception as e:
+            controls = Controls()
+            controls.alert("error", "Error while starting plugin!", str(e))
