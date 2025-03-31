@@ -43,7 +43,7 @@ hasProcessingProvider=no
 # Tags are comma separated with spaces allowed
 tags=python
 
-homepage=http://brazildatacube.org
+homepage=https://data.inpe.br/bdc/web/
 category=Web
 icon=./controller/assets/icon.png
 # experimental flag

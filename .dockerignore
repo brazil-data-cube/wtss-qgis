@@ -191,3 +191,6 @@ drone
 
 # ignore services storage
 services_storage_user_application.json
+
+# Ignore LICENSE
+wtss_plugin/LICENSE
