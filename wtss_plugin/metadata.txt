@@ -21,44 +21,85 @@
 # This file should be included when you package your plugin.# Mandatory items:
 
 [general]
-name=WTSS
-qgisMinimumVersion=3.0
-description=QGIS Plugin for Brazil Data Cube Web Time Series Service
-version=0.4.0
-author=INPE
-email=bdc.team@inpe.br
+name = WTSS
+qgisMinimumVersion = 3.0
+qgisMaximumVersion = 3.99
+description = QGIS Plugin for Brazil Data Cube Web Time Series Service
 
-about=Web Time Series Service (WTSS) is a lightweight web service for handling time series data from remote sensing imagery. Given a location and a time interval you can retrieve the according time series as a Python list of real values. In WTSS a coverage is a three dimensional array associate to spatial and temporal reference systems.
+email = bdc.team@inpe.br
+homepage = https://data.inpe.br/bdc/web/
+tracker = https://github.com/brazil-data-cube/wtss-qgis/issues
+repository = https://github.com/brazil-data-cube/wtss-qgis
 
-tracker=https://github.com/brazil-data-cube/wtss-qgis/issues
-repository=https://github.com/brazil-data-cube/wtss-qgis
-# End of mandatory metadata
-
-# Recommended items:
-
-hasProcessingProvider=no
-# Uncomment the following line and add your changelog:
-# changelog=
-
+# Category of the plugin: Raster, Vector, Database or Web
+category = plugins, web
 # Tags are comma separated with spaces allowed
-tags=python
+tags = web, stac, raster, cog, timeseries
 
-homepage=https://data.inpe.br/bdc/web/
-category=Web
-icon=./controller/assets/icon.png
-# experimental flag
-experimental=True
+icon = ./controller/assets/icon.png
+experimental = True
+hasProcessingProvider = no
 
 # deprecated flag (applies to the whole plugin, not just a single version)
-deprecated=False
+deprecated = False
 
 # Since QGIS 3.8, a comma separated list of plugins to be installed
 # (or upgraded) can be specified.
 # Check the documentation for more information.
-# plugin_dependencies=
-
-Category of the plugin: Raster, Vector, Database or Web
-# category=
+# plugin_dependencies =
 
 # If the plugin can run on QGIS Server.
-server=False
+server = False
+
+author = INPE
+version = 0.4.0
+about = Web Time Series Service (WTSS) is a lightweight web service for handling time series data from remote sensing imagery.
+    Given a location and a time interval you can retrieve the according time series as a Python list of real values.
+    In WTSS a coverage is a three dimensional array associate to spatial and temporal reference systems.
+
+changelog = Version 0.4.0 (2024-11-19)
+    - Disable file export when there is no selected filters (`#92 <https://github.com/brazil-data-cube/wtss-qgis/issues/92>`_)
+    - Add rules to normalize and interpolate data to exported data as CSV and JSON files (`#78 <https://github.com/brazil-data-cube/wtss-qgis/issues/78>`_)
+    - Add menu with advanced options to draw selected points (`#71 <https://github.com/brazil-data-cube/wtss-qgis/issues/71>`_)
+    - Allow to open multiple images when clicking in the Point (`#73 <https://github.com/brazil-data-cube/wtss-qgis/issues/73>`_)
+    - Review script template to export as Python code (`#76 <https://github.com/brazil-data-cube/wtss-qgis/issues/76>`_)
+    - Review the GUI Input to deal with longitude/latitude (`#93 <https://github.com/brazil-data-cube/wtss-qgis/issues/93>`_)
+    - Remove the GUI option `enable selection``, and keep it always active by default (`#83 <https://github.com/brazil-data-cube/wtss-qgis/issues/83>`_)
+    - Remove the GUI option `normalize`, and ensure that all time series values are being normalized automatically using "scale factor" (`#84 <https://github.com/brazil-data-cube/wtss-qgis/issues/84>`_)
+    - Remove the tab to deal with WTSS endpoints (`#85 <https://github.com/brazil-data-cube/wtss-qgis/issues/85>`_)
+
+    Version 0.3.1 (2024-10-24)
+    - Fix numpy version conflicts (`#74 <https://github.com/brazil-data-cube/wtss-qgis/issues/74>`_)
+    - Add warning and dialog when plot time series crash (`#75 <https://github.com/brazil-data-cube/wtss-qgis/issues/75>`_)
+    - Update the plugin installation and usage guide in documentation (`#77 <https://github.com/brazil-data-cube/wtss-qgis/issues/77>`_)
+    - Remove the warning about setting CRS (`#79 <https://github.com/brazil-data-cube/wtss-qgis/issues/79>`_)
+    - Add single click to set coordinates based on history list (`#80 <https://github.com/brazil-data-cube/wtss-qgis/issues/80>`_)
+    - Add user data path to save virtual rasters from STAC (`#70 <https://github.com/brazil-data-cube/wtss-qgis/issues/70>`_)
+    - Manter apenas uma janela do plugin aberta e conectada ao QGIS (`#81 <https://github.com/brazil-data-cube/wtss-qgis/issues/81>`_)
+    - Garantir a precisão das coordenadas ao selecionar no histórico e ao exportar arquivos (`#82 <https://github.com/brazil-data-cube/wtss-qgis/issues/82>`_)
+
+    Version 0.3.0 (2024-10-02)
+    - Add plot STAC images by clicking (`#72 <https://github.com/brazil-data-cube/wtss-qgis/issues/72>`_)
+    - Add a check before attempting to retrieve time series (`#63 <https://github.com/brazil-data-cube/wtss-qgis/issues/63>`_)
+    - Review plot library with `seaborn` (`#53 <https://github.com/brazil-data-cube/wtss-qgis/issues/53>`_)
+    - Add option or checkbox for user to choose whether to normalize data or not (`#64 <https://github.com/brazil-data-cube/wtss-qgis/issues/64>`_)
+    - Resolve `nodata` in plot time series with seaborn (`#65 <https://github.com/brazil-data-cube/wtss-qgis/issues/65>`_)
+    - Resolve coordinates/layers projection in enable canvas points selection (`#66 <https://github.com/brazil-data-cube/wtss-qgis/issues/66>`_)
+    - Add menu with advanced options to control virtual raster generation (`#67 <https://github.com/brazil-data-cube/wtss-qgis/issues/67>`_)
+    - Review and update methods for the installation and build steps for plugin (`#68 <https://github.com/brazil-data-cube/wtss-qgis/issues/68>`_)
+    - Draw and zoom in the points based on selected coordinates to get time series (`#69 <https://github.com/brazil-data-cube/wtss-qgis/issues/69>`_)
+    - Add user data path to save virtual rasters from STAC (`#70 <https://github.com/brazil-data-cube/wtss-qgis/issues/70>`_)
+
+    Version 0.2.0 (2024-08-19)
+    - Project is active again and under development
+    - Change License to GPL v3 (`#59 <https://github.com/brazil-data-cube/wtss-qgis/issues/59>`_)
+    - Review dependencies in package (`#54 <https://github.com/brazil-data-cube/wtss-qgis/issues/54>`_)
+    - Remove access token dependency (`#51 <https://github.com/brazil-data-cube/wtss-qgis/issues/51>`_)
+    - Fix mouse click event when search time series (`#52 <https://github.com/brazil-data-cube/wtss-qgis/issues/52>`_)
+
+    Version 0.1.0-0 (2020-05-19)
+    - First version of Plugin with QGIS Version 3+ support
+    - Add feature to export Python code
+    - Plot time series using matplotlib
+    - Initial unittests
+    - Persist an historic of time series coordinates
