@@ -21,6 +21,18 @@ Changes
 =======
 
 
+Version 0.5.0 (2025-04-25)
+--------------------------
+
+- Added tile ID reference when creating VRT layer names (`#104 <https://github.com/brazil-data-cube/wtss-qgis/issues/104>`_)
+- Removed control to manage WTSS services defining a default host (`#103 <https://github.com/brazil-data-cube/wtss-qgis/issues/103>`_)
+- It was improved description of plugin installation using Docker container based on QGIS image (`#102 <https://github.com/brazil-data-cube/wtss-qgis/issues/102>`_)
+- Added warning about the Python conda or venv virtual environment to the documentation about installation (`#101 <https://github.com/brazil-data-cube/wtss-qgis/issues/101>`_)
+- Added description of errors related to numpy version to documentation about installation (FAQ) (`#100 <https://github.com/brazil-data-cube/wtss-qgis/issues/100>`_)
+- Removed imports and methods that are not being used (`#99 <https://github.com/brazil-data-cube/wtss-qgis/issues/99>`_)
+- Creating a pipeline to build the package to publish in the official QGIS website (`#91 <https://github.com/brazil-data-cube/wtss-qgis/issues/91>`_)
+
+
 Version 0.4.0 (2024-11-19)
 --------------------------
 
