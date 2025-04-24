@@ -129,16 +129,18 @@ def get_source_from_click(event):
     )
 
     items = list(item_search.items())
-    item = items[0].assets
+    item = items[0]
+
+    assets = item.assets
 
     rgb_href = {}
     channels = stac_args.channels
     for channel in ['red', 'green', 'blue']:
         band = getattr(channels, channel)
-        href = item.get(band).href
+        href = assets.get(band).href
         rgb_href[channel] = f'/vsicurl/{href}'
 
-    layer_name = f'{stac_args.coverage}_{selected_time}_{stac_args.channels.red}_{stac_args.channels.green}_{stac_args.channels.blue}'
+    layer_name = f'{item.id}_{stac_args.channels.red}_{stac_args.channels.green}_{stac_args.channels.blue}'
 
     vrt_raster_file = str(os.path.join(stac_args.raster_vrt_folder, f'{layer_name}.vrt'))
 

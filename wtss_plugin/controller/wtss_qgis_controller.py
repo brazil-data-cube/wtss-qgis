@@ -18,12 +18,8 @@
 
 """Python QGIS Plugin for WTSS."""
 
-import datetime
-
-import requests
 from pyproj import CRS, Proj, transform
 from PyQt5.QtCore import QDate
-from PyQt5.QtGui import QStandardItem
 from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox
 from wtss import *
 
@@ -35,7 +31,6 @@ class Controls:
 
     :methods:
         alert
-        addItemsTreeView
         formatForQDate
         transformProjection
     """
@@ -70,18 +65,6 @@ class Controls:
             return text
         else:
             return ""
-
-    def addItemsTreeView(self, parent, elements):
-        """Create a data struct based on QGIS Tree View.
-
-        :param parent<QStandardItemModel>: the parent node of data struct.
-        :param elements<tuple>: list of items in array of tuples.
-        """
-        for text, children in elements:
-            item = QStandardItem(text)
-            parent.appendRow(item)
-            if children:
-                self.addItemsTreeView(item, children)
 
     def formatForQDate(self, date_string):
         """Return a QDate format.

@@ -29,7 +29,7 @@ call %OSGEO4W_ROOT%\apps\grass\grass%GRASS_VERSION%\etc\env.bat
 path %PATH%;%OSGEO4W_ROOT%\apps\qgis\bin
 path %PATH%;%OSGEO4W_ROOT%\apps\grass\grass%GRASS_VERSION%\lib
 path %PATH%;%OSGEO4W_ROOT%\apps\Qt5\bin
-path %PATH%;%OSGEO4W_ROOT%\Python%PYTHON_VERSION%\Scripts
+path %PATH%;%OSGEO4W_ROOT%\apps\Python%PYTHON_VERSION%\Scripts
 
 set PYTHONPATH=%PYTHONPATH%;%OSGEO4W_ROOT%\apps\qgis\python
 set PYTHONHOME=%OSGEO4W_ROOT%\apps\Python%PYTHON_VERSION%

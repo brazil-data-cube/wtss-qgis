@@ -15,7 +15,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 #
+#!/bin/bash
 
-"""Python QGIS Plugin for WTSS."""
+PLUGIN_PATH=./wtss_plugin
 
-__version__ = '0.5.0'
+# Remove the python cache files
+find . | grep -E "(/__pycache__$|\.pyc$|\.pyo$)" | sudo xargs rm -rf
+
+# Get LICENSE from root
+cp LICENSE ${PLUGIN_PATH}
+
+# Go to plugin path to zip files
+cd ${PLUGIN_PATH}
+
+pb_tool zip
