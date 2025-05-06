@@ -20,3 +20,4 @@
 
 from .pystac_helper import (STAC_ARGS, Channels, get_source_from_click,
                             stac_args)
+from .installation_helper import InstallDependencies

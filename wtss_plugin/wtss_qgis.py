@@ -37,6 +37,8 @@ from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator
 from qgis.PyQt.QtGui import QIcon, QMovie
 from qgis.PyQt.QtWidgets import QAction
 
+import requests
+
 from .controller.config import Config
 # Import files exporting controls
 from .controller.files_export import FilesExport
@@ -218,6 +220,18 @@ class WTSSQgis:
         self.dlg.input_longitude.valueChanged.connect(self.checkFilters)
         self.dlg.input_latitude.valueChanged.connect(self.checkFilters)
         self.selectCoverage()
+
+    def wtss_connection_ok(self):
+        try:
+            _ = requests.get(Config.WTSS_HOST)
+            return True
+        except requests.ConnectionError as e:
+            controls = Controls()
+            controls.alert(
+                "error",
+                "WTSS Connection Error!", str(e)
+            )
+            return False
 
     def initLoadingControls(self):
         """Enable loading label."""
@@ -745,22 +759,23 @@ class WTSSQgis:
         try:
             # Init Application
             self.dlg = wtss_qgisDialog()
-            # Init Controls
-            self.initControls()
-            # Virtual Raster History
-            self.initRasterHistory()
-            # Output vrt path
-            self.initRasterPathControls()
-            # RGB Options
-            self.initRGBoptions()
-            # History
-            self.initHistory()
-            # Add icons to buttons
-            self.initIcons()
-            # Start loading label
-            self.initLoadingControls()
-            # Add functions to buttons
-            self.initButtons()
+            if self.wtss_connection_ok():
+                # Init Controls
+                self.initControls()
+                # Virtual Raster History
+                self.initRasterHistory()
+                # Output vrt path
+                self.initRasterPathControls()
+                # RGB Options
+                self.initRGBoptions()
+                # History
+                self.initHistory()
+                # Add icons to buttons
+                self.initIcons()
+                # Start loading label
+                self.initLoadingControls()
+                # Add functions to buttons
+                self.initButtons()
             # show the dialog
             self.dialogShow()
             # Methods to finish session
