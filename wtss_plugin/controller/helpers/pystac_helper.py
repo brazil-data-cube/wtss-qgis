@@ -20,13 +20,12 @@
 
 import os
 from copy import deepcopy
-from pathlib import Path
 from typing import List, Optional
 
 import pandas
 import pystac_client
 from osgeo import gdal
-from qgis.core import QgsApplication, QgsRasterLayer
+from qgis.core import QgsRasterLayer, QgsApplication, QgsProject
 
 from ..config import Config
 from ..wtss_qgis_controller import Controls
@@ -57,11 +56,18 @@ class STAC_ARGS:
         self.quick_look = False
         self.channels = Channels()
         self.vrt_history = []
-        self.raster_vrt_folder = str(self.get_raster_vrt_folder())
+        self.raster_vrt_folder = str(self.get_default_folder())
 
-    def get_raster_vrt_folder(self) -> str:
+    def get_default_folder(self) -> str:
         """Return the location path to save virtual rasters."""
-        return QgsApplication.qgisSettingsDirPath()
+        qgis_project_path = os.path.sep.join(
+            QgsProject.instance().fileName() \
+                .split(os.path.sep)[:-1]
+        )
+        if len(qgis_project_path) == 0:
+            return QgsApplication.qgisSettingsDirPath()
+        else:
+            return qgis_project_path
 
     def get_point_reference(self) -> any:
         """Return the coordinates as Geojson."""
@@ -77,7 +83,7 @@ class STAC_ARGS:
         """Update the location path to save virtual rasters."""
         new_raster_vrt_folder = str(new_raster_vrt_folder)
         last_item = new_raster_vrt_folder[len(new_raster_vrt_folder) - 1]
-        if (last_item == "/") or (last_item == "\\"):
+        if (last_item == os.path.sep):
             self.raster_vrt_folder = str(new_raster_vrt_folder[0: len(new_raster_vrt_folder) - 1])
         else:
             self.raster_vrt_folder = str(new_raster_vrt_folder)
@@ -88,11 +94,17 @@ class STAC_ARGS:
 
     def set_channels(self, service, config = "quicklook") -> None:
         collection = service.get_collection(stac_args.coverage)
+        metadata = collection.to_dict()
         rgb = []
-        if config == "quicklook":
-            rgb = collection.to_dict()["bdc:bands_quicklook"]
-        elif config == "true_color":
-            rgb = collection.to_dict()['properties']['bdc:visual']['rgb']
+        try:
+            if config == "quicklook":
+                rgb = metadata["bdc:bands_quicklook"]
+            elif config == "true_color":
+                rgb = metadata['properties']['bdc:visual']['rgb']
+        except:
+            bands_metadata = metadata['properties'].get('eo:bands', [])
+            bands = [band['name'] for band in bands_metadata]
+            rgb = [bands[0], bands[0], bands[0]]
         self.channels = Channels({
             "red": rgb[0],
             "green": rgb[1],
