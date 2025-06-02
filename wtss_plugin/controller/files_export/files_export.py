@@ -45,14 +45,20 @@ class ApplyTimeSeries:
 
     def _normalize(self, value):
         """Normalize the values of time series using missing value and scale factor."""
-        if value != self.band_description.get('missing_value'):
-            return value * self.band_description.get('scale_factor')
+        missing_value = self.band_description.get('missing_value')
+        scale_factor = self.band_description.get('scale_factor')
+        if value != missing_value:
+            if scale_factor:
+                return value * scale_factor
+            else:
+                return value
         else:
             return None
 
     def _set_NaN(self, value):
         """Set none to missing values of time series."""
-        if value != self.band_description.get('missing_value'):
+        missing_value = self.band_description.get('missing_value')
+        if value != missing_value:
             return value
         else:
             return None
