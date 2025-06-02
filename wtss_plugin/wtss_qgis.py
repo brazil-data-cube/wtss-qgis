@@ -219,7 +219,7 @@ class WTSSQgis:
         self.addCanvasControlPoint(self.enabled_click)
         self.dlg.input_longitude.valueChanged.connect(self.checkFilters)
         self.dlg.input_latitude.valueChanged.connect(self.checkFilters)
-        self.selectCoverage()
+        self.listCoverages()
 
     def wtss_connection_ok(self):
         try:
@@ -299,9 +299,8 @@ class WTSSQgis:
 
     def initRasterPathControls(self):
         """Init raster path location controls."""
-        self.enabled_output_path_raster_edit = False
-        self.dlg.user_output_path_raster.setText(str(stac_args.get_raster_vrt_folder()))
-        self.dlg.user_output_path_raster.setEnabled(self.enabled_output_path_raster_edit)
+        self.dlg.user_output_path_raster.setEnabled(False)
+        self.dlg.user_output_path_raster.setText(stac_args.raster_vrt_folder)
         self.dlg.change_output_path_raster.clicked.connect(self.updateOutputRasterPath)
 
     def initRGBoptions(self):
@@ -319,13 +318,11 @@ class WTSSQgis:
 
     def updateOutputRasterPath(self):
         """Update the output path for generated rasters."""
-        stac_args.update_raster_vrt_folder(self.dlg.user_output_path_raster.text())
-        self.enabled_output_path_raster_edit = not self.enabled_output_path_raster_edit
-        if self.enabled_output_path_raster_edit:
-            self.dlg.change_output_path_raster.setText('Save')
-        else:
-            self.dlg.change_output_path_raster.setText('Update')
-        self.dlg.user_output_path_raster.setEnabled(self.enabled_output_path_raster_edit)
+        qturl_request = QFileDialog.getExistingDirectoryUrl(
+            parent=self.dlg,
+            caption='Select a path to save virtual raster files'
+        )
+        stac_args.update_raster_vrt_folder(str(qturl_request.path()))
         self.dlg.user_output_path_raster.setText(stac_args.raster_vrt_folder)
 
     def updateRasterHistory(self):
@@ -333,11 +330,14 @@ class WTSSQgis:
         self.dlg.virtual_raster_list.clear()
         self.dlg.virtual_raster_list.addItems(stac_args.vrt_history)
 
-    def selectCoverage(self):
+    def listCoverages(self):
         """Fill the blank spaces with coverage metadata for selection."""
+        products = self.wtss_controls.listProducts()
         self.dlg.coverage_selection.clear()
-        self.dlg.coverage_selection.addItems(self.wtss_controls.listProducts())
+        self.dlg.coverage_selection.addItems(products)
+        self.dlg.coverage_selection.setCurrentIndex(0)
         self.dlg.coverage_selection.activated.connect(self.selectAtributtes)
+        self.selectAtributtes()
 
     def showCoverageDescription(self):
         """Show a information coverage window."""
@@ -776,10 +776,12 @@ class WTSSQgis:
                 self.initLoadingControls()
                 # Add functions to buttons
                 self.initButtons()
-            # show the dialog
-            self.dialogShow()
-            # Methods to finish session
-            self.dlg.finished.connect(self.finish_session)
+                # show the dialog
+                self.dialogShow()
+                # Methods to finish session
+                self.dlg.finished.connect(self.finish_session)
         except Exception as e:
+            # Exception raises error message and closes dialog
             controls = Controls()
             controls.alert("error", "Error while starting plugin!", str(e))
+            self.dlg.close()
