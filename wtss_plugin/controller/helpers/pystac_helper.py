@@ -82,11 +82,13 @@ class STAC_ARGS:
     def update_raster_vrt_folder(self, new_raster_vrt_folder) -> None:
         """Update the location path to save virtual rasters."""
         new_raster_vrt_folder = str(new_raster_vrt_folder)
-        last_item = new_raster_vrt_folder[len(new_raster_vrt_folder) - 1]
-        if (last_item == os.path.sep):
-            self.raster_vrt_folder = str(new_raster_vrt_folder[0: len(new_raster_vrt_folder) - 1])
-        else:
-            self.raster_vrt_folder = str(new_raster_vrt_folder)
+        prefix = new_raster_vrt_folder[:3]
+        posfix = new_raster_vrt_folder[len(new_raster_vrt_folder) - 1]
+        self.raster_vrt_folder = str(new_raster_vrt_folder)
+        if (prefix in ["/C:", "\\C:"]):
+            self.raster_vrt_folder = str(new_raster_vrt_folder[1:])
+        if (posfix in ["/", "\\"]):
+            self.raster_vrt_folder = str(new_raster_vrt_folder[:-1])
 
     def set_timeline(self, timeline: list[str]) -> None:
         """Return a datetime timeline."""
