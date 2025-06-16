@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>733</width>
-    <height>492</height>
+    <height>511</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,7 +25,7 @@
      <x>0</x>
      <y>0</y>
      <width>731</width>
-     <height>491</height>
+     <height>511</height>
     </rect>
    </property>
    <property name="tabPosition">
@@ -81,7 +81,7 @@
      <property name="geometry">
       <rect>
        <x>480</x>
-       <y>390</y>
+       <y>410</y>
        <width>241</width>
        <height>61</height>
       </rect>
@@ -124,7 +124,7 @@
        <x>480</x>
        <y>10</y>
        <width>241</width>
-       <height>371</height>
+       <height>391</height>
       </rect>
      </property>
      <property name="title">
@@ -136,7 +136,7 @@
         <x>10</x>
         <y>30</y>
         <width>221</width>
-        <height>331</height>
+        <height>351</height>
        </rect>
       </property>
       <property name="editTriggers">
@@ -223,7 +223,7 @@
      <property name="geometry">
       <rect>
        <x>90</x>
-       <y>420</y>
+       <y>440</y>
        <width>231</width>
        <height>25</height>
       </rect>
@@ -238,87 +238,11 @@
       <bool>false</bool>
      </property>
     </widget>
-    <widget class="QGroupBox" name="longitudelatitudeBox">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>340</y>
-       <width>451</width>
-       <height>71</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>Longitude / Latitude</string>
-     </property>
-     <widget class="QDoubleSpinBox" name="input_longitude">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>191</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="decimals">
-       <number>15</number>
-      </property>
-      <property name="minimum">
-       <double>-180.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>180.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>0.500000000000000</double>
-      </property>
-      <property name="value">
-       <double>0.000000000000000</double>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="zoom_selected_point">
-      <property name="geometry">
-       <rect>
-        <x>410</x>
-        <y>32</y>
-        <width>31</width>
-        <height>28</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-     <widget class="QDoubleSpinBox" name="input_latitude">
-      <property name="geometry">
-       <rect>
-        <x>210</x>
-        <y>30</y>
-        <width>191</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="decimals">
-       <number>15</number>
-      </property>
-      <property name="minimum">
-       <double>-90.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>90.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>0.500000000000000</double>
-      </property>
-      <property name="value">
-       <double>0.000000000000000</double>
-      </property>
-     </widget>
-    </widget>
     <widget class="QPushButton" name="show_help_button">
      <property name="geometry">
       <rect>
        <x>330</x>
-       <y>420</y>
+       <y>440</y>
        <width>31</width>
        <height>25</height>
       </rect>
@@ -363,8 +287,120 @@
       </property>
      </widget>
     </widget>
+    <widget class="QTabWidget" name="location_tabs">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>350</y>
+       <width>441</width>
+       <height>75</height>
+      </rect>
+     </property>
+     <property name="contextMenuPolicy">
+      <enum>Qt::NoContextMenu</enum>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="longlat_input_tab">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <attribute name="title">
+       <string>Longitude / Latitude</string>
+      </attribute>
+      <widget class="QDoubleSpinBox" name="input_longitude">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>8</y>
+         <width>181</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="decimals">
+        <number>15</number>
+       </property>
+       <property name="minimum">
+        <double>-180.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>180.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.500000000000000</double>
+       </property>
+       <property name="value">
+        <double>0.000000000000000</double>
+       </property>
+      </widget>
+      <widget class="QDoubleSpinBox" name="input_latitude">
+       <property name="geometry">
+        <rect>
+         <x>205</x>
+         <y>8</y>
+         <width>181</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="decimals">
+        <number>15</number>
+       </property>
+       <property name="minimum">
+        <double>-90.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>90.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.500000000000000</double>
+       </property>
+       <property name="value">
+        <double>0.000000000000000</double>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="zoom_selected_point">
+       <property name="geometry">
+        <rect>
+         <x>400</x>
+         <y>9</y>
+         <width>31</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="geometry_polygon_tab">
+      <attribute name="title">
+       <string>Geometry</string>
+      </attribute>
+      <widget class="QComboBox" name="available_layer_polygons">
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>10</y>
+         <width>261</width>
+         <height>25</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="available_layers">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>141</width>
+         <height>25</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+    </widget>
    </widget>
-   <widget class="QWidget" name="tab">
+   <widget class="QWidget" name="rasters_tab">
     <attribute name="title">
      <string>Virtual Raster Options</string>
     </attribute>
@@ -517,7 +553,7 @@
      <x>0</x>
      <y>0</y>
      <width>731</width>
-     <height>491</height>
+     <height>511</height>
     </rect>
    </property>
    <property name="text">
