@@ -37,6 +37,10 @@ from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator
 from qgis.PyQt.QtGui import QIcon, QMovie
 from qgis.PyQt.QtWidgets import QAction
 
+from shapely.wkt import loads, dumps
+
+from shapely import Point
+
 import requests
 
 from .controller.config import Config
@@ -217,15 +221,17 @@ class WTSSQgis:
                     geometry = feature.geometry()
                     if geometry is not None and not geometry.isEmpty():
                         available_items.append({
-                            'geometry': geometry.asWkt(),
+                            'geometry': loads(geometry.asWkt()).geoms[0],
                             'attributes': dict(zip(layer.fields().names(), feature.attributes()))
                         })
                 self.available_layers_polygons[layer.name()] = available_items
         self.dlg.available_layers.clear()
-        self.dlg.available_layers.addItems(list(self.available_layers_polygons.keys()))
+        available_layers_ = list(self.available_layers_polygons.keys())
+        self.dlg.available_layers.addItems(available_layers_)
         self.dlg.available_layers.setCurrentIndex(0)
         self.dlg.available_layers.activated.connect(self.getPolygonsFromSelectLayer)
-        self.getPolygonsFromSelectLayer()
+        if len(available_layers_) > 0:
+            self.getPolygonsFromSelectLayer()
 
     def initControls(self):
         """Init basic controls to generate files and manage services."""
@@ -283,6 +289,8 @@ class WTSSQgis:
         self.dlg.search_button.setIcon(icon)
         icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'zoom-icon.png'))
         self.dlg.zoom_selected_point.setIcon(icon)
+        icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'refresh-icon.png'))
+        self.dlg.refresh_layers.setIcon(icon)
         icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'save-icon.png'))
         self.dlg.export_result.setIcon(icon)
         self.points_layer_icon_path = str(Path(Config.BASE_DIR) / 'assets' / 'marker-icon.png')
@@ -294,6 +302,7 @@ class WTSSQgis:
         self.dlg.export_result.clicked.connect(self.exportAsType)
         self.dlg.zoom_selected_point.clicked.connect(self.zoom_to_selected_point)
         self.dlg.zoom_selected_point.setEnabled(True)
+        self.dlg.refresh_layers.clicked.connect(self.getAvailablePolygons)
         self.dlg.search_button.clicked.connect(self.getTimeSeriesButton)
         self.dlg.search_button.setEnabled(False)
         self.initExportOptions()
@@ -397,7 +406,7 @@ class WTSSQgis:
             key = lambda x:
                 datetime.strptime(x, '%Y-%m-%d')
         )
-        bands = description.get("attributes", {})
+        bands = description.attributes
         bands = sorted(bands, key = lambda d: d['name'])
         self.bands_checks = {}
         self.dlg.red_input.setEnabled(True)
@@ -461,8 +470,13 @@ class WTSSQgis:
             self.addCanvasControlPoint(True)
         elif index == 1:
             # 0 => Geometry tab selected
-            self.geom_search = True
-            self.addCanvasControlPoint(False)
+            if len(list(self.available_layers_polygons.keys())) > 0:
+                self.geom_search = True
+                self.addCanvasControlPoint(False)
+            else:
+                self.basic_controls.alert("warning", "Warning!", "No polygons to select!")
+                self.dlg.location_tabs.setCurrentIndex(0)
+                self.changeGeometryType(0)
         self.checkFilters()
 
     def getPolygonsFromSelectLayer(self):
@@ -491,13 +505,20 @@ class WTSSQgis:
     def loadTimeSeries(self):
         """Load time series product data from selected values."""
         try:
+            geometry = None
+            if self.geom_search:
+                geometry = self.selected_polygon
+            else:
+                geometry = Point(
+                    float(self.selected_location.get("long")),
+                    float(self.selected_location.get("lat"))
+                )
             time_series = self.wtss_controls.productTimeSeries(
                 str(self.dlg.coverage_selection.currentText()),
-                tuple(self.loadAtributtes()),
-                float(self.selected_location.get("long")),
-                float(self.selected_location.get("lat")),
+                list(self.loadAtributtes()),
                 str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
-                str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
+                str(self.dlg.end_date.date().toString('yyyy-MM-dd')),
+                geometry
             )
             if time_series == None:
                 self.basic_controls.alert("error", "requests.exceptions.HTTPError", "500 Server Error: INTERNAL SERVER ERROR!")
@@ -537,20 +558,23 @@ class WTSSQgis:
                 ),
                 filter='*.py'
             )
-            attributes = {
-                "host": str(self.wtss_controls.getService()),
-                "coverage": str(self.dlg.coverage_selection.currentText()),
-                "bands": tuple(self.loadAtributtes()),
-                "coordinates": {
-                    "crs": self.selected_location.get('crs'),
-                    "lat": self.selected_location.get('lat'),
-                    "long": self.selected_location.get('long')
-                },
-                "time_interval": {
-                    "start": str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
-                    "end": str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
+            if self.geom_search:
+                attributes = {}
+            else:
+                attributes = {
+                    "host": str(self.wtss_controls.getService()),
+                    "coverage": str(self.dlg.coverage_selection.currentText()),
+                    "bands": tuple(self.loadAtributtes()),
+                    "coordinates": {
+                        "crs": self.selected_location.get('crs'),
+                        "lat": self.selected_location.get('lat'),
+                        "long": self.selected_location.get('long')
+                    },
+                    "time_interval": {
+                        "start": str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
+                        "end": str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
+                    }
                 }
-            }
             self.files_controls.generateCode(name[0], attributes)
         except AttributeError as error:
             self.basic_controls.alert("warning", "AttributeError", str(error))
@@ -609,20 +633,17 @@ class WTSSQgis:
 
     def plotTimeSeries(self):
         """Generate the plot image with time series data."""
-        if self.geom_search:
-            print(self.selected_polygon)
+        time_series = self.loadTimeSeries()
+        if time_series.total_locations() > 0:
+            self.loadSTACArgs(time_series)
+            self.files_controls.generatePlotFig(
+                time_series = time_series,
+                bands_description = self.loadSelectedBands(),
+                normalize_data = self.normalize_data,
+                interpolate_data = self.interpolate_data
+            )
         else:
-            time_series = self.loadTimeSeries()
-            if time_series.get('result', {}).get("timeline", []) != []:
-                self.loadSTACArgs(time_series)
-                self.files_controls.generatePlotFig(
-                    time_series = time_series,
-                    bands_description = self.loadSelectedBands(),
-                    normalize_data = self.normalize_data,
-                    interpolate_data = self.interpolate_data
-                )
-            else:
-                self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
+            self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
 
     def exportAsType(self):
         """Export result based on combo box selection."""
@@ -845,32 +866,32 @@ class WTSSQgis:
 
     def run(self):
         """Run method that performs all the real work."""
-        try:
-            # Init Application
-            self.dlg = wtss_qgisDialog()
-            if self.wtss_connection_ok():
-                # Init Controls
-                self.initControls()
-                # Virtual Raster History
-                self.initRasterHistory()
-                # Output vrt path
-                self.initRasterPathControls()
-                # RGB Options
-                self.initRGBoptions()
-                # History
-                self.initHistory()
-                # Add icons to buttons
-                self.initIcons()
-                # Start loading label
-                self.initLoadingControls()
-                # Add functions to buttons
-                self.initButtons()
-                # show the dialog
-                self.dialogShow()
-                # Methods to finish session
-                self.dlg.finished.connect(self.finish_session)
-        except Exception as e:
-            # Exception raises error message and closes dialog
-            controls = Controls()
-            controls.alert("error", "Error while starting plugin!", str(e))
-            self.dlg.close()
+        # try:
+        # Init Application
+        self.dlg = wtss_qgisDialog()
+        if self.wtss_connection_ok():
+            # Init Controls
+            self.initControls()
+            # Virtual Raster History
+            self.initRasterHistory()
+            # Output vrt path
+            self.initRasterPathControls()
+            # RGB Options
+            self.initRGBoptions()
+            # History
+            self.initHistory()
+            # Add icons to buttons
+            self.initIcons()
+            # Start loading label
+            self.initLoadingControls()
+            # Add functions to buttons
+            self.initButtons()
+            # show the dialog
+            self.dialogShow()
+            # Methods to finish session
+            self.dlg.finished.connect(self.finish_session)
+        # except Exception as e:
+        #     # Exception raises error message and closes dialog
+        #     controls = Controls()
+        #     controls.alert("error", "Error while starting plugin!", str(e))
+        #     self.dlg.close()

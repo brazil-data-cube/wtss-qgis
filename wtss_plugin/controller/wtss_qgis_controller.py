@@ -145,7 +145,7 @@ class WTSS_Controls:
         """Return a dictionary with product description."""
         return self.wtss[product]
 
-    def productTimeSeries(self, product, bands, lon, lat, start_date, end_date):
+    def productTimeSeries(self, product, bands, start_date, end_date, geometry):
         """Return a dictionary with product time series data.
 
         :param product<string>: the product name.
@@ -158,10 +158,9 @@ class WTSS_Controls:
         try:
             time_series = self.wtss[product].ts(
                 attributes=bands,
-                longitude=lon,
-                latitude=lat,
-                start_date=start_date,
-                end_date=end_date
+                geom=geometry,
+                start_datetime=start_date,
+                end_datetime=end_date
             )
             return time_series
         except:

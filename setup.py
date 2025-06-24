@@ -64,7 +64,7 @@ install_requires = [
     'pandas>=2',
     'jsonschema>=3.2',
     'pystac-client>=0.8.3',
-    'wtss>=0.7.1'
+    'wtss==2.0.0a3'
 ]
 
 packages = find_packages()

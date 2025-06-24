@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>733</width>
+    <width>732</width>
     <height>511</height>
    </rect>
   </property>
@@ -314,8 +314,8 @@
         <rect>
          <x>10</x>
          <y>8</y>
-         <width>181</width>
-         <height>31</height>
+         <width>185</width>
+         <height>30</height>
         </rect>
        </property>
        <property name="decimals">
@@ -339,8 +339,8 @@
         <rect>
          <x>205</x>
          <y>8</y>
-         <width>181</width>
-         <height>31</height>
+         <width>185</width>
+         <height>30</height>
         </rect>
        </property>
        <property name="decimals">
@@ -380,10 +380,10 @@
       <widget class="QComboBox" name="available_layer_polygons">
        <property name="geometry">
         <rect>
-         <x>160</x>
-         <y>10</y>
-         <width>261</width>
-         <height>25</height>
+         <x>140</x>
+         <y>8</y>
+         <width>251</width>
+         <height>30</height>
         </rect>
        </property>
       </widget>
@@ -391,10 +391,23 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>10</y>
-         <width>141</width>
-         <height>25</height>
+         <y>8</y>
+         <width>121</width>
+         <height>30</height>
         </rect>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="refresh_layers">
+       <property name="geometry">
+        <rect>
+         <x>400</x>
+         <y>9</y>
+         <width>31</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
        </property>
       </widget>
      </widget>

@@ -29,6 +29,11 @@ import seaborn
 from ..helpers.pystac_helper import get_source_from_click
 from ..wtss_qgis_controller import Controls
 
+import pandas as pd
+
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
+
 
 class ApplyTimeSeries:
     """Methods to apply in time series in panda Series format.
@@ -91,14 +96,44 @@ class FilesFormat:
         return open(template, 'r').read()
 
     def to_dataframe(self, time_series):
-        """Convert time series dict to dataframe."""
-        time_series_df = pandas.DataFrame({
-            "Index": [pandas.to_datetime(date) for date in time_series['result']['timeline']]
-        })
-        for result in time_series["result"]["attributes"]:
-            band = str(result["attribute"])
-            time_series_df[band] = result.get("values")
-        return time_series_df
+        """Convert time series dict to dataframe to read."""
+        timeseries_df = time_series.df()
+        timeline = sorted(timeseries_df['datetime'])
+        start_date = timeline[0]
+        end_date = timeline[len(timeline) - 1]
+        cube = time_series.coverage.name
+        geom_list = list(set(timeseries_df["geometry"]))
+        bands = list(set(timeseries_df["attribute"]))
+        time_series_formatted = {
+            "sample_id": [],
+            "class": [],
+            "longitude": [],
+            "latitude": [],
+            "start_date": [],
+            "end_date": [],
+            "cube": [],
+            "time_series": []
+        }
+        for row in range(0, len(geom_list)):
+            time_series_formatted["sample_id"].append(row + 1)
+            time_series_formatted["class"].append("undefined")
+            time_series_formatted["longitude"].append(geom_list[row].x)
+            time_series_formatted["latitude"].append(geom_list[row].y)
+            time_series_formatted["start_date"].append(start_date)
+            time_series_formatted["end_date"].append(end_date)
+            time_series_formatted["cube"].append(cube)
+            grouped_by_geometry = timeseries_df.groupby(['geometry']).get_group(geom_list[row],)
+            time_series_ = {}
+            time_series_["Index"] = []
+            for band in bands:
+                grouped_by_band = grouped_by_geometry.groupby("attribute").get_group(band,).reset_index(drop=True).sort_values("datetime")
+                time_series_[band] = grouped_by_band["value"]
+                time_series_["Index"] = [date.strftime('%Y-%m-%d') for date in grouped_by_band["datetime"]]
+            time_series_formatted["time_series"].append(time_series_)
+        time_series_formatted = pd.DataFrame(time_series_formatted).sort_values("sample_id").reset_index(drop=True)
+        if time_series.query.geom.geometryType() == 'Point':
+            time_series_formatted = pd.DataFrame(time_series_formatted['time_series'][0]).sort_values("Index").reset_index(drop=True)
+        return time_series_formatted
 
     def apply_to_time_series(
             self, time_series: any,
@@ -205,14 +240,17 @@ class FilesExport:
         ):
         """Generate a JSON file with time series data."""
         try:
-            data = time_series
-            data.get('result')['timeline'] = [str(date_str) for date_str in time_series.get('result').get("timeline")]
-            data = self.files_format.apply_to_time_series(
-                data, "JSON", bands_description,
-                normalize_data, interpolate_data
-            )
-            with open(file_name, 'w') as outfile:
-                json.dump(data, outfile)
+            if time_series.query.geom.geometryType() == 'Polygon':
+                pass
+            else:
+                data = time_series
+                data.get('result')['timeline'] = [str(date_str) for date_str in time_series.get('result').get("timeline")]
+                data = self.files_format.apply_to_time_series(
+                    data, "JSON", bands_description,
+                    normalize_data, interpolate_data
+                )
+                with open(file_name, 'w') as outfile:
+                    json.dump(data, outfile)
         except FileNotFoundError:
             pass
 
@@ -224,12 +262,15 @@ class FilesExport:
         ):
         """Generate a CSV file with time series data."""
         try:
-            time_series_df = self.files_format.to_dataframe(time_series)
-            time_series_df = self.files_format.apply_to_time_series(
-                time_series_df, "DataFrame", bands_description,
-                normalize_data, interpolate_data
-            )
-            time_series_df.to_csv(file_name, index=False)
+            if time_series.query.geom.geometryType() == 'Polygon':
+                pass
+            else:
+                time_series_df = self.files_format.to_dataframe(time_series)
+                time_series_df = self.files_format.apply_to_time_series(
+                    time_series_df, "DataFrame", bands_description,
+                    normalize_data, interpolate_data
+                )
+                time_series_df.to_csv(file_name, index=False)
         except FileNotFoundError:
             pass
 
@@ -241,33 +282,36 @@ class FilesExport:
         ):
         """Generate an image .JPEG with time series data in a line chart."""
         try:
-            time_series_df = self.files_format.to_dataframe(time_series)
-            time_series_df = self.files_format.apply_to_time_series(
-                time_series_df, "DataFrame", bands_description,
-                normalize_data, interpolate_data
-            )
-            fig = plt.figure(figsize = (12, 5))
-            fig.suptitle(
-                ("Coverage {name} [{lng:,.7f}, {lat:,.7f}]\nWGS 84 EPSG:4326 ").format(
-                    name=str(time_series.get('query').get('coverage')),
-                    lng=time_series.get('query').get('longitude'),
-                    lat=time_series.get('query').get('latitude')
+            if time_series.query.geom.geometryType() == 'Polygon':
+                fig = plt.figure(figsize = (12, 5))
+                time_series.plot()
+            else:
+                time_series_df = self.files_format.to_dataframe(time_series)
+                time_series_df = self.files_format.apply_to_time_series(
+                    time_series_df, "DataFrame", bands_description,
+                    normalize_data, interpolate_data
                 )
-            )
-            seaborn.set_theme(style="darkgrid")
-            for band in self.files_format.get_bands_from_df(time_series_df):
-                seaborn.lineplot(
-                    data = time_series_df,
-                    x = "Index", y = band, label = band,
-                    markersize = 8, marker = 'o',
-                    linestyle = '-', picker = 10
+                fig = plt.figure(figsize = (12, 5))
+                fig.suptitle(
+                    ("Coverage {name}\n{geom}\nWGS 84 EPSG:4326 ").format(
+                        name=str(time_series.coverage.name),
+                        geom=str(time_series.query.geom)
+                    )
                 )
-            fig.canvas.mpl_connect('pick_event', get_source_from_click)
-            fig.autofmt_xdate()
-            plt.xlabel(None)
-            plt.ylabel(None)
-            plt.legend()
-            plt.show()
+                seaborn.set_theme(style="darkgrid")
+                for band in self.files_format.get_bands_from_df(time_series_df):
+                    seaborn.lineplot(
+                        data = time_series_df,
+                        x = "Index", y = band, label = band,
+                        markersize = 8, marker = 'o',
+                        linestyle = '-', picker = 10
+                    )
+                fig.canvas.mpl_connect('pick_event', get_source_from_click)
+                fig.autofmt_xdate()
+                plt.xlabel(None)
+                plt.ylabel(None)
+                plt.legend()
+                plt.show()
         except Exception as e:
             controls = Controls()
             controls.alert("error", "Error while generate an image!", str(e))
