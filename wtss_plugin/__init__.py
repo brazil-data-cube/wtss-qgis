@@ -18,7 +18,7 @@
 
 """Python QGIS Plugin for WTSS."""
 
-from .controller.helpers.installation_helper import InstallDependencies
+from .helpers.installation_helper import InstallDependencies
 
 installDependencies = InstallDependencies(__file__)
 
@@ -39,6 +39,9 @@ def classFactory(iface):
         #
         # Run packages installation
         installDependencies.run_install_pkgs_process(error_msg=error)
+        #
+        # Test imports of dependencies again
+        from .wtss_qgis import WTSSQgis
     #
     # Start plugin GUI
     return WTSSQgis(iface)

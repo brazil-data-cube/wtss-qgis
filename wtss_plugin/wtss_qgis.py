@@ -25,6 +25,7 @@ from pathlib import Path
 
 import pystac_client
 import qgis.utils
+import requests
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -36,20 +37,16 @@ from qgis.gui import QgsMapToolEmitPoint, QgsMapToolPan
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator
 from qgis.PyQt.QtGui import QIcon, QMovie
 from qgis.PyQt.QtWidgets import QAction
-
-from shapely.wkt import loads, dumps
-
 from shapely import Point
+from shapely.wkt import dumps, loads
 
-import requests
-
-from .controller.config import Config
-# Import files exporting controls
-from .controller.files_export import FilesExport
-# Import the STAC args
-from .controller.helpers.pystac_helper import stac_args
+from .config import Config
 # Import the controls for the plugin
 from .controller.wtss_qgis_controller import Controls, WTSS_Controls
+# Import files exporting controls
+from .helpers.files_export_helper import FilesExport
+# Import the STAC args
+from .helpers.pystac_helper import stac_args
 # Initialize Qt resources from file resources.py
 from .resources import *
 # Import the code for the dialog
@@ -470,6 +467,7 @@ class WTSSQgis:
             self.addCanvasControlPoint(True)
         elif index == 1:
             # 0 => Geometry tab selected
+            self.getAvailablePolygons()
             if len(list(self.available_layers_polygons.keys())) > 0:
                 self.geom_search = True
                 self.addCanvasControlPoint(False)
@@ -858,7 +856,7 @@ class WTSSQgis:
 
     def dialogShow(self):
         """Rules to start dialog."""
-        wtss_qgis = qgis.utils.plugins.get("wtss_qgis", None)
+        wtss_qgis = qgis.utils.plugins.get("wtss_plugin", None)
         if wtss_qgis and not wtss_qgis.dlg.isVisible():
             self.dlg.show()
         else:
@@ -866,32 +864,32 @@ class WTSSQgis:
 
     def run(self):
         """Run method that performs all the real work."""
-        # try:
-        # Init Application
-        self.dlg = wtss_qgisDialog()
-        if self.wtss_connection_ok():
-            # Init Controls
-            self.initControls()
-            # Virtual Raster History
-            self.initRasterHistory()
-            # Output vrt path
-            self.initRasterPathControls()
-            # RGB Options
-            self.initRGBoptions()
-            # History
-            self.initHistory()
-            # Add icons to buttons
-            self.initIcons()
-            # Start loading label
-            self.initLoadingControls()
-            # Add functions to buttons
-            self.initButtons()
-            # show the dialog
-            self.dialogShow()
-            # Methods to finish session
-            self.dlg.finished.connect(self.finish_session)
-        # except Exception as e:
-        #     # Exception raises error message and closes dialog
-        #     controls = Controls()
-        #     controls.alert("error", "Error while starting plugin!", str(e))
-        #     self.dlg.close()
+        try:
+            # Init Application
+            self.dlg = wtss_qgisDialog()
+            if self.wtss_connection_ok():
+                # Init Controls
+                self.initControls()
+                # Virtual Raster History
+                self.initRasterHistory()
+                # Output vrt path
+                self.initRasterPathControls()
+                # RGB Options
+                self.initRGBoptions()
+                # History
+                self.initHistory()
+                # Add icons to buttons
+                self.initIcons()
+                # Start loading label
+                self.initLoadingControls()
+                # Add functions to buttons
+                self.initButtons()
+                # show the dialog
+                self.dialogShow()
+                # Methods to finish session
+                self.dlg.finished.connect(self.finish_session)
+        except Exception as e:
+            # Exception raises error message and closes dialog
+            controls = Controls()
+            controls.alert("error", "Error while starting plugin!", str(e))
+            self.dlg.close()

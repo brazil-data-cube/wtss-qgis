@@ -18,12 +18,11 @@
 
 """Python QGIS Plugin for WTSS."""
 
-from pyproj import CRS, Proj, transform
 from PyQt5.QtCore import QDate
 from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox
-from wtss import *
+from wtss import WTSS
 
-from .config import Config
+from ..config import Config
 
 
 class Controls:
@@ -76,24 +75,6 @@ class Controls:
             int(date_string[5:-3]),
             int(date_string[8:])
         )
-
-    def transformProjection(self, projection, latitude, longitude):
-        """Transform any projection to EPSG:4326.
-
-        :param projection<string>: string format 'EPSG:4326'.
-        :param latitude<float>: the point latitude.
-        :param longitude<float>: the point longitude.
-        """
-        lat, lon = transform(
-            Proj(init=CRS.from_string(projection)),
-            Proj(init=CRS.from_string("EPSG:4326")),
-            latitude, longitude
-        )
-        return {
-            "lat": lat,
-            "long": lon,
-            "crs": "EPSG:4326"
-        }
 
     def formatCoverageDescription(self, description = None):
         """Get description from WTSS Server and format for show.

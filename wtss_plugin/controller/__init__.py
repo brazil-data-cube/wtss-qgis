@@ -18,5 +18,4 @@
 
 """Python QGIS Plugin for WTSS."""
 
-from .files_export.files_export import FilesExport
-from .wtss_qgis_controller import Controls, WTSS_Controls
+from .wtss_qgis_controller import Controls
