@@ -237,8 +237,6 @@ class WTSSQgis:
         self.basic_controls = Controls()
         self.wtss_controls = WTSS_Controls()
         self.files_controls = FilesExport()
-        self.normalize_data = True
-        self.interpolate_data = True
         self.enabled_click = True
         self.addCanvasControlPoint(self.enabled_click)
         self.dlg.location_tabs.currentChanged.connect(self.changeGeometryType)
@@ -591,13 +589,7 @@ class WTSSQgis:
             )
             time_series = self.loadTimeSeries()
             if time_series.get('result', {}).get("timeline", []) != []:
-                self.files_controls.generateCSV(
-                    file_name = name[0],
-                    time_series = time_series,
-                    bands_description = self.loadSelectedBands(),
-                    normalize_data = self.normalize_data,
-                    interpolate_data = self.interpolate_data
-                )
+                self.files_controls.generateCSV(name[0], time_series, bands_description = self.loadSelectedBands())
             else:
                 self.basic_controls.alert("warning", "Warning", "The times series service returns empty, no data to show!")
         except AttributeError as error:
@@ -617,13 +609,7 @@ class WTSSQgis:
             )
             time_series = self.loadTimeSeries()
             if time_series.get('result', {}).get("timeline", []) != []:
-                self.files_controls.generateJSON(
-                    file_name = name[0],
-                    time_series = time_series,
-                    bands_description = self.loadSelectedBands(),
-                    normalize_data = self.normalize_data,
-                    interpolate_data = self.interpolate_data
-                )
+                self.files_controls.generateJSON(name[0], time_series, bands_description = self.loadSelectedBands())
             else:
                 self.basic_controls.alert("warning", "Warning", "The times series service returns empty, no data to show!")
         except AttributeError as error:
@@ -634,12 +620,7 @@ class WTSSQgis:
         time_series = self.loadTimeSeries()
         if time_series.total_locations() > 0:
             self.loadSTACArgs(time_series)
-            self.files_controls.generatePlotFig(
-                time_series = time_series,
-                bands_description = self.loadSelectedBands(),
-                normalize_data = self.normalize_data,
-                interpolate_data = self.interpolate_data
-            )
+            self.files_controls.generatePlotFig(time_series, bands_description = self.loadSelectedBands())
         else:
             self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
 

@@ -33,35 +33,24 @@ from ..helpers.pystac_helper import get_source_from_click
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-
 class ApplyTimeSeries:
     """Methods to apply in time series in panda Series format.
 
     :Methods:
-        _normalize
         _set_NaN
         _interpolate
+        get_bands_from_df
+        apply_to_time_series_df
     """
 
-    def setBandDescription(self, band_description):
-        """Set the value for band description."""
-        self.band_description = band_description
-
-    def _normalize(self, value):
-        """Normalize the values of time series using missing value and scale factor."""
-        missing_value = self.band_description.get('missing_value')
-        scale_factor = self.band_description.get('scale_factor')
-        if value != missing_value:
-            if scale_factor:
-                return value * scale_factor
-            else:
-                return value
-        else:
-            return None
+    def __init__(self):
+        """Init the value for band description."""
+        self.bands_description = None
+        self.selected_band = None
 
     def _set_NaN(self, value):
         """Set none to missing values of time series."""
-        missing_value = self.band_description.get('missing_value')
+        missing_value = self.selected_band.get('nodata')
         if value != missing_value:
             return value
         else:
@@ -75,14 +64,28 @@ class ApplyTimeSeries:
             order = 2
         )
 
+    def get_bands_from_df(self, time_series_df: any):
+        """Get bands from time series DataFrame."""
+        bands = list(time_series_df.keys())
+        bands.remove("Index")
+        return bands
+
+    def interpolate_df(self, time_series):
+        """Apply normalize and interpolation to time series data."""
+        for band in self.get_bands_from_df(time_series):
+            self.selected_band = self.bands_description.get(band)
+            time_series[band] = time_series[band].apply(self._set_NaN)
+            time_series[band] = self._interpolate(time_series[band])
+        return time_series
+
 class FilesFormat:
     """Files Format Methods.
 
     :Methods:
         defaultCode
-        to_dataframe
-        apply_to_time_series
-        get_bands_from_df
+        format_time_series_df
+        format_time_series_df_to_json
+        get_values_time_series_df
     """
 
     def defaultCode(self):
@@ -94,7 +97,7 @@ class FilesFormat:
         )
         return open(template, 'r').read()
 
-    def to_dataframe(self, time_series):
+    def format_time_series_df(self, time_series):
         """Convert time series dict to dataframe to read."""
         timeseries_df = time_series.df()
         timeline = sorted(timeseries_df['datetime'])
@@ -121,56 +124,39 @@ class FilesFormat:
             time_series_formatted["start_date"].append(start_date)
             time_series_formatted["end_date"].append(end_date)
             time_series_formatted["cube"].append(cube)
+            time_series_formatted["time_series"].append(time_series_)
             grouped_by_geometry = timeseries_df.groupby(['geometry']).get_group(geom_list[row],)
             time_series_ = {}
             time_series_["Index"] = []
             for band in bands:
                 grouped_by_band = grouped_by_geometry.groupby("attribute").get_group(band,).reset_index(drop=True).sort_values("datetime")
                 time_series_[band] = grouped_by_band["value"]
-                time_series_["Index"] = [date.strftime('%Y-%m-%d') for date in grouped_by_band["datetime"]]
-            time_series_formatted["time_series"].append(time_series_)
+                time_series_["Index"] = grouped_by_band["datetime"]
         time_series_formatted = pd.DataFrame(time_series_formatted).sort_values("sample_id").reset_index(drop=True)
-        if time_series.query.geom.geometryType() == 'Point':
-            time_series_formatted = pd.DataFrame(time_series_formatted['time_series'][0]).sort_values("Index").reset_index(drop=True)
         return time_series_formatted
 
-    def apply_to_time_series(
-            self, time_series: any,
-            type: str,
-            bands_description: any,
-            normalize_data: bool,
-            interpolate_data: bool
-        ):
-        """Apply normalize and interpolation to time series data."""
-        apply_to_ts = ApplyTimeSeries()
-        if type == "DataFrame":
-            for band in self.get_bands_from_df(time_series):
-                apply_to_ts.setBandDescription(bands_description.get(band))
-                if normalize_data:
-                    time_series[band] = time_series[band].apply(apply_to_ts._normalize)
-                if interpolate_data:
-                    if not normalize_data:
-                        time_series[band] = time_series[band].apply(apply_to_ts._set_NaN)
-                    time_series[band] = apply_to_ts._interpolate(time_series[band])
-        elif type == "JSON":
-            for i in range(0, (len(time_series['result']['attributes']))):
-                band = time_series['result']['attributes'][i]['attribute']
-                band_values = time_series.get('result')['attributes'][i]['values']
-                apply_to_ts.setBandDescription(bands_description.get(band))
-                if normalize_data:
-                    band_values = list(pandas.Series(band_values).apply(apply_to_ts._normalize))
-                if interpolate_data:
-                    if not normalize_data:
-                        band_values = list(pandas.Series(band_values).apply(apply_to_ts._set_NaN))
-                    band_values = list(apply_to_ts._interpolate(pandas.Series(band_values)))
-                time_series['result']['attributes'][i]['values'] = band_values
-        return time_series
+    def format_time_series_df_to_json(self, time_series_df):
+        """Convert time series dataframe to json to read."""
+        time_series_formatted = {'samples': []}
+        for index in range(len(time_series_df['sample_id'])):
+            time_series_ = time_series_df['time_series'][index]
+            for key in time_series_.keys():
+                if key != 'Index':
+                    time_series_[key] = list(time_series_[key])
+                else:
+                    time_series_[key] = [date.strftime('%Y-%m-%d') for date in time_series_[key]]
+            time_series_formatted['samples'].append({
+                "sample_id": int(time_series_df['sample_id'][index]),
+                "longitude": float(time_series_df['longitude'][index]),
+                "latitude": float(time_series_df['latitude'][index]),
+                "cube": time_series_df['cube'][index],
+                "time_series": time_series_
+            })
+        return time_series_formatted
 
-    def get_bands_from_df(self, time_series_df: any):
-        """Get bands from time series DataFrame."""
-        bands = list(time_series_df.keys())
-        bands.remove("Index")
-        return bands
+    def get_values_time_series_df(self, time_series_df):
+        time_series_formatted = pd.DataFrame(time_series_df['time_series'][0]).sort_values("Index").reset_index(drop=True)
+        return time_series_formatted
 
 class FilesExport:
     """Exporting WTSS data in different formats.
@@ -184,6 +170,7 @@ class FilesExport:
     def __init__(self):
         """Set the default values for files format."""
         self.files_format = FilesFormat()
+        self.apply_ts = ApplyTimeSeries()
 
     def alert(self, type_message, title, text):
         """Show alert message box with a title and info.
@@ -249,65 +236,41 @@ class FilesExport:
         except FileNotFoundError:
             pass
 
-    def generateJSON(
-            self, file_name, time_series,
-            bands_description: any,
-            normalize_data: bool,
-            interpolate_data: bool
-        ):
+    def generateJSON(self, file_name, time_series, bands_description):
         """Generate a JSON file with time series data."""
         try:
             if time_series.query.geom.geometryType() == 'Polygon':
                 pass
             else:
-                data = time_series
-                data.get('result')['timeline'] = [str(date_str) for date_str in time_series.get('result').get("timeline")]
-                data = self.files_format.apply_to_time_series(
-                    data, "JSON", bands_description,
-                    normalize_data, interpolate_data
-                )
+                time_series_df = self.files_format.format_time_series_df(time_series)
+                data = self.files_format.format_time_series_df_to_json(time_series_df)
                 with open(file_name, 'w') as outfile:
                     json.dump(data, outfile)
         except FileNotFoundError:
             pass
 
-    def generateCSV(
-            self, file_name, time_series,
-            bands_description: any,
-            normalize_data: bool,
-            interpolate_data: bool
-        ):
+    def generateCSV(self, file_name, time_series, bands_description):
         """Generate a CSV file with time series data."""
         try:
             if time_series.query.geom.geometryType() == 'Polygon':
                 pass
             else:
-                time_series_df = self.files_format.to_dataframe(time_series)
-                time_series_df = self.files_format.apply_to_time_series(
-                    time_series_df, "DataFrame", bands_description,
-                    normalize_data, interpolate_data
-                )
+                time_series_df = self.files_format.format_time_series_df(time_series)
                 time_series_df.to_csv(file_name, index=False)
         except FileNotFoundError:
             pass
 
-    def generatePlotFig(
-            self, time_series,
-            bands_description: any,
-            normalize_data: bool,
-            interpolate_data: bool
-        ):
+    def generatePlotFig(self, time_series, bands_description):
         """Generate an image .JPEG with time series data in a line chart."""
         try:
+            self.apply_ts.bands_description = bands_description
             if time_series.query.geom.geometryType() == 'Polygon':
                 fig = plt.figure(figsize = (12, 5))
                 time_series.plot()
             else:
-                time_series_df = self.files_format.to_dataframe(time_series)
-                time_series_df = self.files_format.apply_to_time_series(
-                    time_series_df, "DataFrame", bands_description,
-                    normalize_data, interpolate_data
-                )
+                time_series_df = self.files_format.format_time_series_df(time_series)
+                time_series_df = self.files_format.get_values_time_series_df(time_series_df)
+                time_series_df = self.apply_ts.interpolate_df(time_series_df)
                 fig = plt.figure(figsize = (12, 5))
                 fig.suptitle(
                     ("Coverage {name}\n{geom}\nWGS 84 EPSG:4326 ").format(
@@ -316,7 +279,7 @@ class FilesExport:
                     )
                 )
                 seaborn.set_theme(style="darkgrid")
-                for band in self.files_format.get_bands_from_df(time_series_df):
+                for band in self.apply_ts.get_bands_from_df(time_series_df):
                     seaborn.lineplot(
                         data = time_series_df,
                         x = "Index", y = band, label = band,
