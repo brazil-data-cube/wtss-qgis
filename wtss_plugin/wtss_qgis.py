@@ -501,20 +501,12 @@ class WTSSQgis:
     def loadTimeSeries(self):
         """Load time series product data from selected values."""
         try:
-            geometry = None
-            if self.geom_search:
-                geometry = self.selected_polygon
-            else:
-                geometry = Point(
-                    float(self.selected_location.get("long")),
-                    float(self.selected_location.get("lat"))
-                )
             time_series = self.wtss_controls.productTimeSeries(
                 str(self.dlg.coverage_selection.currentText()),
                 list(self.loadAtributtes()),
                 str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
                 str(self.dlg.end_date.date().toString('yyyy-MM-dd')),
-                geometry
+                geometry = self.selected_location
             )
             if time_series == None:
                 self.basic_controls.alert("error", "requests.exceptions.HTTPError", "500 Server Error: INTERNAL SERVER ERROR!")
@@ -526,9 +518,8 @@ class WTSSQgis:
         """Load selected arguments for STAC search."""
         try:
             stac_args.qgis_project = QgsProject.instance()
-            stac_args.longitude = time_series.get('query').get('longitude')
-            stac_args.latitude = time_series.get('query').get('latitude')
-            stac_args.set_timeline(time_series.get('result').get("timeline"))
+            stac_args.geometry = self.selected_location
+            stac_args.set_timeline(time_series)
             self.loadRGBOptions()
         except:
             pass
@@ -563,8 +554,7 @@ class WTSSQgis:
                     "bands": tuple(self.loadAtributtes()),
                     "coordinates": {
                         "crs": self.selected_location.get('crs'),
-                        "lat": self.selected_location.get('lat'),
-                        "long": self.selected_location.get('long')
+                        "geometry": self.selected_location.wkt
                     },
                     "time_interval": {
                         "start": str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
@@ -642,18 +632,21 @@ class WTSSQgis:
 
     def getFromHistory(self, item):
         """Select location from history storage as selected location."""
-        selection = self.locations.get(item.text(), {})
-        if selection["type"] == "Polygon":
-            self.selected_polygon = selection['geometry']
-            self.geom_search = True
-        elif selection["type"] == "Point":
+        selection = self.locations.get(item.text(), None)
+        if selection.geometryType() == "Point":
             self.selected_location = selection
-            self.dlg.input_longitude.setValue(self.selected_location.get('long'))
-            self.dlg.input_latitude.setValue(self.selected_location.get('lat'))
-            self.draw_point(
-                self.selected_location.get('long'),
-                self.selected_location.get('lat')
-            )
+            print(self.selected_location)
+            if self.selected_location.geometryType() == 'Point':
+                self.dlg.input_longitude.setValue(self.selected_location.x)
+                self.dlg.input_latitude.setValue(self.selected_location.y)
+                self.draw_point(
+                    self.selected_location.x,
+                    self.selected_location.y
+                )
+        else:
+            self.selected_polygon = selection
+            self.selected_location = selection
+            self.geom_search = True
 
     def getTimeSeriesButton(self):
         """Get time series using canvas click or selected location"""
@@ -691,8 +684,8 @@ class WTSSQgis:
         if (self.dlg.input_longitude.value() != 0 and self.dlg.input_latitude.value() != 0):
             self.dlg.zoom_selected_point.setEnabled(True)
             self.zoom_to_point(
-                self.selected_location['long'],
-                self.selected_location['lat'],
+                self.selected_location.x,
+                self.selected_location.y,
                 scale = 0.1
             )
 
@@ -731,30 +724,11 @@ class WTSSQgis:
 
     def save_on_history(self, x = 0, y = 0, polygon = None):
         """Get lng/lat coordinates and save on history list."""
-        if self.geom_search:
-            self.locations[self.dlg.available_layer_polygons.currentText()] = {
-                'type' : 'Polygon',
-                'geometry' : self.selected_location,
-                'layer_name' : self.dlg.available_layers.currentText(),
-                'crs' : 'epsg:4326'
-            }
+        if not self.geom_search:
+            self.selected_location = Point(x, y)
         else:
-            self.getLayers()
-            layer_name = '<none>'
-            if self.layer:
-                layer_name = str(self.layer.name())
-            self.selected_location = {
-                'type': 'Point',
-                'long' : x,
-                'lat' : y,
-                'layer_name' : layer_name,
-                'crs' : 'epsg:4326'
-            }
-            history_key = str(("[{long:,.7f}, {lat:,.7f}]").format(
-                long = self.selected_location.get('long'),
-                lat = self.selected_location.get('lat')
-            ))
-            self.locations[history_key] = self.selected_location
+            self.selected_location = polygon
+        self.locations[self.selected_location.wkt] = self.selected_location
         locations_keys = list(self.locations.keys())
         self.dlg.history_list.clear()
         self.dlg.history_list.addItems(locations_keys)
@@ -840,6 +814,8 @@ class WTSSQgis:
         wtss_qgis = qgis.utils.plugins.get("wtss_plugin", None)
         if wtss_qgis and not wtss_qgis.dlg.isVisible():
             self.dlg.show()
+            self.dlg.raise_()
+            self.dlg.activateWindow()
         else:
             wtss_qgis.dlg.activateWindow()
 
@@ -847,7 +823,7 @@ class WTSSQgis:
         """Run method that performs all the real work."""
         try:
             # Init Application
-            self.dlg = wtss_qgisDialog()
+            self.dlg = wtss_qgisDialog(self.iface.mainWindow())
             if self.wtss_connection_ok():
                 # Init Controls
                 self.initControls()

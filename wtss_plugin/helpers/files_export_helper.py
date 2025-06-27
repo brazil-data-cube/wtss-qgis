@@ -124,7 +124,6 @@ class FilesFormat:
             time_series_formatted["start_date"].append(start_date)
             time_series_formatted["end_date"].append(end_date)
             time_series_formatted["cube"].append(cube)
-            time_series_formatted["time_series"].append(time_series_)
             grouped_by_geometry = timeseries_df.groupby(['geometry']).get_group(geom_list[row],)
             time_series_ = {}
             time_series_["Index"] = []
@@ -132,6 +131,7 @@ class FilesFormat:
                 grouped_by_band = grouped_by_geometry.groupby("attribute").get_group(band,).reset_index(drop=True).sort_values("datetime")
                 time_series_[band] = grouped_by_band["value"]
                 time_series_["Index"] = grouped_by_band["datetime"]
+            time_series_formatted["time_series"].append(time_series_)
         time_series_formatted = pd.DataFrame(time_series_formatted).sort_values("sample_id").reset_index(drop=True)
         return time_series_formatted
 

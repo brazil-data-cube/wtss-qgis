@@ -22,6 +22,8 @@ import os
 from copy import deepcopy
 from typing import List, Optional
 
+import shapely
+
 import pandas
 import pystac_client
 from osgeo import gdal
@@ -49,8 +51,7 @@ class STAC_ARGS:
     def __init__(self):
         self.qgis_project = None
         self.coverage = ""
-        self.longitude = 0
-        self.latitude = 0
+        self.geometry = None
         self.timeline = []
         self.quick_look = False
         self.channels = Channels()
@@ -68,15 +69,9 @@ class STAC_ARGS:
         else:
             return qgis_project_path
 
-    def get_point_reference(self) -> any:
+    def get_geometry_reference(self) -> any:
         """Return the coordinates as Geojson."""
-        return {
-            "type": "Point",
-            "coordinates": [
-                self.longitude,
-                self.latitude
-            ],
-        }
+        return shapely.to_geojson(self.geometry)
 
     def update_raster_vrt_folder(self, new_raster_vrt_folder) -> None:
         """Update the location path to save virtual rasters."""
@@ -89,9 +84,10 @@ class STAC_ARGS:
         if (posfix in ["/", "\\"]):
             self.raster_vrt_folder = str(new_raster_vrt_folder[:-1])
 
-    def set_timeline(self, timeline: list[str]) -> None:
+    def set_timeline(self, time_series) -> None:
         """Return a datetime timeline."""
-        self.timeline = [pandas.to_datetime(date) for date in timeline]
+        self.timeline = list(set(time_series.df()['datetime']))
+        self.timeline.sort()
 
     def set_channels(self, service, config = "quicklook") -> None:
         collection = service.get_collection(stac_args.coverage)
@@ -137,7 +133,7 @@ def get_source_from_click(event):
 
     item_search = service.search(
         collections = [stac_args.coverage],
-        intersects = stac_args.get_point_reference(),
+        intersects = stac_args.get_geometry_reference(),
         datetime = selected_time
     )
 
