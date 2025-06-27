@@ -22,10 +22,9 @@ import os
 from copy import deepcopy
 from typing import List, Optional
 
-import shapely
-
 import pandas
 import pystac_client
+import shapely
 from osgeo import gdal
 from qgis.core import QgsApplication, QgsProject, QgsRasterLayer
 
