@@ -128,7 +128,7 @@
       </rect>
      </property>
      <property name="title">
-      <string>Coordinates History (EPSG: 4326)</string>
+      <string>Geometry History</string>
      </property>
      <widget class="QListWidget" name="history_list">
       <property name="geometry">
@@ -290,9 +290,9 @@
     <widget class="QTabWidget" name="location_tabs">
      <property name="geometry">
       <rect>
-       <x>20</x>
+       <x>10</x>
        <y>350</y>
-       <width>441</width>
+       <width>451</width>
        <height>75</height>
       </rect>
      </property>
@@ -314,7 +314,7 @@
         <rect>
          <x>10</x>
          <y>8</y>
-         <width>185</width>
+         <width>190</width>
          <height>30</height>
         </rect>
        </property>
@@ -337,9 +337,9 @@
       <widget class="QDoubleSpinBox" name="input_latitude">
        <property name="geometry">
         <rect>
-         <x>205</x>
+         <x>208</x>
          <y>8</y>
-         <width>185</width>
+         <width>190</width>
          <height>30</height>
         </rect>
        </property>
@@ -362,8 +362,8 @@
       <widget class="QPushButton" name="zoom_selected_point">
        <property name="geometry">
         <rect>
-         <x>400</x>
-         <y>9</y>
+         <x>410</x>
+         <y>10</y>
          <width>31</width>
          <height>28</height>
         </rect>
@@ -377,12 +377,12 @@
       <attribute name="title">
        <string>Geometry</string>
       </attribute>
-      <widget class="QComboBox" name="available_layer_polygons">
+      <widget class="QComboBox" name="available_geometries">
        <property name="geometry">
         <rect>
          <x>140</x>
          <y>8</y>
-         <width>251</width>
+         <width>261</width>
          <height>30</height>
         </rect>
        </property>
@@ -400,8 +400,42 @@
       <widget class="QPushButton" name="refresh_layers">
        <property name="geometry">
         <rect>
-         <x>400</x>
+         <x>410</x>
          <y>9</y>
+         <width>31</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="WKT">
+      <attribute name="title">
+       <string>WKT</string>
+      </attribute>
+      <widget class="QLineEdit" name="selected_wkt">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>8</y>
+         <width>391</width>
+         <height>30</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>WKT String</string>
+       </property>
+       <property name="inputMask">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="refresh_wkt">
+       <property name="geometry">
+        <rect>
+         <x>410</x>
+         <y>8</y>
          <width>31</width>
          <height>28</height>
         </rect>

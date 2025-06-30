@@ -97,7 +97,7 @@ class FilesFormat:
         )
         return open(template, 'r').read()
 
-    def format_time_series_df(self, time_series):
+    def format_time_series_df(self, time_series, typed: bool = True):
         """Convert time series dict to dataframe to read."""
         timeseries_df = time_series.df()
         timeline = sorted(timeseries_df['datetime'])
@@ -129,8 +129,12 @@ class FilesFormat:
             time_series_["Index"] = []
             for band in bands:
                 grouped_by_band = grouped_by_geometry.groupby("attribute").get_group(band,).reset_index(drop=True).sort_values("datetime")
-                time_series_[band] = grouped_by_band["value"]
-                time_series_["Index"] = grouped_by_band["datetime"]
+                if typed:
+                    time_series_[band] = grouped_by_band["value"]
+                    time_series_["Index"] = grouped_by_band["datetime"]
+                else:
+                    time_series_[band] = list(grouped_by_band["value"])
+                    time_series_["Index"] = [date.strftime('%Y-%m-%d') for date in grouped_by_band["datetime"]]
             time_series_formatted["time_series"].append(time_series_)
         time_series_formatted = pd.DataFrame(time_series_formatted).sort_values("sample_id").reset_index(drop=True)
         return time_series_formatted
@@ -154,8 +158,8 @@ class FilesFormat:
             })
         return time_series_formatted
 
-    def get_values_time_series_df(self, time_series_df):
-        time_series_formatted = pd.DataFrame(time_series_df['time_series'][0]).sort_values("Index").reset_index(drop=True)
+    def get_values_time_series_df(self, time_series_df, line = 0):
+        time_series_formatted = pd.DataFrame(time_series_df['time_series'][line]).sort_values("Index").reset_index(drop=True)
         return time_series_formatted
 
 class FilesExport:
@@ -194,6 +198,10 @@ class FilesExport:
         """Set options to export result."""
         return ["CSV", "JSON", "Python"]
 
+    def checkResult(self, time_series):
+        """Check if the result is from a geometry."""
+        return time_series.query.geom.geometryType() in ['Polygon', 'MultiPoint']
+
     def generateCode(self, file_name, attributes):
         """Generate a python code file filling WTSS blank spaces.
 
@@ -215,47 +223,38 @@ class FilesExport:
         """
         try:
             bands_string = "("
-            for band in attributes.get("bands"):
+            for band in attributes.get("selected_bands"):
                 bands_string = bands_string + "'" + str(band) + "', "
             bands_string = bands_string[:len(bands_string)-2] + ")"
-            lat = str(attributes.get("coordinates").get("lat"))
-            lon = str(attributes.get("coordinates").get("long"))
-            mapping = {
-                "service_host": attributes.get("host"),
-                "selected_coverage": attributes.get("coverage"),
-                "selected_bands": bands_string,
-                "latitude" : lat,
-                "longitude" : lon,
-                "start_date" : attributes.get("time_interval").get("start"),
-                "end_date" : attributes.get("time_interval").get("end")
-            }
-            code_to_save = self.files_format.defaultCode().format(**mapping)
+            attributes["selected_bands"] = bands_string
+            code_to_save = self.files_format.defaultCode().format(**attributes)
             file = open(file_name, "w")
             file.write(code_to_save)
             file.close()
         except FileNotFoundError:
             pass
 
-    def generateJSON(self, file_name, time_series, bands_description):
+    def generateJSON(self, file_name, time_series):
         """Generate a JSON file with time series data."""
         try:
-            if time_series.query.geom.geometryType() == 'Polygon':
-                pass
-            else:
-                time_series_df = self.files_format.format_time_series_df(time_series)
-                data = self.files_format.format_time_series_df_to_json(time_series_df)
-                with open(file_name, 'w') as outfile:
-                    json.dump(data, outfile)
+            time_series_df = self.files_format.format_time_series_df(time_series)
+            data = self.files_format.format_time_series_df_to_json(time_series_df)
+            with open(file_name, 'w') as outfile:
+                json.dump(data, outfile)
         except FileNotFoundError:
             pass
 
     def generateCSV(self, file_name, time_series, bands_description):
         """Generate a CSV file with time series data."""
         try:
-            if time_series.query.geom.geometryType() == 'Polygon':
-                pass
+            self.apply_ts.bands_description = bands_description
+            if self.checkResult(time_series):
+                time_series_df = self.files_format.format_time_series_df(time_series, typed=False)
+                time_series_df.to_csv(file_name, index=False)
             else:
                 time_series_df = self.files_format.format_time_series_df(time_series)
+                time_series_df = self.files_format.get_values_time_series_df(time_series_df)
+                time_series_df = self.apply_ts.interpolate_df(time_series_df)
                 time_series_df.to_csv(file_name, index=False)
         except FileNotFoundError:
             pass
@@ -264,7 +263,7 @@ class FilesExport:
         """Generate an image .JPEG with time series data in a line chart."""
         try:
             self.apply_ts.bands_description = bands_description
-            if time_series.query.geom.geometryType() == 'Polygon':
+            if self.checkResult(time_series):
                 fig = plt.figure(figsize = (12, 5))
                 time_series.plot()
             else:

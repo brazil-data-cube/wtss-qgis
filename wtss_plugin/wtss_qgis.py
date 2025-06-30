@@ -37,7 +37,7 @@ from qgis.gui import QgsMapToolEmitPoint, QgsMapToolPan
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator
 from qgis.PyQt.QtGui import QIcon, QMovie
 from qgis.PyQt.QtWidgets import QAction
-from shapely import Point
+from shapely import Point, MultiPoint
 from shapely.wkt import dumps, loads
 
 from .config import Config
@@ -207,28 +207,44 @@ class WTSSQgis:
             self.iface.openURL(url, False)
         qgis.utils.showPluginHelp(packageName="wtss_qgis", filename="index", section="usage")
 
-    def getAvailablePolygons(self):
+    def buildMultiPoint(self, featureMultiPoints):
+        """Build a MultiPoint Object based on features list of a layer."""
+        multipoint_geometry = MultiPoint()
+        for feat in featureMultiPoints:
+            geoms = loads(feat.geometry().asWkt()).geoms
+            for geom in geoms:
+                multipoint_geometry = MultiPoint(list(multipoint_geometry.geoms) + [geom])
+        return multipoint_geometry
+
+    def getAvailableGeometries(self):
         """Get available layer from tree root."""
         instance_layers = QgsProject.instance().mapLayers().values()
-        self.available_layers_polygons = {}
+        self.available_geometries = {}
         for layer in instance_layers:
-            if isinstance(layer, QgsVectorLayer) and layer.geometryType() == 2:
-                available_items = []
-                for feature in layer.getFeatures():
-                    geometry = feature.geometry()
-                    if geometry is not None and not geometry.isEmpty():
-                        available_items.append({
-                            'geometry': loads(geometry.asWkt()).geoms[0],
-                            'attributes': dict(zip(layer.fields().names(), feature.attributes()))
-                        })
-                self.available_layers_polygons[layer.name()] = available_items
+            if isinstance(layer, QgsVectorLayer):
+                if  layer.geometryType() == 2:
+                    available_items = []
+                    for feature in layer.getFeatures():
+                        geometry = feature.geometry()
+                        if geometry is not None and not geometry.isEmpty():
+                            available_items.append({
+                                'geometry': loads(geometry.asWkt()).geoms[0],
+                                'attributes': dict(zip(layer.fields().names(), feature.attributes()))
+                            })
+                    self.available_geometries[layer.name()] = available_items
+                elif layer.geometryType() == 0 and layer.name() != Config.TEMPORARY_LAYER_NAME:
+                    geometry = self.buildMultiPoint(layer.getFeatures())
+                    self.available_geometries[layer.name()] = [{
+                        'geometry': geometry,
+                        'attributes': {'type': 'MultiPoint Geometry'}
+                    }]
         self.dlg.available_layers.clear()
-        available_layers_ = list(self.available_layers_polygons.keys())
+        available_layers_ = list(self.available_geometries.keys())
         self.dlg.available_layers.addItems(available_layers_)
         self.dlg.available_layers.setCurrentIndex(0)
-        self.dlg.available_layers.activated.connect(self.getPolygonsFromSelectLayer)
+        self.dlg.available_layers.activated.connect(self.getGeometriesFromSelectLayer)
         if len(available_layers_) > 0:
-            self.getPolygonsFromSelectLayer()
+            self.getGeometriesFromSelectLayer()
 
     def initControls(self):
         """Init basic controls to generate files and manage services."""
@@ -243,7 +259,7 @@ class WTSSQgis:
         self.dlg.input_longitude.valueChanged.connect(self.checkFilters)
         self.dlg.input_latitude.valueChanged.connect(self.checkFilters)
         self.listCoverages()
-        self.getAvailablePolygons()
+        self.getAvailableGeometries()
         self.changeGeometryType(0)
 
     def wtss_connection_ok(self):
@@ -286,6 +302,8 @@ class WTSSQgis:
         self.dlg.zoom_selected_point.setIcon(icon)
         icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'refresh-icon.png'))
         self.dlg.refresh_layers.setIcon(icon)
+        icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'refresh-icon.png'))
+        self.dlg.refresh_wkt.setIcon(icon)
         icon = QIcon(str(Path(Config.BASE_DIR) / 'assets' / 'save-icon.png'))
         self.dlg.export_result.setIcon(icon)
         self.points_layer_icon_path = str(Path(Config.BASE_DIR) / 'assets' / 'marker-icon.png')
@@ -297,7 +315,8 @@ class WTSSQgis:
         self.dlg.export_result.clicked.connect(self.exportAsType)
         self.dlg.zoom_selected_point.clicked.connect(self.zoom_to_selected_point)
         self.dlg.zoom_selected_point.setEnabled(True)
-        self.dlg.refresh_layers.clicked.connect(self.getAvailablePolygons)
+        self.dlg.refresh_layers.clicked.connect(self.getAvailableGeometries)
+        self.dlg.refresh_wkt.clicked.connect(self.validateWKT)
         self.dlg.search_button.clicked.connect(self.getTimeSeriesButton)
         self.dlg.search_button.setEnabled(False)
         self.initExportOptions()
@@ -312,13 +331,8 @@ class WTSSQgis:
         self.dlg.history_list.clear()
         self.points_layer = None
         self.points_layer_data_provider = None
-        self.selected_location = None
+        self.selected_geometry = None
         try:
-            new_locations = {}
-            for key in list(self.locations.keys()):
-                if self.locations[key]["type"] == "Point":
-                    new_locations[key] = self.locations[key]
-            self.locations = new_locations
             self.dlg.history_list.addItems(list(self.locations.keys()))
         except AttributeError:
             self.locations = {}
@@ -461,23 +475,31 @@ class WTSSQgis:
         """When geometry selection tab changed."""
         if index == 0:
             # 0 => Longitude / Latitude tab selected
+            self.wkt_string = False
             self.geom_search = False
             self.addCanvasControlPoint(True)
         elif index == 1:
             # 0 => Geometry tab selected
-            self.getAvailablePolygons()
-            if len(list(self.available_layers_polygons.keys())) > 0:
+            self.getAvailableGeometries()
+            if len(list(self.available_geometries.keys())) > 0:
+                self.wkt_string = False
                 self.geom_search = True
                 self.addCanvasControlPoint(False)
             else:
                 self.basic_controls.alert("warning", "Warning!", "No polygons to select!")
                 self.dlg.location_tabs.setCurrentIndex(0)
                 self.changeGeometryType(0)
+        elif index == 2:
+            self.dlg.selected_wkt.setText('')
+            self.dlg.selected_wkt.setPlaceholderText("WKT String...")
+            self.wkt_string = True
+            self.geom_search = False
+            self.selected_geometry = None
         self.checkFilters()
 
-    def getPolygonsFromSelectLayer(self):
+    def getGeometriesFromSelectLayer(self):
         """Get available polygons from selected layers."""
-        selected_layer_items = self.available_layers_polygons[self.dlg.available_layers.currentText()]
+        selected_layer_items = self.available_geometries[self.dlg.available_layers.currentText()]
         self.available_items_from_layer = {}
         for item in selected_layer_items:
             key = f'{self.dlg.available_layers.currentText()}: ('
@@ -487,16 +509,26 @@ class WTSSQgis:
                 key += f'{attr}:{value},'
             key += ")"
             self.available_items_from_layer[key] = item['geometry']
-        self.dlg.available_layer_polygons.clear()
-        self.dlg.available_layer_polygons.addItems(list(self.available_items_from_layer.keys()))
-        self.dlg.available_layer_polygons.setCurrentIndex(0)
-        self.dlg.available_layer_polygons.activated.connect(self.selectPolygon)
-        self.selectPolygon()
+        self.dlg.available_geometries.clear()
+        self.dlg.available_geometries.addItems(list(self.available_items_from_layer.keys()))
+        self.dlg.available_geometries.setCurrentIndex(0)
+        self.dlg.available_geometries.activated.connect(self.selectGeometry)
+        self.selectGeometry()
 
-    def selectPolygon(self):
+    def selectGeometry(self):
         """Select geometry from selected layer."""
-        self.selected_polygon = self.available_items_from_layer[self.dlg.available_layer_polygons.currentText()]
+        self.selected_geometry = self.available_items_from_layer[self.dlg.available_geometries.currentText()]
         self.checkFilters()
+
+    def validateWKT(self):
+        """Check if has a WKT string."""
+        try:
+            self.selected_geometry = loads(str(self.dlg.selected_wkt.text()))
+            if self.selected_geometry.geometryType() not in ['Polygon', 'MultiPoint']:
+                raise("Geometry not accepted")
+            self.checkFilters()
+        except Exception as e:
+            self.basic_controls.alert("error", "Error reading WKT string!", str(e))
 
     def loadTimeSeries(self):
         """Load time series product data from selected values."""
@@ -506,10 +538,12 @@ class WTSSQgis:
                 list(self.loadAtributtes()),
                 str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
                 str(self.dlg.end_date.date().toString('yyyy-MM-dd')),
-                geometry = self.selected_location
+                geometry = self.selected_geometry
             )
             if time_series == None:
                 self.basic_controls.alert("error", "requests.exceptions.HTTPError", "500 Server Error: INTERNAL SERVER ERROR!")
+            else:
+                self.save_on_history()
             return time_series
         except:
             return None
@@ -518,7 +552,7 @@ class WTSSQgis:
         """Load selected arguments for STAC search."""
         try:
             stac_args.qgis_project = QgsProject.instance()
-            stac_args.geometry = self.selected_location
+            stac_args.geometry = self.selected_geometry
             stac_args.set_timeline(time_series)
             self.loadRGBOptions()
         except:
@@ -545,22 +579,14 @@ class WTSSQgis:
                 ),
                 filter='*.py'
             )
-            if self.geom_search:
-                attributes = {}
-            else:
-                attributes = {
-                    "host": str(self.wtss_controls.getService()),
-                    "coverage": str(self.dlg.coverage_selection.currentText()),
-                    "bands": tuple(self.loadAtributtes()),
-                    "coordinates": {
-                        "crs": self.selected_location.get('crs'),
-                        "geometry": self.selected_location.wkt
-                    },
-                    "time_interval": {
-                        "start": str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
-                        "end": str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
-                    }
-                }
+            attributes = {
+                "service_host": str(self.wtss_controls.getService()),
+                "selected_coverage": str(self.dlg.coverage_selection.currentText()),
+                "selected_bands": tuple(self.loadAtributtes()),
+                "geometry": str(self.selected_geometry.wkt),
+                "start_date": str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
+                "end_date": str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
+            }
             self.files_controls.generateCode(name[0], attributes)
         except AttributeError as error:
             self.basic_controls.alert("warning", "AttributeError", str(error))
@@ -577,11 +603,12 @@ class WTSSQgis:
                 ),
                 filter='*.csv'
             )
-            time_series = self.loadTimeSeries()
-            if time_series.get('result', {}).get("timeline", []) != []:
-                self.files_controls.generateCSV(name[0], time_series, bands_description = self.loadSelectedBands())
-            else:
-                self.basic_controls.alert("warning", "Warning", "The times series service returns empty, no data to show!")
+            if name[0] != '':
+                time_series = self.loadTimeSeries()
+                if time_series.total_locations() > 0:
+                    self.files_controls.generateCSV(name[0], time_series, bands_description = self.loadSelectedBands())
+                else:
+                    self.basic_controls.alert("warning", "Warning", "The times series service returns empty, no data to show!")
         except AttributeError as error:
             self.basic_controls.alert("error", "AttributeError", str(error))
 
@@ -597,11 +624,12 @@ class WTSSQgis:
                 ),
                 filter='*.json'
             )
-            time_series = self.loadTimeSeries()
-            if time_series.get('result', {}).get("timeline", []) != []:
-                self.files_controls.generateJSON(name[0], time_series, bands_description = self.loadSelectedBands())
-            else:
-                self.basic_controls.alert("warning", "Warning", "The times series service returns empty, no data to show!")
+            if name[0] != '':
+                time_series = self.loadTimeSeries()
+                if time_series.total_locations() > 0:
+                    self.files_controls.generateJSON(name[0], time_series)
+                else:
+                    self.basic_controls.alert("warning", "Warning", "The times series service returns empty, no data to show!")
         except AttributeError as error:
             self.basic_controls.alert("error", "AttributeError", str(error))
 
@@ -634,23 +662,26 @@ class WTSSQgis:
         """Select location from history storage as selected location."""
         selection = self.locations.get(item.text(), None)
         if selection.geometryType() == "Point":
-            self.selected_location = selection
-            print(self.selected_location)
-            if self.selected_location.geometryType() == 'Point':
-                self.dlg.input_longitude.setValue(self.selected_location.x)
-                self.dlg.input_latitude.setValue(self.selected_location.y)
+            self.dlg.location_tabs.setCurrentIndex(0)
+            self.changeGeometryType(0)
+            self.selected_geometry = selection
+            if self.selected_geometry.geometryType() == 'Point':
+                self.dlg.input_longitude.setValue(self.selected_geometry.x)
+                self.dlg.input_latitude.setValue(self.selected_geometry.y)
                 self.draw_point(
-                    self.selected_location.x,
-                    self.selected_location.y
+                    self.selected_geometry.x,
+                    self.selected_geometry.y
                 )
         else:
-            self.selected_polygon = selection
-            self.selected_location = selection
+            self.dlg.location_tabs.setCurrentIndex(2)
+            self.changeGeometryType(2)
+            self.selected_geometry = selection
+            self.dlg.selected_wkt.setText(self.selected_geometry.wkt)
+            self.validateWKT()
             self.geom_search = True
 
     def getTimeSeriesButton(self):
         """Get time series using canvas click or selected location"""
-        self.display_point(None)
         try:
             self.plotTimeSeries()
         except AttributeError:
@@ -684,8 +715,8 @@ class WTSSQgis:
         if (self.dlg.input_longitude.value() != 0 and self.dlg.input_latitude.value() != 0):
             self.dlg.zoom_selected_point.setEnabled(True)
             self.zoom_to_point(
-                self.selected_location.x,
-                self.selected_location.y,
+                self.selected_geometry.x,
+                self.selected_geometry.y,
                 scale = 0.1
             )
 
@@ -702,7 +733,7 @@ class WTSSQgis:
         self.getLayers()
         if len(self.layers) > 0:
             self.setCRS()
-            points_layer_name = "wtss_coordinates_history"
+            points_layer_name = Config.TEMPORARY_LAYER_NAME
             points_layer_icon_size = 10
             try:
                 self.set_draw_point(longitude, latitude)
@@ -722,13 +753,9 @@ class WTSSQgis:
                 self.points_layer_data_provider = self.points_layer.dataProvider()
                 self.set_draw_point(longitude, latitude)
 
-    def save_on_history(self, x = 0, y = 0, polygon = None):
+    def save_on_history(self):
         """Get lng/lat coordinates and save on history list."""
-        if not self.geom_search:
-            self.selected_location = Point(x, y)
-        else:
-            self.selected_location = polygon
-        self.locations[self.selected_location.wkt] = self.selected_location
+        self.locations[self.selected_geometry.wkt] = self.selected_geometry
         locations_keys = list(self.locations.keys())
         self.dlg.history_list.clear()
         self.dlg.history_list.addItems(locations_keys)
@@ -736,24 +763,21 @@ class WTSSQgis:
 
     def display_point(self, pointTool):
         """Get the mouse possition and storage as selected location."""
-        if self.geom_search:
-            self.save_on_history(polygon=self.selected_polygon)
+        x = None
+        y = None
+        if pointTool == None:
+            x = self.dlg.input_longitude.value()
+            y = self.dlg.input_latitude.value()
         else:
-            x = None
-            y = None
-            if pointTool == None:
-                x = self.dlg.input_longitude.value()
-                y = self.dlg.input_latitude.value()
-            else:
-                x = float(pointTool.x())
-                y = float(pointTool.y())
-                self.dlg.input_longitude.setValue(x)
-                self.dlg.input_latitude.setValue(y)
-            try:
-                self.save_on_history(x, y)
-                self.draw_point(x, y)
-            except AttributeError:
-                pass
+            x = float(pointTool.x())
+            y = float(pointTool.y())
+            self.dlg.input_longitude.setValue(x)
+            self.dlg.input_latitude.setValue(y)
+        try:
+            self.selected_geometry = Point(x, y)
+            self.draw_point(x, y)
+        except AttributeError:
+            pass
 
     def addCanvasControlPoint(self, enable):
         """Generate a canvas area to get mouse position."""
@@ -780,7 +804,12 @@ class WTSSQgis:
         try:
             if (str(self.dlg.coverage_selection.currentText()) != '' and len(self.loadAtributtes()) > 0):
                 if self.geom_search:
-                    if (str(self.dlg.available_layers.currentText()) != '' and str(self.dlg.available_layer_polygons.currentText()) != ''):
+                    if (str(self.dlg.available_layers.currentText()) != '' and str(self.dlg.available_geometries.currentText()) != ''):
+                        self.enabledSearchButtons(True)
+                    else:
+                        self.enabledSearchButtons(False)
+                elif self.wkt_string:
+                    if self.selected_geometry != None:
                         self.enabledSearchButtons(True)
                     else:
                         self.enabledSearchButtons(False)

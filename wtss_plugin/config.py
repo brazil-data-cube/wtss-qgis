@@ -33,4 +33,6 @@ class Config:
 
     WTSS_HOST = os.getenv("WTSS_HOST", "https://data.inpe.br/bdc/wtss/v4/")
 
+    TEMPORARY_LAYER_NAME = os.getenv("TEMPORARY_LAYER_NAME", "wtss_coordinates_history")
+
     PYTHONPATH_WTSS_PLUGIN = os.getenv("PYTHONPATH_WTSS_PLUGIN", None)
