@@ -233,11 +233,14 @@ class WTSSQgis:
                             })
                     self.available_geometries[layer.name()] = available_items
                 elif layer.geometryType() == 0 and layer.name() != Config.TEMPORARY_LAYER_NAME:
-                    geometry = self.buildMultiPoint(layer.getFeatures())
-                    self.available_geometries[layer.name()] = [{
-                        'geometry': geometry,
-                        'attributes': {'type': 'MultiPoint Geometry'}
-                    }]
+                    try:
+                        geometry = self.buildMultiPoint(layer.getFeatures())
+                        self.available_geometries[layer.name()] = [{
+                            'geometry': geometry,
+                            'attributes': {'type': 'MultiPoint Geometry'}
+                        }]
+                    except:
+                        pass
         self.dlg.available_layers.clear()
         available_layers_ = list(self.available_geometries.keys())
         self.dlg.available_layers.addItems(available_layers_)
