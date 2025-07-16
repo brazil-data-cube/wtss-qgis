@@ -22,9 +22,8 @@ import json
 import os
 import warnings
 from pathlib import Path
-
+from datetime import datetime
 import matplotlib.pyplot as plt
-import pandas
 import pandas as pd
 import seaborn
 from PyQt5.QtWidgets import QMessageBox
@@ -159,8 +158,25 @@ class FilesFormat:
         return time_series_formatted
 
     def get_values_time_series_df(self, time_series_df, line = 0):
+        """Get time series dataframe based on line."""
         time_series_formatted = pd.DataFrame(time_series_df['time_series'][line]).sort_values("Index").reset_index(drop=True)
         return time_series_formatted
+
+    def get_aggregations(self, summarize_ts):
+        """Get available aggregations for summarize time series."""
+        return list(set(summarize_ts.df()['aggregation']))
+
+    def format_summarize_ts(self, summarize_ts, band):
+        """Format summarize data to plot in seaborn."""
+        result = getattr(summarize_ts, band)
+        aggregations = self.get_aggregations(summarize_ts)
+        dataframe = {
+            "Index": [datetime.strptime(date_, "%Y-%m-%d") for date_ in summarize_ts.timeline]
+        }
+        for aggregation in aggregations:
+            dataframe[aggregation] = getattr(result, aggregation)
+        return pd.DataFrame(dataframe)
+
 
 class FilesExport:
     """Exporting WTSS data in different formats.
@@ -196,7 +212,7 @@ class FilesExport:
 
     def getExportOptions(self):
         """Set options to export result."""
-        return ["CSV", "JSON", "Python"]
+        return ["CSV", "JSON", "Python", "MatPlotLib"]
 
     def checkResult(self, time_series):
         """Check if the result is from a geometry."""
@@ -259,13 +275,43 @@ class FilesExport:
         except FileNotFoundError:
             pass
 
+    def generateMatPlotFig(self, time_series):
+        """Generate using native method to plot for WTSS.py."""
+        try:
+            time_series.plot()
+        except Exception as e:
+            self.alert("error", "Error while generate the image!", str(e))
+
     def generatePlotFig(self, time_series, bands_description):
         """Generate an image .JPEG with time series data in a line chart."""
         try:
             self.apply_ts.bands_description = bands_description
             if self.checkResult(time_series):
-                fig = plt.figure(figsize = (12, 5))
-                time_series.plot()
+                selected_aggregations = ["max", "mean", "min"]
+                summarize = time_series.summarize()
+                for band_ in time_series.query.attributes:
+                    summarize_formatted = self.files_format.format_summarize_ts(summarize, band_)
+                    fig = plt.figure(figsize = (12, 5))
+                    fig.suptitle(
+                        ("Coverage {name} Aggregations for {band}").format(
+                            name=str(time_series.coverage.name),
+                            band=band_
+                        )
+                    )
+                    seaborn.set_theme(style="darkgrid")
+                    for aggregation in selected_aggregations:
+                        seaborn.lineplot(
+                            data = summarize_formatted,
+                            x = "Index", y = aggregation, label = aggregation,
+                            markersize = 8, marker = 'o',
+                            linestyle = '-', picker = 10
+                        )
+                    fig.canvas.mpl_connect('pick_event', get_source_from_click)
+                    fig.autofmt_xdate()
+                    plt.xlabel(None)
+                    plt.ylabel(None)
+                    plt.legend()
+                    plt.show()
             else:
                 time_series_df = self.files_format.format_time_series_df(time_series)
                 time_series_df = self.files_format.get_values_time_series_df(time_series_df)
@@ -292,4 +338,4 @@ class FilesExport:
                 plt.legend()
                 plt.show()
         except Exception as e:
-            self.alert("error", "Error while generate an image!", str(e))
+            self.alert("error", "Error while generate the image!", str(e))

@@ -473,11 +473,14 @@ class WTSSQgis:
 
     def changeGeometryType(self, index):
         """When geometry selection tab changed."""
+        self.selected_geometry = None
         if index == 0:
             # 0 => Longitude / Latitude tab selected
             self.wkt_string = False
             self.geom_search = False
             self.addCanvasControlPoint(True)
+            self.dlg.input_longitude.setValue(0)
+            self.dlg.input_latitude.setValue(0)
         elif index == 1:
             # 0 => Geometry tab selected
             self.getAvailableGeometries()
@@ -494,7 +497,7 @@ class WTSSQgis:
             self.dlg.selected_wkt.setPlaceholderText("WKT String...")
             self.wkt_string = True
             self.geom_search = False
-            self.selected_geometry = None
+            self.addCanvasControlPoint(False)
         self.checkFilters()
 
     def getGeometriesFromSelectLayer(self):
@@ -567,30 +570,6 @@ class WTSSQgis:
         except:
             pass
 
-    def exportPython(self):
-        """Export python code to file system filling blank spaces with coverage metadata."""
-        try:
-            name = QFileDialog.getSaveFileName(
-                parent=self.dlg,
-                caption='Save as python code',
-                directory=('{coverage}.{end}.py').format(
-                    coverage=str(self.dlg.coverage_selection.currentText()),
-                    end=str(self.dlg.end_date.date().toString('yyyy.MM.dd'))
-                ),
-                filter='*.py'
-            )
-            attributes = {
-                "service_host": str(self.wtss_controls.getService()),
-                "selected_coverage": str(self.dlg.coverage_selection.currentText()),
-                "selected_bands": tuple(self.loadAtributtes()),
-                "geometry": str(self.selected_geometry.wkt),
-                "start_date": str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
-                "end_date": str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
-            }
-            self.files_controls.generateCode(name[0], attributes)
-        except AttributeError as error:
-            self.basic_controls.alert("warning", "AttributeError", str(error))
-
     def exportCSV(self):
         """Export to file system times series data in CSV."""
         try:
@@ -633,6 +612,39 @@ class WTSSQgis:
         except AttributeError as error:
             self.basic_controls.alert("error", "AttributeError", str(error))
 
+    def exportPython(self):
+        """Export python code to file system filling blank spaces with coverage metadata."""
+        try:
+            name = QFileDialog.getSaveFileName(
+                parent=self.dlg,
+                caption='Save as python code',
+                directory=('{coverage}.{end}.py').format(
+                    coverage=str(self.dlg.coverage_selection.currentText()),
+                    end=str(self.dlg.end_date.date().toString('yyyy.MM.dd'))
+                ),
+                filter='*.py'
+            )
+            attributes = {
+                "service_host": str(self.wtss_controls.getService()),
+                "selected_coverage": str(self.dlg.coverage_selection.currentText()),
+                "selected_bands": tuple(self.loadAtributtes()),
+                "geometry": str(self.selected_geometry.wkt),
+                "start_date": str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
+                "end_date": str(self.dlg.end_date.date().toString('yyyy-MM-dd'))
+            }
+            self.files_controls.generateCode(name[0], attributes)
+        except AttributeError as error:
+            self.basic_controls.alert("warning", "AttributeError", str(error))
+
+    def plotMatLib(self):
+        """Generate the plot image using native method for WTSS.py."""
+        try:
+            time_series = self.loadTimeSeries()
+            if time_series.total_locations() > 0:
+                self.files_controls.generateMatPlotFig(time_series)
+        except:
+            self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
+
     def plotTimeSeries(self):
         """Generate the plot image with time series data."""
         time_series = self.loadTimeSeries()
@@ -651,6 +663,8 @@ class WTSSQgis:
             self.exportJSON()
         elif ext == "Python":
             self.exportPython()
+        elif ext == "MatPlotLib":
+            self.plotMatLib()
 
     def getLayers(self):
         """Storage the layers in QGIS project."""
@@ -714,9 +728,10 @@ class WTSSQgis:
         self.addCanvasControlPoint(self.enabled_click)
         if (self.dlg.input_longitude.value() != 0 and self.dlg.input_latitude.value() != 0):
             self.dlg.zoom_selected_point.setEnabled(True)
+            self.draw_point(self.dlg.input_longitude.value(), self.dlg.input_latitude.value())
             self.zoom_to_point(
-                self.selected_geometry.x,
-                self.selected_geometry.y,
+                self.dlg.input_longitude.value(),
+                self.dlg.input_latitude.value(),
                 scale = 0.1
             )
 
