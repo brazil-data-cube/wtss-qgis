@@ -83,7 +83,7 @@ setup(
     keywords=['Time Series Service', 'GIS', 'QGIS'],
     license='GPLv3',
     author='Brazil Data Cube Team',
-    author_email='brazildatacube@inpe.br',
+    author_email='bdc.team@inpe.br',
     url='https://github.com/brazil-data-cube/wtss-qgis',
     packages=packages,
     zip_safe=False,
