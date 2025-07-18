@@ -859,18 +859,16 @@ class WTSSQgis:
     def dialogShow(self):
         """Rules to start dialog."""
         wtss_qgis = qgis.utils.plugins.get("wtss_plugin", None)
-        if wtss_qgis and not wtss_qgis.dlg.isVisible():
-            self.dlg.show()
-            self.dlg.raise_()
-            self.dlg.activateWindow()
+        if wtss_qgis:
+            wtss_qgis.dlg.show()
         else:
-            wtss_qgis.dlg.activateWindow()
+            self.dlg.show()
 
     def run(self):
         """Run method that performs all the real work."""
         try:
             # Init Application
-            self.dlg = wtss_qgisDialog(self.iface.mainWindow())
+            self.dlg = wtss_qgisDialog()
             if self.wtss_connection_ok():
                 # Init Controls
                 self.initControls()

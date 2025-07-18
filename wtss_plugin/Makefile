@@ -56,7 +56,7 @@ PY_FILES = \
 
 UI_FILES = wtss_qgis_dialog_base.ui
 
-EXTRAS = metadata.txt icon.png
+EXTRAS = metadata.txt assets/icon.png
 
 COMPILED_RESOURCE_FILES = resources.py
 
