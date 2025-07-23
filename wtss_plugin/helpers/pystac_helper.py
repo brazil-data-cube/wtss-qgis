@@ -22,7 +22,6 @@ import os
 from copy import deepcopy
 from typing import List, Optional
 
-import pandas
 import pystac_client
 import shapely
 from osgeo import gdal
@@ -137,48 +136,48 @@ def get_source_from_click(event):
     )
 
     items = list(item_search.items())
-    item = items[0]
 
-    assets = item.assets
+    for item in items:
+        assets = item.assets
 
-    rgb_href = {}
-    channels = stac_args.channels
-    for channel in ['red', 'green', 'blue']:
-        band = getattr(channels, channel)
-        href = assets.get(band).href
-        rgb_href[channel] = f'/vsicurl/{href}'
+        rgb_href = {}
+        channels = stac_args.channels
+        for channel in ['red', 'green', 'blue']:
+            band = getattr(channels, channel)
+            href = assets.get(band).href
+            rgb_href[channel] = f'/vsicurl/{href}'
 
-    layer_name = f'{item.id}_{stac_args.channels.red}_{stac_args.channels.green}_{stac_args.channels.blue}'
+        layer_name = f'{item.id}_{stac_args.channels.red}_{stac_args.channels.green}_{stac_args.channels.blue}'
 
-    vrt_raster_file = str(os.path.join(stac_args.raster_vrt_folder, f'{layer_name}.vrt'))
+        vrt_raster_file = str(os.path.join(stac_args.raster_vrt_folder, f'{layer_name}.vrt'))
 
-    vrt_raster_file = stac_args.build_gdal_vrt_raster(
-        vrt_raster_file,
-        [
-            rgb_href['red'],
-            rgb_href['green'],
-            rgb_href['blue']
-        ],
-        resampleAlg = 'nearest',
-        addAlpha = False,
-        separate = True
-    )
+        vrt_raster_file = stac_args.build_gdal_vrt_raster(
+            vrt_raster_file,
+            [
+                rgb_href['red'],
+                rgb_href['green'],
+                rgb_href['blue']
+            ],
+            resampleAlg = 'nearest',
+            addAlpha = False,
+            separate = True
+        )
 
-    if vrt_raster_file:
-        layer_names = [
-            layer.name()
-            for layer in stac_args.qgis_project.mapLayers().values()
-        ]
-        if layer_name not in layer_names:
-            stac_args.vrt_history.append(layer_name)
-            stac_args.qgis_project.addMapLayer(
-                QgsRasterLayer(vrt_raster_file, layer_name), True
-            )
-    else:
-        from PyQt5.QtWidgets import QMessageBox
+        if vrt_raster_file:
+            layer_names = [
+                layer.name()
+                for layer in stac_args.qgis_project.mapLayers().values()
+            ]
+            if layer_name not in layer_names:
+                stac_args.vrt_history.append(layer_name)
+                stac_args.qgis_project.addMapLayer(
+                    QgsRasterLayer(vrt_raster_file, layer_name), True
+                )
+        else:
+            from PyQt5.QtWidgets import QMessageBox
 
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Critical)
-        msg.setText("Data not found!", "Could not find the request data.")
-        msg.setStandardButtons(QMessageBox.Ok)
-        msg.exec_()
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Data not found!", "Could not find the request data.")
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.exec_()

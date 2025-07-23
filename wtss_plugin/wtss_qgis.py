@@ -37,7 +37,7 @@ from qgis.gui import QgsMapToolEmitPoint, QgsMapToolPan
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator
 from qgis.PyQt.QtGui import QIcon, QMovie
 from qgis.PyQt.QtWidgets import QAction
-from shapely import Point, MultiPoint
+from shapely import MultiPoint, Point
 from shapely.wkt import dumps, loads
 
 from .config import Config
@@ -492,7 +492,7 @@ class WTSSQgis:
                 self.geom_search = True
                 self.addCanvasControlPoint(False)
             else:
-                self.basic_controls.alert("warning", "Warning!", "No polygons to select!")
+                self.basic_controls.alert("warning", "Warning!", "No geometry to select!")
                 self.dlg.location_tabs.setCurrentIndex(0)
                 self.changeGeometryType(0)
         elif index == 2:

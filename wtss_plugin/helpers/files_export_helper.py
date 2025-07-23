@@ -21,8 +21,9 @@
 import json
 import os
 import warnings
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn
@@ -310,7 +311,7 @@ class FilesExport:
                     fig.autofmt_xdate()
                     plt.xlabel(None)
                     plt.ylabel(None)
-                    plt.legend()
+                    plt.legend(loc='upper right')
                     plt.show()
             else:
                 time_series_df = self.files_format.format_time_series_df(time_series)
@@ -335,7 +336,7 @@ class FilesExport:
                 fig.autofmt_xdate()
                 plt.xlabel(None)
                 plt.ylabel(None)
-                plt.legend()
+                plt.legend(loc='upper right')
                 plt.show()
         except Exception as e:
             self.alert("error", "Error while generate the image!", str(e))
