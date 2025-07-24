@@ -81,14 +81,9 @@ class Controls:
 
         :param description<dict>: description object from wtss.
         """
-        return "{description}\n\n{spatial}".format(
-            description=str(description.get("description")),
-            spatial= "*Dimensions*\n\nXmin: {xmin:,.2f}\nXmax: {xmax:,.2f}\nYmin: {ymin:,.2f}\nYmax: {ymax:,.2f}".format(
-                xmin=description.get("spatial_extent").get("xmin"),
-                xmax=description.get("spatial_extent").get("xmax"),
-                ymin=description.get("spatial_extent").get("ymin"),
-                ymax=description.get("spatial_extent").get("ymax")
-            )
+        description_dict = dict(description)
+        return "{description}".format(
+            description=str(description_dict.get('description')),
         )
 
 class WTSS_Controls:
@@ -120,7 +115,10 @@ class WTSS_Controls:
 
     def listProducts(self):
         """Return a dictionary with the list of available products."""
-        return self.wtss.coverages
+        coverages_dict = {}
+        for coverage in self.wtss.coverages:
+            coverages_dict[dict(self.wtss[coverage])['title']] = coverage
+        return coverages_dict
 
     def productDescription(self, product):
         """Return a dictionary with product description."""

@@ -283,7 +283,7 @@ class FilesExport:
         except Exception as e:
             self.alert("error", "Error while generate the image!", str(e))
 
-    def generatePlotFig(self, time_series, bands_description):
+    def generatePlotFig(self, time_series, select_coverage, bands_description):
         """Generate an image .JPEG with time series data in a line chart."""
         try:
             self.apply_ts.bands_description = bands_description
@@ -293,12 +293,9 @@ class FilesExport:
                 for band_ in time_series.query.attributes:
                     summarize_formatted = self.files_format.format_summarize_ts(summarize, band_)
                     fig = plt.figure(figsize = (12, 5))
-                    fig.suptitle(
-                        ("Coverage {name} Aggregations for {band}").format(
-                            name=str(time_series.coverage.name),
-                            band=band_
-                        )
-                    )
+                    fig.suptitle(("Coverage {name} Aggregations for {band}").format(
+                        name=select_coverage, band=band_
+                    ))
                     seaborn.set_theme(style="darkgrid")
                     for aggregation in selected_aggregations:
                         seaborn.lineplot(
@@ -311,19 +308,18 @@ class FilesExport:
                     fig.autofmt_xdate()
                     plt.xlabel(None)
                     plt.ylabel(None)
-                    plt.legend(loc='upper right')
+                    plt.legend(
+                        bbox_to_anchor=(1.01, 1),
+                        loc='upper left',
+                        borderaxespad=0
+                    )
                     plt.show()
             else:
                 time_series_df = self.files_format.format_time_series_df(time_series)
                 time_series_df = self.files_format.get_values_time_series_df(time_series_df)
                 time_series_df = self.apply_ts.interpolate_df(time_series_df)
                 fig = plt.figure(figsize = (12, 5))
-                fig.suptitle(
-                    ("Coverage {name}\n{geom}\nWGS 84 EPSG:4326 ").format(
-                        name=str(time_series.coverage.name),
-                        geom=str(time_series.query.geom)
-                    )
-                )
+                fig.suptitle(("Time Series for {name}").format(name = select_coverage))
                 seaborn.set_theme(style="darkgrid")
                 for band in self.apply_ts.get_bands_from_df(time_series_df):
                     seaborn.lineplot(
@@ -336,7 +332,11 @@ class FilesExport:
                 fig.autofmt_xdate()
                 plt.xlabel(None)
                 plt.ylabel(None)
-                plt.legend(loc='upper right')
+                plt.legend(
+                    bbox_to_anchor=(1.01, 1),
+                    loc='upper left',
+                    borderaxespad=0
+                )
                 plt.show()
         except Exception as e:
             self.alert("error", "Error while generate the image!", str(e))

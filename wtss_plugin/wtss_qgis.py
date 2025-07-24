@@ -379,18 +379,22 @@ class WTSSQgis:
         self.dlg.virtual_raster_list.clear()
         self.dlg.virtual_raster_list.addItems(stac_args.vrt_history)
 
+    def getSelectedCoverage(self):
+        """Get the selected coverage based on title."""
+        return self.products[str(self.dlg.coverage_selection.currentText())]
+
     def listCoverages(self):
         """Fill the blank spaces with coverage metadata for selection."""
-        products = self.wtss_controls.listProducts()
+        self.products = self.wtss_controls.listProducts()
         self.dlg.coverage_selection.clear()
-        self.dlg.coverage_selection.addItems(products)
+        self.dlg.coverage_selection.addItems(list(self.products.keys()))
         self.dlg.coverage_selection.setCurrentIndex(0)
         self.dlg.coverage_selection.activated.connect(self.selectAtributtes)
         self.selectAtributtes()
 
     def showCoverageDescription(self):
         """Show a information coverage window."""
-        selected_coverage = str(self.dlg.coverage_selection.currentText())
+        selected_coverage = self.getSelectedCoverage()
         if selected_coverage:
             self.basic_controls.alert(
                 "info",
@@ -405,9 +409,9 @@ class WTSSQgis:
         self.widget = QWidget()
         self.vbox = QVBoxLayout()
         description = self.wtss_controls.productDescription(
-            str(self.dlg.coverage_selection.currentText())
+            self.getSelectedCoverage()
         )
-        stac_args.coverage = str(self.dlg.coverage_selection.currentText())
+        stac_args.coverage = self.getSelectedCoverage()
         stac_args.set_channels(
             pystac_client.Client.open(Config.STAC_HOST),
             config = "true_color"
@@ -540,7 +544,7 @@ class WTSSQgis:
         """Load time series product data from selected values."""
         try:
             time_series = self.wtss_controls.productTimeSeries(
-                str(self.dlg.coverage_selection.currentText()),
+                self.getSelectedCoverage(),
                 list(self.loadAtributtes()),
                 str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
                 str(self.dlg.end_date.date().toString('yyyy-MM-dd')),
@@ -580,7 +584,7 @@ class WTSSQgis:
                 parent=self.dlg,
                 caption='Save as CSV',
                 directory=('{coverage}.{end}.csv').format(
-                    coverage=str(self.dlg.coverage_selection.currentText()),
+                    coverage=self.getSelectedCoverage(),
                     end=str(self.dlg.end_date.date().toString('yyyy.MM.dd'))
                 ),
                 filter='*.csv'
@@ -601,7 +605,7 @@ class WTSSQgis:
                 parent=self.dlg,
                 caption='Save as JSON',
                 directory=('{coverage}.{end}.json').format(
-                    coverage=str(self.dlg.coverage_selection.currentText()),
+                    coverage=self.getSelectedCoverage(),
                     end=str(self.dlg.end_date.date().toString('yyyy.MM.dd'))
                 ),
                 filter='*.json'
@@ -622,14 +626,14 @@ class WTSSQgis:
                 parent=self.dlg,
                 caption='Save as python code',
                 directory=('{coverage}.{end}.py').format(
-                    coverage=str(self.dlg.coverage_selection.currentText()),
+                    coverage=self.getSelectedCoverage(),
                     end=str(self.dlg.end_date.date().toString('yyyy.MM.dd'))
                 ),
                 filter='*.py'
             )
             attributes = {
                 "service_host": str(self.wtss_controls.getService()),
-                "selected_coverage": str(self.dlg.coverage_selection.currentText()),
+                "selected_coverage": self.getSelectedCoverage(),
                 "selected_bands": tuple(self.loadAtributtes()),
                 "geometry": str(self.selected_geometry.wkt),
                 "start_date": str(self.dlg.start_date.date().toString('yyyy-MM-dd')),
@@ -653,7 +657,11 @@ class WTSSQgis:
         time_series = self.loadTimeSeries()
         if time_series.total_locations() > 0:
             self.loadSTACArgs(time_series)
-            self.files_controls.generatePlotFig(time_series, bands_description = self.loadSelectedBands())
+            self.files_controls.generatePlotFig(
+                time_series,
+                select_coverage = str(self.dlg.coverage_selection.currentText()),
+                bands_description = self.loadSelectedBands()
+            )
         else:
             self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")
 
@@ -820,7 +828,7 @@ class WTSSQgis:
     def checkFilters(self):
         """Check if lat lng are selected."""
         try:
-            if (str(self.dlg.coverage_selection.currentText()) != '' and len(self.loadAtributtes()) > 0):
+            if (self.getSelectedCoverage() != '' and len(self.loadAtributtes()) > 0):
                 if self.geom_search:
                     if (str(self.dlg.available_layers.currentText()) != '' and str(self.dlg.available_geometries.currentText()) != ''):
                         self.enabledSearchButtons(True)
