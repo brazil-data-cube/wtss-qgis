@@ -16,19 +16,19 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 #
 
-FROM qgis/qgis:release-3_32
+ARG QGIS_RELEASE=3.42
+FROM qgis/qgis:${QGIS_RELEASE}
 
-COPY . /wtss-qgis
+COPY ./wtss_plugin/zip_build/wtss_plugin \
+      /usr/share/qgis/python/plugins/wtss_plugin
 
-WORKDIR ./wtss-qgis
+RUN python3 -m pip install --user -r \
+      /usr/share/qgis/python/plugins/wtss_plugin/requirements.txt \
+      --break-system-packages
 
-RUN pip3 install --upgrade pip \
-    && pip3 install -e .[all]
+RUN mkdir -p ~/.local/share/QGIS/QGIS3/profiles/default/QGIS
 
-RUN python3 ./scripts/build_requirements.py
+RUN echo -e "\n[PythonPlugins]\nwtss_plugin=true\n" \
+      >> ~/.local/share/QGIS/QGIS3/profiles/default/QGIS/QGIS3.ini
 
-RUN cd wtss_plugin \
-    && pb_tool deploy \
-        --plugin_path /root/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ -y
-
-ENTRYPOINT qgis
+CMD /bin/bash
