@@ -22,7 +22,10 @@ User Installation
 
 The first step for commom users to install the plugin is download the latest release of zip file from `https://github.com/brazil-data-cube/wtss-qgis/releases <https://github.com/brazil-data-cube/wtss-qgis/releases>`_.
 
-After download this file, start your QGIS and go to ``Plugins >> Manage and Install Plugins`` and install the plugin via zip by selecting the file and clicking in ``Install Plugin``.
+Using `Install from ZIP` option
+-------------------------------
+
+After download the `zip` file, start your QGIS and go to ``Plugins >> Manage and Install Plugins`` and install the plugin via zip by selecting the file and clicking in ``Install Plugin``.
 
 .. image:: ./assets/screenshots/install_zip.png
     :width: 100%
@@ -41,13 +44,28 @@ The users can choose install dependencies ``all in one time`` (Install All) or `
 
 This window will run the ``pip install`` command using a subprocess. After this step, this window will request the user to reload the QGIS instance.
 
-After reload the QGIS environment go to ``Plugins >> Manage and Install Plugins`` and enable the ``WTSS``.
+Using Terminal or OSGEO Shell
+-----------------------------
 
-.. image:: ./assets/screenshots/enable_plugin.png
-    :width: 100%
-    :alt: Enable Plugin
+To install plugin using the terminal for Linux users, just open the terminal and check the python version as explained in `FAQ <./faq.html>`_.
+
+For Windows users you need to start the `OSGeo4W Shell Software <https://www.osgeo.org/projects/osgeo4w/>`_ to run these commands.
+
+The first step is to extract the files of downloaded zip file in QGIS plugins path, generally in `C:\Users\%USER%\AppData\Roaming\QGIS\QGIS%QGIS_VERSION%\profiles\default\python\plugins` for Windows and ` /home/${USER}/.local/share/QGIS/QGIS3/profiles/default/python/plugins` for Linux.
+
+In this path, something like ``<...> profiles\default\python\plugins\wtss_plugin``, run:
+
+.. code-block:: python
+
+    pip install -r requirements.txt
 
 
 .. note::
 
     After installation may occur some dependencies conflicts with python, there are some tips if this is the case in `Frequently Asked Questions <./faq.html>`_. But you can contact the team with BDC Team E-mail (`bdc.team@inpe.br <mailto:bdc.team@inpe.br>`_).
+
+    After reload the QGIS environment go to ``Plugins >> Manage and Install Plugins`` and enable the ``WTSS``.
+
+    .. image:: ./assets/screenshots/enable_plugin.png
+        :width: 100%
+        :alt: Enable Plugin

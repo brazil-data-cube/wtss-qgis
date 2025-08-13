@@ -69,7 +69,14 @@ To generate this file use this script:
     $ python3 scripts/build_requirements.py
 
 
-After `requirements.txt`, you will need to compile the `resources.qrc`, then go to the source code folder:
+Move the `LICENSE` to `wtss_plugin` path:
+
+.. code-block:: text
+
+    $ cp LICENSE wtss_plugin/
+
+
+After set the `requirements.txt` and `LICENSE` files, you will need to compile the `resources.qrc`, then go to the source code folder:
 
 .. code-block:: text
 
@@ -104,6 +111,11 @@ To generate the zip file for plugin installer, use:
 
 This command will compress the files configured in `pb_tool.cfg <../wtss_plugin/pb_tool.cfg>`_, any errors may be related to previous steps with the generated files `requirements.txt` and `resources.py`.
 
+.. note::
+
+    To upload the `zip` in `QGIS Plugins Repository <https://plugins.qgis.org/>`_, you need to clean the source code deleting the `__pycache__/` files.
+    Thers is an example to do this step in `generate-zip.sh <./scripts/linux/generate-zip.sh>`_.
+
 Docker
 ------
 
@@ -111,73 +123,66 @@ To run this plugin in a `QGIS Docker <https://hub.docker.com/r/qgis/qgis>`_ inst
 
 There are two ways to run the plugin: building the image for plugin or run the QGIS Docker and install the user zip file.
 
-To build the plugin image you need to run:
+To build the plugin image you need to create a new folder in a different path of source code and create an `Dockerfile` like:
 
 .. code-block:: text
 
-    $ docker build -t wtss-qgis .
+    ARG QGIS_RELEASE=3.42
+    FROM qgis/qgis:${QGIS_RELEASE}
+
+    ADD wtss_plugin.zip .
+
+    RUN apt-get update && \
+        apt-get install -y unzip
+
+    RUN unzip wtss_plugin.zip -d \
+        /usr/share/qgis/python/plugins/
+
+    RUN python3 -m pip install --user -r \
+        /usr/share/qgis/python/plugins/wtss_plugin/requirements.txt \
+        --break-system-packages
+
+    RUN mkdir -p ~/.local/share/QGIS/QGIS3/profiles/default/QGIS
+
+    RUN echo -e "\n[PythonPlugins]\nwtss_plugin=true\n" \
+        >> ~/.local/share/QGIS/QGIS3/profiles/default/QGIS/QGIS3.ini
+
+    CMD /bin/bash
 
 
-After build the plugin image, you need to run this script in the root of repository:
+Move the `wtss_plugin.zip` to this folder with `Dockerfile` and run:
 
 .. code-block:: text
 
-    $ bash scripts/linux/run-qgis-wtss-plugin.sh
+    $ docker build -t wtss_qgis/qgis:3.42 .
+
+
+To get the `wtss_plugin.zip` you can run the `pb_tool zip` command described previously, or download the latest version in `https://github.com/brazil-data-cube/wtss-qgis/releases <https://github.com/brazil-data-cube/wtss-qgis/releases>`_.
+
+You can run this image in a container using this command:
+
+.. code-block:: text
+
+    docker run -it --rm \
+        -e DISPLAY=$DISPLAY \
+        -v /tmp/.X11-unix:/tmp/.X11-unix \
+        -v $PWD:/home/wtss-qgis \
+        --device /dev/dri \
+        --name wtss_qgis \
+        wtss_qgis/qgis:3.42 qgis
 
 
 .. note::
 
-    For Windows users, this script is detailed below:
-
-    .. code-block:: text
-
-        docker run --rm \
-            --interactive \
-            --tty \
-            --name qgis-docker-wtss-plugin \
-            -i -t \
-            -v ${PWD}:/home/wtss_plugin \
-            -v /tmp/.X11-unix:/tmp/.X11-unix \
-            -e DISPLAY=unix$DISPLAY \
-            wtss-qgis:latest qgis
-
-
-To run only the QGIS instance and after run the user installation:
-
-.. code-block:: text
-
-    $ QGIS_RELEASE="release-3_28" \
-        bash scripts/linux/run-qgis.sh
-
-
-With the QGIS instance running go to ``Plugins >> Manage and Install Plugins`` and install the plugin via zip, using the generated zip file using ``pb_tool zip`` or any compressing app.
-
-Note that you can choose the release of QGIS, in this example was chosen the `3.28` version.
-
-.. note::
-
-    For Windows users, this script can be adapted from:
-
-    .. code-block:: text
-
-        set OSGEO4W_ROOT=release-3_28
-
-        docker run --rm \
-            --interactive \
-            --tty \
-            --name qgis-docker \
-            -i -t \
-            -v ${PWD}:/home/wtss_plugin \
-            -v ${PWD}/plugins:/root/.local/share/QGIS/QGIS3/profiles/default/python/plugins/ \
-            -v /tmp/.X11-unix:/tmp/.X11-unix \
-            -e DISPLAY=unix$DISPLAY \
-            qgis/qgis:%OSGEO4W_ROOT% qgis
+    There is an script as example to build and run docker image `run-qgis-docker.sh <../../../scripts/linux/run-qgis-docker.sh>`_.
 
 
 Windows
 -------
 
-The scripts to help to configure the environment variables are located in `Windows CMD <../wtss-qgis/scripts/win>`_.
+The scripts to help to configure the environment variables are located in `Windows CMD <../../../scripts/win>`_.
+
+Before you run the steps for installation in windows you need to start the `OSGeo4W Shell Software <https://www.osgeo.org/projects/osgeo4w/>`_ to run these commands.
 
 To install the plugin in Windows environment, with a installed version > 3 for QGIS, open the Terminal as administrator and set the environment variables to link `PYTHONHOME` in QGIS.
 
