@@ -137,14 +137,14 @@ The plugin dependencies can be installed using this command:
 
 .. code-block:: shell
 
-    python3 -m pip install git+https://github.com/brazil-data-cube/wtss-qgis.git@v0.5.0
+    python3 -m pip install git+https://github.com/brazil-data-cube/wtss-qgis.git@v0.6.0
 
 
 Another way is cloning the repository from ``github`` and run ``pip``:
 
 .. code-block:: shell
 
-    git clone https://github.com/brazil-data-cube/wtss-qgis.git@v0.5.0
+    git clone https://github.com/brazil-data-cube/wtss-qgis.git@v0.6.0
 
 
 .. code-block:: shell
