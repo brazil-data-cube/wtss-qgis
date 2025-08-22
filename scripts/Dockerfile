@@ -23,12 +23,15 @@
 ARG QGIS_RELEASE=3.42
 FROM qgis/qgis:${QGIS_RELEASE}
 
-ADD wtss_plugin.zip .
+ARG FILE
+ENV ZIP_FILE=${FILE}
+
+ADD ${ZIP_FILE} .
 
 RUN apt-get update && \
     apt-get install -y unzip
 
-RUN unzip wtss_plugin.zip -d \
+RUN unzip ${ZIP_FILE} -d \
     /usr/share/qgis/python/plugins/
 
 RUN python3 -m pip install --user -r \

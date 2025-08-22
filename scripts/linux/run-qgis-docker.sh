@@ -23,6 +23,12 @@ then
 	QGIS_RELEASE=3.42
 fi
 
+if [ "$ZIPFILE" = "" ];
+then
+	echo "Using zip file wtss_plugin.zip..."
+	ZIPFILE="./wtss_plugin/zip_build/wtss_plugin.zip"
+fi
+
 if [ "$BUILD" = "" ];
 then
 	echo "Building image for WTSS-QGIS..."
@@ -34,7 +40,7 @@ then
 
 	docker rmi wtss_qgis/qgis:$QGIS_RELEASE --force
 
-	docker build -t wtss_qgis/qgis:$QGIS_RELEASE .
+	docker build --build-arg FILE=$ZIPFILE -t wtss_qgis/qgis:$QGIS_RELEASE .
 fi
 
 xhost +local:docker

@@ -30,17 +30,17 @@ For **development environment**, you will need to set your python QGIS environme
 
 This **development environment** consist in a environment with all dependencies required to **compile** and **build** the plugin installer for WTSS QGIS Plugin.
 
-Linux
------
-
-The scripts to help to configure the environment variables are located in `Linux bash scripts <../wtss-qgis/scripts/linux>`_.
-
 The fisrt step is to clone the software repository for `wtss_plugin`:
 
 .. code-block:: text
 
     $ git clone https://github.com/brazil-data-cube/wtss-qgis
 
+
+Linux
+-----
+
+The scripts to help to configure the environment variables are located in `Linux bash scripts <../wtss-qgis/scripts/linux>`_.
 
 If you clone the repository from git you needd to go to the source code folder:
 
@@ -116,6 +116,7 @@ This command will compress the files configured in `pb_tool.cfg <../wtss_plugin/
     To upload the `zip` in `QGIS Plugins Repository <https://plugins.qgis.org/>`_, you need to clean the source code deleting the `__pycache__/` files.
     Thers is an example to do this step in `generate-zip.sh <./scripts/linux/generate-zip.sh>`_.
 
+
 Docker
 ------
 
@@ -130,12 +131,15 @@ To build the plugin image you need to create a new folder in a different path of
     ARG QGIS_RELEASE=3.42
     FROM qgis/qgis:${QGIS_RELEASE}
 
-    ADD wtss_plugin.zip .
+    ARG FILE
+    ENV ZIP_FILE=${FILE}
+
+    ADD ${ZIP_FILE} .
 
     RUN apt-get update && \
         apt-get install -y unzip
 
-    RUN unzip wtss_plugin.zip -d \
+    RUN unzip ${ZIP_FILE} -d \
         /usr/share/qgis/python/plugins/
 
     RUN python3 -m pip install --user -r \
@@ -150,14 +154,22 @@ To build the plugin image you need to create a new folder in a different path of
     CMD /bin/bash
 
 
-Move the `wtss_plugin.zip` to this folder with `Dockerfile` and run:
+Move the ``wtss_plugin.zip`` to this folder with `Dockerfile` and run:
 
 .. code-block:: text
 
-    $ docker build -t wtss_qgis/qgis:3.42 .
+    $ docker build --build-arg FILE="<zip_file_name>" -t wtss_qgis/qgis:3.42 .
 
 
-To get the `wtss_plugin.zip` you can run the `pb_tool zip` command described previously, or download the latest version in `https://github.com/brazil-data-cube/wtss-qgis/releases <https://github.com/brazil-data-cube/wtss-qgis/releases>`_.
+Remember to change the ``<zip_file_name>`` to the real name of zip file.
+
+.. note::
+
+    When downloading the zip file, this file may have this pattern in the name ``wlts-qgis-plugin-v<version>.zip``.
+    You will need to extract the ``wlts_plugin.zip``.
+
+
+To get this zip file you can run the `pb_tool zip` command described previously, or download the latest version in `https://github.com/brazil-data-cube/wtss-qgis/releases <https://github.com/brazil-data-cube/wtss-qgis/releases>`_.
 
 You can run this image in a container using this command:
 
