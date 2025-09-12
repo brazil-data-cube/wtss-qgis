@@ -17,7 +17,7 @@
 #
 # Build image with:
 #
-# docker build -t wtss_qgis/qgis:3.42 .
+# docker build --build-arg FILE="wtss_plugin.zip" -t wtss_qgis/qgis:3.42 .
 #
 
 ARG QGIS_RELEASE=3.42
