@@ -534,7 +534,7 @@ class WTSSQgis:
         """Check if has a WKT string."""
         try:
             self.selected_geometry = loads(str(self.dlg.selected_wkt.text()))
-            if self.selected_geometry.geometryType() not in ['Polygon', 'MultiPoint']:
+            if self.selected_geometry.geo_type() not in ['Polygon', 'MultiPoint']:
                 raise("Geometry not accepted")
             self.checkFilters()
         except Exception as e:
