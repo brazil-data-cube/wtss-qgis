@@ -568,7 +568,7 @@ class WTSSQgis:
         except:
             pass
 
-    def loadRGBOptions(self, time_series) -> None:
+    def loadRGBOptions(self) -> None:
         """Load selected arguments for STAC search."""
         try:
             stac_args.channels.red = self.rgb_band_options['names'][self.dlg.red_input.currentIndex()]
