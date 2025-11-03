@@ -29,18 +29,18 @@ ENV ZIP_FILE=${FILE}
 ADD ${ZIP_FILE} .
 
 RUN apt-get update && \
-    apt-get install -y unzip
+    apt-get install -y zip
 
 RUN unzip ${ZIP_FILE} -d \
     /usr/share/qgis/python/plugins/
 
 RUN python3 -m pip install --user -r \
-      /usr/share/qgis/python/plugins/wtss_plugin/requirements.txt \
-      --break-system-packages
+    /usr/share/qgis/python/plugins/wtss_plugin/requirements.txt \
+    --break-system-packages
 
 RUN mkdir -p ~/.local/share/QGIS/QGIS3/profiles/default/QGIS
 
 RUN echo -e "\n[PythonPlugins]\nwtss_plugin=true\n" \
-      >> ~/.local/share/QGIS/QGIS3/profiles/default/QGIS/QGIS3.ini
+    >> ~/.local/share/QGIS/QGIS3/profiles/default/QGIS/QGIS3.ini
 
 CMD /bin/bash

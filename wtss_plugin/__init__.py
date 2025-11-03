@@ -18,7 +18,7 @@
 
 """Python QGIS Plugin for WTSS."""
 
-from .helpers.installation_helper import InstallDependencies
+from .config import InstallDependencies
 
 installDependencies = InstallDependencies(__file__)
 

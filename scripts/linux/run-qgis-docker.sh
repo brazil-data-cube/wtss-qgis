@@ -40,7 +40,9 @@ then
 
 	docker rmi wtss_qgis/qgis:$QGIS_RELEASE --force
 
-	docker build --build-arg FILE=$ZIPFILE -t wtss_qgis/qgis:$QGIS_RELEASE .
+	mv $ZIPFILE ./scripts
+	cd ./scripts
+	docker build --build-arg FILE="wtss_plugin.zip" -t wtss_qgis/qgis:$QGIS_RELEASE .
 fi
 
 xhost +local:docker
