@@ -20,7 +20,7 @@
 Changes
 =======
 
-Version 1.0.0 (2025-09-12)
+Version 1.0.0 (2025-12-03)
 --------------------------
 
 - Review the dockerfile to run and test the plugin on different versions of QGIS (#115);
