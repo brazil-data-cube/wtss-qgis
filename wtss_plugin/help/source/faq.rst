@@ -68,6 +68,22 @@ The most common way to check your python environemnt is running `sys.path`.
         PYTHONPATH => C:\OSGeo4W\apps\qgis\python
 
 
+Install dependencies using `requirements.txt`
+---------------------------------------------
+
+Another way to install the dependencies for plugin is to run the `pip install` using `requirements.txt`.
+
+In this way, you need to locate the plugin installed path, generally in `C:\Users\%USER%\AppData\Roaming\QGIS\QGIS%QGIS_VERSION%\profiles\default\python\plugins` for Windows and ` /home/${USER}/.local/share/QGIS/QGIS3/profiles/default/python/plugins` for Linux.
+
+.. code-block:: python
+
+    pip install -r requirements.txt
+
+
+.. note::
+
+    For Windows users you need to start the `OSGeo4W Shell Software <https://www.osgeo.org/projects/osgeo4w/>`_ to run these commands.
+
 How to fix packages conflicts?
 ------------------------------
 
@@ -121,14 +137,14 @@ The plugin dependencies can be installed using this command:
 
 .. code-block:: shell
 
-    python3 -m pip install git+https://github.com/brazil-data-cube/wtss-qgis.git@v0.5.0
+    python3 -m pip install git+https://github.com/brazil-data-cube/wtss-qgis.git@v0.6.0
 
 
 Another way is cloning the repository from ``github`` and run ``pip``:
 
 .. code-block:: shell
 
-    git clone https://github.com/brazil-data-cube/wtss-qgis.git@v0.5.0
+    git clone https://github.com/brazil-data-cube/wtss-qgis.git@v0.6.0
 
 
 .. code-block:: shell

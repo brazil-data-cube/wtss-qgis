@@ -15,7 +15,32 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
 #
+# Build image with:
+#
+# docker build --build-arg FILE="wtss_plugin.zip" -t wtss_qgis/qgis:3.42 .
+#
 
-"""Python QGIS Plugin for WTSS."""
+ARG QGIS_RELEASE=3.42
+FROM qgis/qgis:${QGIS_RELEASE}
 
-from .files_export import FilesExport
+ARG FILE
+ENV ZIP_FILE=${FILE}
+
+ADD ${ZIP_FILE} .
+
+RUN apt-get update && \
+    apt-get install -y zip
+
+RUN unzip ${ZIP_FILE} -d \
+    /usr/share/qgis/python/plugins/
+
+RUN python3 -m pip install --user -r \
+    /usr/share/qgis/python/plugins/wtss_plugin/requirements.txt \
+    --break-system-packages
+
+RUN mkdir -p ~/.local/share/QGIS/QGIS3/profiles/default/QGIS
+
+RUN echo -e "\n[PythonPlugins]\nwtss_plugin=true\n" \
+    >> ~/.local/share/QGIS/QGIS3/profiles/default/QGIS/QGIS3.ini
+
+CMD /bin/bash

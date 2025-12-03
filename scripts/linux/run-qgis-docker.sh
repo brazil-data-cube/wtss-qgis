@@ -17,16 +17,42 @@
 #
 #!/bin/bash
 
-xhost +
+if [ "$QGIS_RELEASE" = "" ];
+then
+	echo "Using QGIS 3.42..."
+	QGIS_RELEASE=3.42
+fi
 
-docker run --rm \
-	--interactive \
-    --tty \
-	--name qgis-docker-wtss-plugin \
-	-i -t \
-	-v ${PWD}:/home/wtss_plugin \
+if [ "$ZIPFILE" = "" ];
+then
+	echo "Using zip file wtss_plugin.zip..."
+	ZIPFILE="./wtss_plugin/zip_build/wtss_plugin.zip"
+fi
+
+if [ "$BUILD" = "" ];
+then
+	echo "Building image for WTSS-QGIS..."
+	python3 ./scripts/build_requirements.py
+	cp ./LICENSE ./wtss_plugin/LICENSE
+	ls -al
+
+	bash ./scripts/linux/generate-zip.sh
+
+	docker rmi wtss_qgis/qgis:$QGIS_RELEASE --force
+
+	mv $ZIPFILE ./scripts
+	cd ./scripts
+	docker build --build-arg FILE="wtss_plugin.zip" -t wtss_qgis/qgis:$QGIS_RELEASE .
+fi
+
+xhost +local:docker
+
+docker run -it --rm \
+	-e DISPLAY=$DISPLAY \
 	-v /tmp/.X11-unix:/tmp/.X11-unix \
-	-e DISPLAY=unix$DISPLAY \
-	wtss-qgis:latest qgis
+	-v $PWD:/home/wtss-qgis \
+	--device /dev/dri \
+	--name wtss_qgis \
+	wtss_qgis/qgis:$QGIS_RELEASE qgis
 
-xhost -
+xhost -local:docker

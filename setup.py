@@ -64,7 +64,7 @@ install_requires = [
     'pandas>=2',
     'jsonschema>=3.2',
     'pystac-client>=0.8.3',
-    'wtss>=0.7.1'
+    'wtss==2.0.0a3'
 ]
 
 packages = find_packages()
@@ -83,7 +83,7 @@ setup(
     keywords=['Time Series Service', 'GIS', 'QGIS'],
     license='GPLv3',
     author='Brazil Data Cube Team',
-    author_email='brazildatacube@inpe.br',
+    author_email='bdc.team@inpe.br',
     url='https://github.com/brazil-data-cube/wtss-qgis',
     packages=packages,
     zip_safe=False,

@@ -21,7 +21,7 @@
 from json import loads as json_loads
 from pathlib import Path
 
-from .config import Config
+from ..config import Config
 
 schemas_folder = Path(Config.BASE_DIR) / 'json-schemas'
 

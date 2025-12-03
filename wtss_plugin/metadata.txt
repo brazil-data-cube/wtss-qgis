@@ -36,7 +36,7 @@ category = plugins, web
 # Tags are comma separated with spaces allowed
 tags = web, stac, raster, cog, timeseries
 
-icon = ./controller/assets/icon.png
+icon = ./assets/icon.png
 experimental = True
 hasProcessingProvider = no
 
@@ -52,12 +52,18 @@ deprecated = False
 server = False
 
 author = INPE
-version = 0.5.0
+version = 1.0.0
 about = Web Time Series Service (WTSS) is a lightweight web service for handling time series data from remote sensing imagery.
     Given a location and a time interval you can retrieve the according time series as a Python list of real values.
     In WTSS a coverage is a three dimensional array associate to spatial and temporal reference systems.
 
-changelog = Version 0.5.0 (2025-04-25)
+changelog = Version 1.0.0 (2025-09-12)
+    - Review the dockerfile to run and test the plugin on different versions of QGIS (#115);
+    - Update WTSS.py to version 2.0 (#114);
+    - Create time series analysis for polygon-bounded areas (#113);
+    - Solved issue "Failed to select coverage - KeyError bdc:visual" (#112);
+
+    Version 0.5.0 (2025-04-25)
     - Added tile ID reference when creating VRT layer names (`#104 <https://github.com/brazil-data-cube/wtss-qgis/issues/104>`_)
     - Removed control to manage WTSS services defining a default host (`#103 <https://github.com/brazil-data-cube/wtss-qgis/issues/103>`_)
     - It was improved description of plugin installation using Docker container based on QGIS image (`#102 <https://github.com/brazil-data-cube/wtss-qgis/issues/102>`_)

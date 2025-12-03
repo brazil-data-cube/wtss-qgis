@@ -18,12 +18,11 @@
 
 """Python QGIS Plugin for WTSS."""
 
-from pyproj import CRS, Proj, transform
 from PyQt5.QtCore import QDate
 from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox
-from wtss import *
+from wtss import WTSS
 
-from .config import Config
+from ..config import Config
 
 
 class Controls:
@@ -77,37 +76,14 @@ class Controls:
             int(date_string[8:])
         )
 
-    def transformProjection(self, projection, latitude, longitude):
-        """Transform any projection to EPSG:4326.
-
-        :param projection<string>: string format 'EPSG:4326'.
-        :param latitude<float>: the point latitude.
-        :param longitude<float>: the point longitude.
-        """
-        lat, lon = transform(
-            Proj(init=CRS.from_string(projection)),
-            Proj(init=CRS.from_string("EPSG:4326")),
-            latitude, longitude
-        )
-        return {
-            "lat": lat,
-            "long": lon,
-            "crs": "EPSG:4326"
-        }
-
     def formatCoverageDescription(self, description = None):
         """Get description from WTSS Server and format for show.
 
         :param description<dict>: description object from wtss.
         """
-        return "{description}\n\n{spatial}".format(
-            description=str(description.get("description")),
-            spatial= "*Dimensions*\n\nXmin: {xmin:,.2f}\nXmax: {xmax:,.2f}\nYmin: {ymin:,.2f}\nYmax: {ymax:,.2f}".format(
-                xmin=description.get("spatial_extent").get("xmin"),
-                xmax=description.get("spatial_extent").get("xmax"),
-                ymin=description.get("spatial_extent").get("ymin"),
-                ymax=description.get("spatial_extent").get("ymax")
-            )
+        description_dict = dict(description)
+        return "{description}".format(
+            description=str(description_dict.get('description')),
         )
 
 class WTSS_Controls:
@@ -139,13 +115,16 @@ class WTSS_Controls:
 
     def listProducts(self):
         """Return a dictionary with the list of available products."""
-        return self.wtss.coverages
+        coverages_dict = {}
+        for coverage in self.wtss.coverages:
+            coverages_dict[dict(self.wtss[coverage])['title']] = coverage
+        return coverages_dict
 
     def productDescription(self, product):
         """Return a dictionary with product description."""
         return self.wtss[product]
 
-    def productTimeSeries(self, product, bands, lon, lat, start_date, end_date):
+    def productTimeSeries(self, product, bands, start_date, end_date, geometry):
         """Return a dictionary with product time series data.
 
         :param product<string>: the product name.
@@ -158,10 +137,9 @@ class WTSS_Controls:
         try:
             time_series = self.wtss[product].ts(
                 attributes=bands,
-                longitude=lon,
-                latitude=lat,
-                start_date=start_date,
-                end_date=end_date
+                geom=geometry,
+                start_datetime=start_date,
+                end_datetime=end_date
             )
             return time_series
         except:

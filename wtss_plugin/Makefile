@@ -48,7 +48,7 @@ SOURCES = \
 	__init__.py \
 		wtss_qgis.py wtss_qgis_dialog.py
 
-PLUGINNAME = wtss_qgis
+PLUGINNAME = wtss_plugin
 
 PY_FILES = \
 	__init__.py \
@@ -56,7 +56,7 @@ PY_FILES = \
 
 UI_FILES = wtss_qgis_dialog_base.ui
 
-EXTRAS = metadata.txt icon.png
+EXTRAS = metadata.txt assets/icon.png
 
 COMPILED_RESOURCE_FILES = resources.py
 

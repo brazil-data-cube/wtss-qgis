@@ -20,6 +20,13 @@
 Changes
 =======
 
+Version 1.0.0 (2025-12-03)
+--------------------------
+
+- Review the dockerfile to run and test the plugin on different versions of QGIS (#115);
+- Update WTSS.py to version 2.0 (#114);
+- Create time series analysis for polygon-bounded areas (#113);
+- Solved issue "Failed to select coverage - KeyError bdc:visual" (#112);
 
 Version 0.5.0 (2025-04-25)
 --------------------------

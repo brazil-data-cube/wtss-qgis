@@ -3,6 +3,7 @@
 #
 import matplotlib.pyplot as plt
 import pandas as pd
+from shapely.wkt import loads
 from wtss import WTSS
 
 # #
@@ -47,8 +48,7 @@ bands = {selected_bands}
 #
 time_series = client["{selected_coverage}"].ts(
     attributes=bands,
-    latitude={latitude},
-    longitude={longitude},
+    geom=loads("{geometry}"),
     start_date="{start_date}",
     end_date="{end_date}"
 )
