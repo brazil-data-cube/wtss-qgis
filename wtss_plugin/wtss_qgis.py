@@ -32,12 +32,12 @@ from PyQt5.QtWidgets import *
 from qgis.core import (QgsCoordinateReferenceSystem, QgsFeature, QgsPoint,
                        QgsProject, QgsRasterMarkerSymbolLayer, QgsRectangle,
                        QgsSingleSymbolRenderer, QgsSymbol, QgsVectorLayer,
-                       QgsWkbTypes)
+                       QgsWkbTypes, QgsFeatureRequest, QgsWkbTypes)
 from qgis.gui import QgsMapToolEmitPoint, QgsMapToolPan
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator
 from qgis.PyQt.QtGui import QIcon, QMovie
 from qgis.PyQt.QtWidgets import QAction
-from shapely import MultiPoint, Point
+from shapely import MultiPoint, MultiPolygon, Point
 from shapely.wkt import dumps, loads
 
 from .config import Config
@@ -219,26 +219,33 @@ class WTSSQgis:
     def getAvailableGeometries(self):
         """Get available layer from tree root."""
         instance_layers = QgsProject.instance().mapLayers().values()
+        zoom_extent = self.iface.mapCanvas().extent()
+        request = QgsFeatureRequest().setFilterRect(zoom_extent)
         self.available_geometries = {}
         for layer in instance_layers:
             if isinstance(layer, QgsVectorLayer):
-                if  layer.geometryType() == 2:
+                if  layer.geometryType() == QgsWkbTypes.GeometryType.Polygon:
                     available_items = []
-                    for feature in layer.getFeatures():
+                    for feature in layer.getFeatures(request):
                         geometry = feature.geometry()
                         if geometry is not None and not geometry.isEmpty():
+                            polygon = loads(geometry.asWkt())
+                            if isinstance(polygon, MultiPolygon):
+                                polygon = polygon.geoms[0]
                             available_items.append({
-                                'geometry': loads(geometry.asWkt()).geoms[0],
+                                'geometry': polygon,
                                 'attributes': dict(zip(layer.fields().names(), feature.attributes()))
                             })
-                    self.available_geometries[layer.name()] = available_items
-                elif layer.geometryType() == 0 and layer.name() != Config.TEMPORARY_LAYER_NAME:
+                    if len(available_items) > 0:
+                        self.available_geometries[layer.name()] = available_items
+                elif layer.geometryType() == QgsWkbTypes.Point and layer.name() != Config.TEMPORARY_LAYER_NAME:
                     try:
-                        geometry = self.buildMultiPoint(layer.getFeatures())
-                        self.available_geometries[layer.name()] = [{
-                            'geometry': geometry,
-                            'attributes': {'type': 'MultiPoint Geometry'}
-                        }]
+                        geometry = self.buildMultiPoint(layer.getFeatures(request))
+                        if not geometry.is_empty:
+                            self.available_geometries[layer.name()] = [{
+                                'geometry': geometry,
+                                'attributes': {'type': 'MultiPoint Geometry'}
+                            }]
                     except:
                         pass
         self.dlg.available_layers.clear()
@@ -872,32 +879,31 @@ class WTSSQgis:
 
     def run(self):
         """Run method that performs all the real work."""
-        try:
-            # Init Application
-            self.dlg = wtss_qgisDialog()
-            if self.wtss_connection_ok():
-                # Init Controls
-                self.initControls()
-                # Virtual Raster History
-                self.initRasterHistory()
-                # Output vrt path
-                self.initRasterPathControls()
-                # RGB Options
-                self.initRGBoptions()
-                # History
-                self.initHistory()
-                # Add icons to buttons
-                self.initIcons()
-                # Start loading label
-                self.initLoadingControls()
-                # Add functions to buttons
-                self.initButtons()
-                # show the dialog
-                self.dialogShow()
-                # Methods to finish session
-                self.dlg.finished.connect(self.finish_session)
-        except Exception as e:
-            # Exception raises error message and closes dialog
-            controls = Controls()
-            controls.alert("error", "Error while starting plugin!", str(e))
-            self.dlg.close()
+        # try:
+        # Init Application
+        self.dlg = wtss_qgisDialog()
+        # Init Controls
+        self.initControls()
+        # Virtual Raster History
+        self.initRasterHistory()
+        # Output vrt path
+        self.initRasterPathControls()
+        # RGB Options
+        self.initRGBoptions()
+        # History
+        self.initHistory()
+        # Add icons to buttons
+        self.initIcons()
+        # Start loading label
+        self.initLoadingControls()
+        # Add functions to buttons
+        self.initButtons()
+        # show the dialog
+        self.dialogShow()
+        # Methods to finish session
+        self.dlg.finished.connect(self.finish_session)
+        # except Exception as e:
+        #     # Exception raises error message and closes dialog
+        #     controls = Controls()
+        #     controls.alert("error", "Error while starting plugin!", str(e))
+        #     self.dlg.close()
