@@ -238,7 +238,7 @@ class WTSSQgis:
                             })
                     if len(available_items) > 0:
                         self.available_geometries[layer.name()] = available_items
-                elif layer.geometryType() == QgsWkbTypes.Point and layer.name() != Config.TEMPORARY_LAYER_NAME:
+                elif layer.geometryType() == QgsWkbTypes.GeometryType.Point and layer.name() != Config.TEMPORARY_LAYER_NAME:
                     try:
                         geometry = self.buildMultiPoint(layer.getFeatures(request))
                         if not geometry.is_empty:
@@ -879,31 +879,32 @@ class WTSSQgis:
 
     def run(self):
         """Run method that performs all the real work."""
-        # try:
-        # Init Application
-        self.dlg = wtss_qgisDialog()
-        # Init Controls
-        self.initControls()
-        # Virtual Raster History
-        self.initRasterHistory()
-        # Output vrt path
-        self.initRasterPathControls()
-        # RGB Options
-        self.initRGBoptions()
-        # History
-        self.initHistory()
-        # Add icons to buttons
-        self.initIcons()
-        # Start loading label
-        self.initLoadingControls()
-        # Add functions to buttons
-        self.initButtons()
-        # show the dialog
-        self.dialogShow()
-        # Methods to finish session
-        self.dlg.finished.connect(self.finish_session)
-        # except Exception as e:
-        #     # Exception raises error message and closes dialog
-        #     controls = Controls()
-        #     controls.alert("error", "Error while starting plugin!", str(e))
-        #     self.dlg.close()
+        try:
+            # Init Application
+            self.dlg = wtss_qgisDialog()
+            if self.wtss_connection_ok():
+                # Init Controls
+                self.initControls()
+                # Virtual Raster History
+                self.initRasterHistory()
+                # Output vrt path
+                self.initRasterPathControls()
+                # RGB Options
+                self.initRGBoptions()
+                # History
+                self.initHistory()
+                # Add icons to buttons
+                self.initIcons()
+                # Start loading label
+                self.initLoadingControls()
+                # Add functions to buttons
+                self.initButtons()
+                # show the dialog
+                self.dialogShow()
+                # Methods to finish session
+                self.dlg.finished.connect(self.finish_session)
+        except Exception as e:
+            # Exception raises error message and closes dialog
+            controls = Controls()
+            controls.alert("error", "Error while starting plugin!", str(e))
+            self.dlg.close()
