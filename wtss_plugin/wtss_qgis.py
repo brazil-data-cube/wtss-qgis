@@ -23,22 +23,24 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+import geopandas as gpd
 import pystac_client
 import qgis.utils
 import requests
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from qgis.core import (QgsCoordinateReferenceSystem, QgsFeature, QgsPoint,
+from qgis.core import (QgsCoordinateReferenceSystem, QgsCoordinateTransform,
+                       QgsFeature, QgsFeatureRequest, QgsGeometry, QgsPoint,
                        QgsProject, QgsRasterMarkerSymbolLayer, QgsRectangle,
                        QgsSingleSymbolRenderer, QgsSymbol, QgsVectorLayer,
-                       QgsWkbTypes, QgsFeatureRequest, QgsWkbTypes)
+                       QgsWkbTypes)
 from qgis.gui import QgsMapToolEmitPoint, QgsMapToolPan
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator
 from qgis.PyQt.QtGui import QIcon, QMovie
 from qgis.PyQt.QtWidgets import QAction
 from shapely import MultiPoint, MultiPolygon, Point
-from shapely.wkt import dumps, loads
+from shapely.wkt import loads
 
 from .config import Config
 # Import the controls for the plugin
@@ -218,36 +220,51 @@ class WTSSQgis:
 
     def getAvailableGeometries(self):
         """Get available layer from tree root."""
-        instance_layers = QgsProject.instance().mapLayers().values()
-        zoom_extent = self.iface.mapCanvas().extent()
-        request = QgsFeatureRequest().setFilterRect(zoom_extent)
+        project = QgsProject.instance()
+        instance_layers = project.mapLayers().values()
+        canvas = self.iface.mapCanvas()
+        canvas_crs = canvas.mapSettings().destinationCrs()
+        canvas_extent = canvas.extent()
         self.available_geometries = {}
         for layer in instance_layers:
-            if isinstance(layer, QgsVectorLayer):
-                if  layer.geometryType() == QgsWkbTypes.GeometryType.Polygon:
-                    available_items = []
-                    for feature in layer.getFeatures(request):
-                        geometry = feature.geometry()
-                        if geometry is not None and not geometry.isEmpty():
-                            polygon = loads(geometry.asWkt())
-                            if isinstance(polygon, MultiPolygon):
-                                polygon = polygon.geoms[0]
-                            available_items.append({
-                                'geometry': polygon,
-                                'attributes': dict(zip(layer.fields().names(), feature.attributes()))
-                            })
-                    if len(available_items) > 0:
-                        self.available_geometries[layer.name()] = available_items
-                elif layer.geometryType() == QgsWkbTypes.GeometryType.Point and layer.name() != Config.TEMPORARY_LAYER_NAME:
-                    try:
-                        geometry = self.buildMultiPoint(layer.getFeatures(request))
-                        if not geometry.is_empty:
-                            self.available_geometries[layer.name()] = [{
-                                'geometry': geometry,
-                                'attributes': {'type': 'MultiPoint Geometry'}
-                            }]
-                    except:
-                        pass
+            if not isinstance(layer, QgsVectorLayer):
+                continue
+            if layer.wkbType() == QgsWkbTypes.NoGeometry:
+                continue
+            layer_crs = layer.crs()
+            if canvas_crs != layer_crs:
+                transform = QgsCoordinateTransform(canvas_crs, layer_crs, project)
+                layer_extent_in_layer_crs = transform.transformBoundingBox(canvas_extent)
+            else:
+                layer_extent_in_layer_crs = canvas_extent
+            request = QgsFeatureRequest().setFilterRect(layer_extent_in_layer_crs)
+            if layer.geometryType() == QgsWkbTypes.GeometryType.Polygon:
+                available_items = []
+                for feature in layer.getFeatures(request):
+                    geometry = feature.geometry()
+                    print(geometry)
+                    if geometry is not None and not geometry.isEmpty():
+                        polygon = loads(geometry.asWkt())
+                        if isinstance(polygon, MultiPolygon):
+                            polygon = polygon.geoms[0]
+                        available_items.append({
+                            'geometry': polygon,
+                            'crs': str(layer.crs().toWkt()),
+                            'attributes': dict(zip(layer.fields().names(), feature.attributes()))
+                        })
+                if len(available_items) > 0:
+                    self.available_geometries[layer.name()] = available_items
+            elif layer.geometryType() == QgsWkbTypes.GeometryType.Point and layer.name() != Config.TEMPORARY_LAYER_NAME:
+                try:
+                    geometry = self.buildMultiPoint(layer.getFeatures(request))
+                    if not geometry.is_empty:
+                        self.available_geometries[layer.name()] = [{
+                            'geometry': geometry,
+                            'crs': str(layer.crs().toWkt()),
+                            'attributes': {'type': 'MultiPoint Geometry'}
+                        }]
+                except:
+                    pass
         self.dlg.available_layers.clear()
         available_layers_ = list(self.available_geometries.keys())
         self.dlg.available_layers.addItems(available_layers_)
@@ -525,7 +542,7 @@ class WTSSQgis:
                 value = (value[:30] + '...') if (len(value) > 30) else value
                 key += f'{attr}:{value},'
             key += ")"
-            self.available_items_from_layer[key] = item['geometry']
+            self.available_items_from_layer[key] = item
         self.dlg.available_geometries.clear()
         self.dlg.available_geometries.addItems(list(self.available_items_from_layer.keys()))
         self.dlg.available_geometries.setCurrentIndex(0)
@@ -534,7 +551,15 @@ class WTSSQgis:
 
     def selectGeometry(self):
         """Select geometry from selected layer."""
-        self.selected_geometry = self.available_items_from_layer[self.dlg.available_geometries.currentText()]
+        selection = self.available_items_from_layer[self.dlg.available_geometries.currentText()]
+        gdf = gpd.GeoDataFrame(
+            {"id": [1], "geometry": selection['geometry']},
+            geometry="geometry",
+            crs=selection['crs']
+        )
+        # Reprojetar para WGS84 (EPSG:4326)
+        gdf_4326 = gdf.to_crs(epsg=4326)
+        self.selected_geometry = gdf_4326.geometry.iloc[0]
         self.checkFilters()
 
     def validateWKT(self):
