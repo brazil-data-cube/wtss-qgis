@@ -242,7 +242,6 @@ class WTSSQgis:
                 available_items = []
                 for feature in layer.getFeatures(request):
                     geometry = feature.geometry()
-                    print(geometry)
                     if geometry is not None and not geometry.isEmpty():
                         polygon = loads(geometry.asWkt())
                         if isinstance(polygon, MultiPolygon):
