@@ -58,6 +58,10 @@ import wtss
 
 lib_paths.append(wtss.__file__)
 
+import geopandas
+
+lib_paths.append(geopandas.__file__)
+
 file = open(Path('scripts') / 'lib-paths.txt', 'w')
 for path in lib_paths:
 	file.write(str(path).replace('__init__.py', '') + "\n")

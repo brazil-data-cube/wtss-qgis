@@ -43,6 +43,7 @@ class Config:
 
     PYTHONPATH_WTSS_PLUGIN = os.getenv("PYTHONPATH_WTSS_PLUGIN", None)
 
+
 class InstallDependencies:
     """Easy install for python packages dependencies."""
 

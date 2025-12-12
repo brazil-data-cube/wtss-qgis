@@ -25,7 +25,8 @@ from typing import List, Optional
 import pystac_client
 import shapely
 from osgeo import gdal
-from qgis.core import QgsApplication, QgsProject, QgsRasterLayer
+from qgis.core import Qgis, QgsApplication, QgsProject, QgsRasterLayer
+from qgis.utils import iface
 
 from ..config import Config
 
@@ -117,6 +118,11 @@ class STAC_ARGS:
             output_file = None
         return output_file
 
+    def raise_error(self, description):
+        iface.messageBar().pushMessage(
+            "Error", description,
+            level=Qgis.Critical, duration=10
+        )
 
 stac_args = STAC_ARGS()
 
@@ -136,6 +142,9 @@ def get_source_from_click(event):
     )
 
     items = list(item_search.items())
+
+    if len(items) == 0:
+        stac_args.raise_error("Data not found! Could not find the request data.")
 
     for item in items:
         assets = item.assets
@@ -163,21 +172,16 @@ def get_source_from_click(event):
             separate = True
         )
 
-        if vrt_raster_file:
-            layer_names = [
-                layer.name()
-                for layer in stac_args.qgis_project.mapLayers().values()
-            ]
-            if layer_name not in layer_names:
-                stac_args.vrt_history.append(layer_name)
-                stac_args.qgis_project.addMapLayer(
-                    QgsRasterLayer(vrt_raster_file, layer_name), True
-                )
-        else:
-            from PyQt5.QtWidgets import QMessageBox
+        layer_names = [
+            layer.name()
+            for layer in stac_args.qgis_project.mapLayers().values()
+        ]
 
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Critical)
-            msg.setText("Data not found!", "Could not find the request data.")
-            msg.setStandardButtons(QMessageBox.Ok)
-            msg.exec_()
+        if layer_name not in layer_names:
+            layer = QgsRasterLayer(vrt_raster_file, layer_name)
+
+            if layer.isValid():
+                stac_args.vrt_history.append(layer_name)
+                stac_args.qgis_project.addMapLayer(layer, True)
+            else:
+                stac_args.raise_error("Data is not valid! Unable to create virtual raster!")
