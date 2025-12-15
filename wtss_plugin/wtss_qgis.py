@@ -231,12 +231,14 @@ class WTSSQgis:
                 continue
             if layer.wkbType() == QgsWkbTypes.NoGeometry:
                 continue
-            layer_crs = layer.crs()
-            if canvas_crs != layer_crs:
-                transform = QgsCoordinateTransform(canvas_crs, layer_crs, project)
-                layer_extent_in_layer_crs = transform.transformBoundingBox(canvas_extent)
-            else:
-                layer_extent_in_layer_crs = canvas_extent
+            layer_extent_in_layer_crs = canvas_extent
+            try:
+                layer_crs = layer.crs()
+                if canvas_crs != layer_crs:
+                    transform = QgsCoordinateTransform(canvas_crs, layer_crs, project)
+                    layer_extent_in_layer_crs = transform.transformBoundingBox(canvas_extent)
+            except:
+                continue
             request = QgsFeatureRequest().setFilterRect(layer_extent_in_layer_crs)
             if layer.geometryType() == QgsWkbTypes.GeometryType.Polygon:
                 available_items = []
