@@ -20,7 +20,7 @@
 Changes
 =======
 
-Version 1.0.1 (2025-12-15)
+Version 1.0.1 (2025-12-23)
 --------------------------
 
 - Problema ao realizar a leitura de geometrias apenas como Polygon (#119);
