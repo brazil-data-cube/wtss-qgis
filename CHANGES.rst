@@ -20,6 +20,12 @@
 Changes
 =======
 
+Version 1.0.1 (2025-12-23)
+--------------------------
+
+- Problema ao realizar a leitura de geometrias apenas como Polygon (#119);
+- Adicionar filtro usando a extensão do canvas no QGIS para listar as geometrias disponíveis (#118);
+
 Version 1.0.0 (2025-12-03)
 --------------------------
 

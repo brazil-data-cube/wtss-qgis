@@ -18,4 +18,4 @@
 
 """Python QGIS Plugin for WTSS."""
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
