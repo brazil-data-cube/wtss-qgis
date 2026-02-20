@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>732</width>
-    <height>511</height>
+    <width>731</width>
+    <height>590</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,7 +25,7 @@
      <x>0</x>
      <y>0</y>
      <width>731</width>
-     <height>511</height>
+     <height>591</height>
     </rect>
    </property>
    <property name="tabPosition">
@@ -81,7 +81,7 @@
      <property name="geometry">
       <rect>
        <x>480</x>
-       <y>410</y>
+       <y>490</y>
        <width>241</width>
        <height>61</height>
       </rect>
@@ -124,7 +124,7 @@
        <x>480</x>
        <y>10</y>
        <width>241</width>
-       <height>391</height>
+       <height>471</height>
       </rect>
      </property>
      <property name="title">
@@ -136,7 +136,7 @@
         <x>10</x>
         <y>30</y>
         <width>221</width>
-        <height>351</height>
+        <height>431</height>
        </rect>
       </property>
       <property name="editTriggers">
@@ -223,7 +223,7 @@
      <property name="geometry">
       <rect>
        <x>90</x>
-       <y>440</y>
+       <y>520</y>
        <width>231</width>
        <height>25</height>
       </rect>
@@ -242,7 +242,7 @@
      <property name="geometry">
       <rect>
        <x>330</x>
-       <y>440</y>
+       <y>520</y>
        <width>31</width>
        <height>25</height>
       </rect>
@@ -291,7 +291,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>350</y>
+       <y>348</y>
        <width>451</width>
        <height>75</height>
       </rect>
@@ -442,6 +442,350 @@
        </property>
        <property name="text">
         <string/>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+    <widget class="QTabWidget" name="smoothing_options_tab">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>435</y>
+       <width>451</width>
+       <height>75</height>
+      </rect>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="smothing_filter_selection">
+      <attribute name="title">
+       <string>Smoothing FIlters</string>
+      </attribute>
+      <widget class="QComboBox" name="smoothing_filters_selection">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>311</width>
+         <height>27</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="plot_original_data">
+       <property name="geometry">
+        <rect>
+         <x>330</x>
+         <y>10</y>
+         <width>111</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Original data</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="smothing_attributes">
+      <attribute name="title">
+       <string>Advanced Options</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="sgolay_options_tab">
+      <attribute name="title">
+       <string>Savitzky Golay Options</string>
+      </attribute>
+      <widget class="QSpinBox" name="sgolay_window_size">
+       <property name="geometry">
+        <rect>
+         <x>110</x>
+         <y>10</y>
+         <width>91</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>999</number>
+       </property>
+       <property name="singleStep">
+        <number>2</number>
+       </property>
+       <property name="value">
+        <number>1</number>
+       </property>
+       <property name="displayIntegerBase">
+        <number>10</number>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_sgolay_window_size">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>91</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Window Size:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_sgolay_polyorder">
+       <property name="geometry">
+        <rect>
+         <x>220</x>
+         <y>10</y>
+         <width>126</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Polynomial Order:</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="sgolay_polyorder">
+       <property name="geometry">
+        <rect>
+         <x>350</x>
+         <y>10</y>
+         <width>91</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>20</number>
+       </property>
+       <property name="value">
+        <number>1</number>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="whittaker_options_tab">
+      <attribute name="title">
+       <string>Whittaker–Eilers Options</string>
+      </attribute>
+      <widget class="QLabel" name="label_whittaker_lambda">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>10</y>
+         <width>66</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Lambda:</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="whittaker_lambda">
+       <property name="geometry">
+        <rect>
+         <x>100</x>
+         <y>10</y>
+         <width>311</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="buttonSymbols">
+        <enum>QAbstractSpinBox::UpDownArrows</enum>
+       </property>
+       <property name="specialValueText">
+        <string/>
+       </property>
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>999</number>
+       </property>
+       <property name="singleStep">
+        <number>2</number>
+       </property>
+       <property name="value">
+        <number>1</number>
+       </property>
+       <property name="displayIntegerBase">
+        <number>10</number>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="cma_options_tab">
+      <attribute name="title">
+       <string>Centered Moving Average Options</string>
+      </attribute>
+      <widget class="QSpinBox" name="cma_window">
+       <property name="geometry">
+        <rect>
+         <x>90</x>
+         <y>10</y>
+         <width>71</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>999</number>
+       </property>
+       <property name="singleStep">
+        <number>2</number>
+       </property>
+       <property name="value">
+        <number>1</number>
+       </property>
+       <property name="displayIntegerBase">
+        <number>10</number>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="cma_min_periods">
+       <property name="geometry">
+        <rect>
+         <x>260</x>
+         <y>10</y>
+         <width>71</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>999</number>
+       </property>
+       <property name="singleStep">
+        <number>2</number>
+       </property>
+       <property name="value">
+        <number>1</number>
+       </property>
+       <property name="displayIntegerBase">
+        <number>10</number>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="cma_center">
+       <property name="geometry">
+        <rect>
+         <x>340</x>
+         <y>10</y>
+         <width>95</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Centered</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_cma_min_periods">
+       <property name="geometry">
+        <rect>
+         <x>170</x>
+         <y>10</y>
+         <width>88</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Min Periods:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_cma_window">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>10</y>
+         <width>66</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Window:</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="gam_options_tab">
+      <attribute name="title">
+       <string>GAM Options</string>
+      </attribute>
+      <widget class="QSpinBox" name="gam_n_splines">
+       <property name="geometry">
+        <rect>
+         <x>90</x>
+         <y>10</y>
+         <width>51</width>
+         <height>28</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="gam_feature">
+       <property name="geometry">
+        <rect>
+         <x>380</x>
+         <y>10</y>
+         <width>51</width>
+         <height>28</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_gam_n_splines">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>81</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>N° SP lines:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_gam_splines_order">
+       <property name="geometry">
+        <rect>
+         <x>150</x>
+         <y>10</y>
+         <width>101</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>SP lines Order:</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="gam_splines_order">
+       <property name="geometry">
+        <rect>
+         <x>255</x>
+         <y>10</y>
+         <width>55</width>
+         <height>28</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_gam_feature">
+       <property name="geometry">
+        <rect>
+         <x>320</x>
+         <y>10</y>
+         <width>61</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Feature:</string>
        </property>
       </widget>
      </widget>
@@ -600,7 +944,7 @@
      <x>0</x>
      <y>0</y>
      <width>731</width>
-     <height>511</height>
+     <height>591</height>
     </rect>
    </property>
    <property name="text">

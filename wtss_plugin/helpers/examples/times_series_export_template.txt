@@ -24,18 +24,18 @@ print(coverages)
 # Getting product metadata about attributes
 #
 coverage_metadata = client["{selected_coverage}"]
-print(coverage_metadata["attributes"])
+print(coverage_metadata.attributes)
 #
 # Retriving available timeline
 #
-timeline = coverage_metadata['timeline']
+timeline = coverage_metadata.timeline
 #
 start = timeline[0]
 end = timeline[-1]
 #
 print('Interval range: (' + start + ',' + end + ')')
 #
-print(coverage_metadata['spatial_extent'])
+print(coverage_metadata.spatial_extent)
 #
 # Selecting the bands
 bands = {selected_bands}
@@ -53,59 +53,7 @@ time_series = client["{selected_coverage}"].ts(
     end_date="{end_date}"
 )
 #
-# Formatting the 'x' to datetime, the x-axis will contain the time interval
+# Plotting time series using WTSS.py
 #
-x = [pd.to_datetime(date) for date in time_series.timeline]
-#
-# Setting the matplotlib style
-#
-fig = plt.figure(figsize = (12, 5))
-#
-plt.title("Coverage {selected_coverage}", fontsize=14)
-#
-plt.xlabel("Date", fontsize=10)
-#
-plt.ylabel("Value", fontsize=10)
-#
-plt.grid(color='gray', linestyle='--', linewidth=0.5)
-#
-# Normalize the values using spectral bands and indices
-#
-# Creating a method to get band attributes
-#
-def get_band_attributes(band):
-    attributes = coverage_metadata.get('attributes')
-    selected_band_attr = None
-    for band_attr in attributes:
-        if band_attr['name'] == band:
-            selected_band_attr = band_attr
-            break
-    return selected_band_attr
-#
-# Interate over the band values and normalizing using scale factor
-#
-for result in time_series.get("result")["attributes"]:
-    band_name = result["attribute"]
-    band_attributes = get_band_attributes(band_name)
-    scale_factor = band_attributes["scale_factor"]
-    #
-    # The y-axis will contain the values in each attribute
-    #
-    y = result["values"]
-    y = [float(value) * scale_factor for value in y]
-    #
-    # Adding the values to plot
-    #
-    plt.plot(x, y, label = band_name)
-#
-# Setting the visible labels for x-y-axis and legend
-#
-plt.xlabel(None)
-plt.ylabel(None)
-plt.legend()
-#
-# Showing the time series plot
-#
-plt.show()
-##
+time_series.plot()
 #

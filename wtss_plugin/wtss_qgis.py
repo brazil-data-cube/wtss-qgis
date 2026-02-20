@@ -23,13 +23,15 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+import geopandas as gpd
 import pystac_client
 import qgis.utils
 import requests
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from qgis.core import (QgsCoordinateReferenceSystem, QgsFeature, QgsPoint,
+from qgis.core import (QgsCoordinateReferenceSystem, QgsCoordinateTransform,
+                       QgsFeature, QgsFeatureRequest, QgsGeometry, QgsPoint,
                        QgsProject, QgsRasterMarkerSymbolLayer, QgsRectangle,
                        QgsSingleSymbolRenderer, QgsSymbol, QgsVectorLayer,
                        QgsWkbTypes)
@@ -37,8 +39,8 @@ from qgis.gui import QgsMapToolEmitPoint, QgsMapToolPan
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, QTranslator
 from qgis.PyQt.QtGui import QIcon, QMovie
 from qgis.PyQt.QtWidgets import QAction
-from shapely import MultiPoint, Point
-from shapely.wkt import dumps, loads
+from shapely import MultiPoint, MultiPolygon, Point
+from shapely.wkt import loads
 
 from .config import Config
 # Import the controls for the plugin
@@ -47,6 +49,9 @@ from .controller.wtss_qgis_controller import Controls, WTSS_Controls
 from .helpers.files_export_helper import FilesExport
 # Import the STAC args
 from .helpers.pystac_helper import stac_args
+# Import the smoothing filters
+from .helpers.smoothing_helper import (Gam, MovingAverage, SGolay, Whittaker,
+                                       options)
 # Initialize Qt resources from file resources.py
 from .resources import *
 # Import the code for the dialog
@@ -218,29 +223,73 @@ class WTSSQgis:
 
     def getAvailableGeometries(self):
         """Get available layer from tree root."""
-        instance_layers = QgsProject.instance().mapLayers().values()
+        project = QgsProject.instance()
+        instance_layers = project.mapLayers().values()
+        canvas = self.iface.mapCanvas()
+        canvas_crs = canvas.mapSettings().destinationCrs()
+        canvas_extent = canvas.extent()
+        invalid_types = ["CURVEPOLYGON", "MULTISURFACE", "POLYHEDRALSURFACE"]
         self.available_geometries = {}
         for layer in instance_layers:
-            if isinstance(layer, QgsVectorLayer):
-                if  layer.geometryType() == 2:
-                    available_items = []
-                    for feature in layer.getFeatures():
-                        geometry = feature.geometry()
-                        if geometry is not None and not geometry.isEmpty():
+            if not isinstance(layer, QgsVectorLayer):
+                continue
+            if layer.wkbType() == QgsWkbTypes.NoGeometry:
+                continue
+            layer_extent_in_layer_crs = canvas_extent
+            try:
+                layer_crs = layer.crs()
+                if canvas_crs != layer_crs:
+                    transform = QgsCoordinateTransform(canvas_crs, layer_crs, project)
+                    layer_extent_in_layer_crs = transform.transformBoundingBox(canvas_extent)
+            except:
+                continue
+            request = QgsFeatureRequest().setFilterRect(layer_extent_in_layer_crs)
+            if layer.geometryType() == QgsWkbTypes.GeometryType.Polygon \
+                and QgsWkbTypes.displayString(layer.wkbType()).upper() not in invalid_types:
+                available_items = []
+                for feature in layer.getFeatures(request):
+                    geometry = feature.geometry()
+                    if geometry is not None and not geometry.isEmpty():
+                        try:
+                            polygon = loads(geometry.asWkt())
+                            if isinstance(polygon, MultiPolygon):
+                                polygon = polygon.geoms[0]
                             available_items.append({
-                                'geometry': loads(geometry.asWkt()).geoms[0],
+                                'geometry': polygon,
+                                'crs': str(layer.crs().toWkt()),
                                 'attributes': dict(zip(layer.fields().names(), feature.attributes()))
                             })
+                        except:
+                            continue
+                if len(available_items) > 0:
                     self.available_geometries[layer.name()] = available_items
-                elif layer.geometryType() == 0 and layer.name() != Config.TEMPORARY_LAYER_NAME:
-                    try:
-                        geometry = self.buildMultiPoint(layer.getFeatures())
-                        self.available_geometries[layer.name()] = [{
+            elif layer.geometryType() == QgsWkbTypes.GeometryType.Point \
+                and layer.name() != Config.TEMPORARY_LAYER_NAME:
+                try:
+                    geometry = self.buildMultiPoint(layer.getFeatures(request))
+                    if not geometry.is_empty:
+                        self.available_geometries[f"{layer.name()} - All points"] = [{
                             'geometry': geometry,
+                            'crs': str(layer.crs().toWkt()),
                             'attributes': {'type': 'MultiPoint Geometry'}
                         }]
-                    except:
-                        pass
+                        available_points = []
+                        for feature in layer.getFeatures(request):
+                            geometry = feature.geometry()
+                            try:
+                                point = loads(geometry.asWkt())
+                                if isinstance(point, MultiPoint):
+                                    point = point.geoms[0]
+                                available_points.append({
+                                    'geometry': point,
+                                    'crs': str(layer.crs().toWkt()),
+                                    'attributes': dict(zip(layer.fields().names(), feature.attributes()))
+                                })
+                            except:
+                                continue
+                        self.available_geometries[layer.name()] = available_points
+                except:
+                    continue
         self.dlg.available_layers.clear()
         available_layers_ = list(self.available_geometries.keys())
         self.dlg.available_layers.addItems(available_layers_)
@@ -262,6 +311,7 @@ class WTSSQgis:
         self.dlg.input_longitude.valueChanged.connect(self.checkFilters)
         self.dlg.input_latitude.valueChanged.connect(self.checkFilters)
         self.listCoverages()
+        self.initSmoothingOptions()
         self.getAvailableGeometries()
         self.changeGeometryType(0)
 
@@ -360,6 +410,52 @@ class WTSSQgis:
         self.dlg.green_input.activated.connect(self.loadRGBOptions)
         self.dlg.blue_input.setEnabled(False)
         self.dlg.blue_input.activated.connect(self.loadRGBOptions)
+
+    def initSmoothingOptions(self):
+        """Load smoothing options."""
+        self.options = { "No Smoothing": None }
+        self.options.update(options)
+        self.selected_smoothing = None
+        self.dlg.smoothing_filters_selection.clear()
+        self.dlg.smoothing_filters_selection.addItems(list(self.options.keys()))
+        self.dlg.smoothing_filters_selection.setCurrentIndex(0)
+        self.dlg.smoothing_filters_selection.activated.connect(self.selectSmoothingFilter)
+        self.selectSmoothingFilter()
+
+    def selectSmoothingFilter(self):
+        """Select smoothing filters."""
+        smoothing_options = list(self.options.keys())
+        selected_smoothing_index = smoothing_options.index(str(self.dlg.smoothing_filters_selection.currentText()))
+        # Link the selected option to tab
+        for opt in range(0, len(smoothing_options)):
+            tab_index = opt + 1
+            self.dlg.smoothing_options_tab.setTabEnabled(tab_index, ((selected_smoothing_index == opt) and (opt != 0)))
+            self.dlg.smoothing_options_tab.setTabVisible(tab_index, (selected_smoothing_index == opt))
+        self.changeSmoothingFilterTab(selected_smoothing_index + 1)
+
+    def changeSmoothingFilterTab(self, index):
+        """When smoothing filter selection tab changed."""
+        self.dlg.plot_original_data.setEnabled(True)
+        if index == 1:
+            self.selected_smoothing = None
+            self.dlg.plot_original_data.setEnabled(False)
+        elif index == 2:
+            self.selected_smoothing = SGolay
+            self.dlg.sgolay_window_size.setValue(19)
+            self.dlg.sgolay_polyorder.setValue(3)
+        elif index == 3:
+            self.selected_smoothing = Whittaker
+            self.dlg.whittaker_lambda.setValue(10)
+        elif index == 4:
+            self.selected_smoothing = MovingAverage
+            self.dlg.cma_window.setValue(5)
+            self.dlg.cma_min_periods.setValue(1)
+            self.dlg.cma_center.setChecked(True)
+        elif index == 5:
+            self.selected_smoothing = Gam
+            self.dlg.gam_n_splines.setValue(10)
+            self.dlg.gam_splines_order.setValue(2)
+            self.dlg.gam_feature.setValue(0)
 
     def setCRS(self):
         """Set the CRS in project instance."""
@@ -462,7 +558,7 @@ class WTSSQgis:
         self.dlg.bands_scroll.setWidget(self.widget)
         # Update dates for start and end to coverage selection
         self.dlg.start_date.setDate(self.basic_controls.formatForQDate(timeline[0]))
-        self.dlg.end_date.setDate(self.basic_controls.formatForQDate(timeline[len(timeline) - 1]))
+        self.dlg.end_date.setDate(self.basic_controls.formatForQDate(timeline[len(timeline) - 1]).addDays(-1))
         self.checkFilters()
 
     def loadSelectedBands(self):
@@ -477,6 +573,30 @@ class WTSSQgis:
         """Verify the selected attributes in check list and save in array."""
         selected_attributes = [str(band) for band in self.loadSelectedBands().keys()]
         return selected_attributes
+
+    def loadSmoothingFiltersAtributtes(self):
+        """When smoothing filter selection tab changed."""
+        if self.basic_controls.is_typed(self.selected_smoothing, SGolay):
+            self.selected_smoothing = SGolay(
+                window_size=int(self.dlg.sgolay_window_size.value()),
+                polynomial_order=int(self.dlg.sgolay_polyorder.value())
+            )
+        elif self.basic_controls.is_typed(self.selected_smoothing, Whittaker):
+            self.selected_smoothing = Whittaker(
+                lambda_=int(self.dlg.whittaker_lambda.value())
+            )
+        elif self.basic_controls.is_typed(self.selected_smoothing, MovingAverage):
+            self.selected_smoothing = MovingAverage(
+                window=int(self.dlg.cma_window.value()),
+                min_periods=int(self.dlg.cma_min_periods.value()),
+                center=bool(self.dlg.cma_center.isChecked())
+            )
+        elif self.basic_controls.is_typed(self.selected_smoothing, Gam):
+            self.selected_smoothing = Gam(
+                n_splines=int(self.dlg.gam_n_splines.value()),
+                spline_order=int(self.dlg.gam_splines_order.value()),
+                feature=int(self.dlg.gam_feature.value())
+            )
 
     def changeGeometryType(self, index):
         """When geometry selection tab changed."""
@@ -518,7 +638,7 @@ class WTSSQgis:
                 value = (value[:30] + '...') if (len(value) > 30) else value
                 key += f'{attr}:{value},'
             key += ")"
-            self.available_items_from_layer[key] = item['geometry']
+            self.available_items_from_layer[key] = item
         self.dlg.available_geometries.clear()
         self.dlg.available_geometries.addItems(list(self.available_items_from_layer.keys()))
         self.dlg.available_geometries.setCurrentIndex(0)
@@ -527,15 +647,21 @@ class WTSSQgis:
 
     def selectGeometry(self):
         """Select geometry from selected layer."""
-        self.selected_geometry = self.available_items_from_layer[self.dlg.available_geometries.currentText()]
+        selection = self.available_items_from_layer[self.dlg.available_geometries.currentText()]
+        gdf = gpd.GeoDataFrame(
+            {"id": [1], "geometry": selection['geometry']},
+            geometry="geometry",
+            crs=selection['crs']
+        )
+        # Reprojetar para WGS84 (EPSG:4326)
+        gdf_4326 = gdf.to_crs(epsg=4326)
+        self.selected_geometry = gdf_4326.geometry.iloc[0]
         self.checkFilters()
 
     def validateWKT(self):
         """Check if has a WKT string."""
         try:
             self.selected_geometry = loads(str(self.dlg.selected_wkt.text()))
-            if self.selected_geometry.geo_type() not in ['Polygon', 'MultiPoint']:
-                raise("Geometry not accepted")
             self.checkFilters()
         except Exception as e:
             self.basic_controls.alert("error", "Error reading WKT string!", str(e))
@@ -592,7 +718,12 @@ class WTSSQgis:
             if name[0] != '':
                 time_series = self.loadTimeSeries()
                 if time_series.total_locations() > 0:
-                    self.files_controls.generateCSV(name[0], time_series, bands_description = self.loadSelectedBands())
+                    self.loadSmoothingFiltersAtributtes()
+                    self.files_controls.generateCSV(
+                        name[0], time_series,
+                        bands_description = self.loadSelectedBands(),
+                        smoothing = self.selected_smoothing
+                    )
                 else:
                     self.basic_controls.alert("warning", "Warning", "The times series service returns empty, no data to show!")
         except AttributeError as error:
@@ -612,8 +743,12 @@ class WTSSQgis:
             )
             if name[0] != '':
                 time_series = self.loadTimeSeries()
+                self.loadSmoothingFiltersAtributtes()
                 if time_series.total_locations() > 0:
-                    self.files_controls.generateJSON(name[0], time_series)
+                    self.files_controls.generateJSON(
+                        name[0], time_series,
+                        smoothing = self.selected_smoothing
+                    )
                 else:
                     self.basic_controls.alert("warning", "Warning", "The times series service returns empty, no data to show!")
         except AttributeError as error:
@@ -657,10 +792,13 @@ class WTSSQgis:
         time_series = self.loadTimeSeries()
         if time_series.total_locations() > 0:
             self.loadSTACArgs(time_series)
+            self.loadSmoothingFiltersAtributtes()
             self.files_controls.generatePlotFig(
                 time_series,
                 select_coverage = str(self.dlg.coverage_selection.currentText()),
-                bands_description = self.loadSelectedBands()
+                bands_description = self.loadSelectedBands(),
+                smoothing=self.selected_smoothing,
+                plot_original=self.dlg.plot_original_data.isChecked()
             )
         else:
             self.basic_controls.alert("error", "AttributeError", "The times series service returns empty, no data to show!")

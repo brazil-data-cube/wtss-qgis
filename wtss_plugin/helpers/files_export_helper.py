@@ -30,6 +30,7 @@ import seaborn
 from PyQt5.QtWidgets import QMessageBox
 
 from ..helpers.pystac_helper import get_source_from_click
+from ..helpers.smoothing_helper import SmoothingFilter
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -124,7 +125,7 @@ class FilesFormat:
             time_series_formatted["start_date"].append(start_date)
             time_series_formatted["end_date"].append(end_date)
             time_series_formatted["cube"].append(cube)
-            grouped_by_geometry = timeseries_df.groupby(['geometry']).get_group(geom_list[row],)
+            grouped_by_geometry = timeseries_df.groupby('geometry').get_group(geom_list[row],)
             time_series_ = {}
             time_series_["Index"] = []
             for band in bands:
@@ -139,24 +140,28 @@ class FilesFormat:
         time_series_formatted = pd.DataFrame(time_series_formatted).sort_values("sample_id").reset_index(drop=True)
         return time_series_formatted
 
-    def format_time_series_df_to_json(self, time_series_df):
+    def format_time_series_df_to_json(self, time_series_df, typed: bool = True):
         """Convert time series dataframe to json to read."""
         time_series_formatted = {'samples': []}
         for index in range(len(time_series_df['sample_id'])):
-            time_series_ = time_series_df['time_series'][index]
-            for key in time_series_.keys():
-                if key != 'Index':
-                    time_series_[key] = list(time_series_[key])
-                else:
-                    time_series_[key] = [date.strftime('%Y-%m-%d') for date in time_series_[key]]
             time_series_formatted['samples'].append({
                 "sample_id": int(time_series_df['sample_id'][index]),
                 "longitude": float(time_series_df['longitude'][index]),
                 "latitude": float(time_series_df['latitude'][index]),
                 "cube": time_series_df['cube'][index],
-                "time_series": time_series_
+                "time_series": self.format_time_series_values_to_json(time_series_df['time_series'][index], typed)
             })
         return time_series_formatted
+
+    def format_time_series_values_to_json(self, time_series, typed: bool = True):
+        """Format Time series column to JSON."""
+        time_series_ = {}
+        for key in time_series.keys():
+            if (key != 'Index') or not typed:
+                time_series_[key] = list(time_series[key])
+            else:
+                time_series_[key] = [date.strftime('%Y-%m-%d') for date in time_series[key]]
+        return time_series_
 
     def get_values_time_series_df(self, time_series_df, line = 0):
         """Get time series dataframe based on line."""
@@ -239,10 +244,8 @@ class FilesExport:
         }
         """
         try:
-            bands_string = "("
-            for band in attributes.get("selected_bands"):
-                bands_string = bands_string + "'" + str(band) + "', "
-            bands_string = bands_string[:len(bands_string)-2] + ")"
+            bands_string = (',').join([f"'{str(band)}'" for band in attributes.get("selected_bands")])
+            bands_string = f"[{bands_string}]"
             attributes["selected_bands"] = bands_string
             code_to_save = self.files_format.defaultCode().format(**attributes)
             file = open(file_name, "w")
@@ -251,27 +254,52 @@ class FilesExport:
         except FileNotFoundError:
             pass
 
-    def generateJSON(self, file_name, time_series):
+    def generateJSON(self, file_name, time_series, smoothing: None):
         """Generate a JSON file with time series data."""
         try:
-            time_series_df = self.files_format.format_time_series_df(time_series)
+            typed = False
+            time_series_df = self.files_format.format_time_series_df(time_series, typed)
+            if smoothing:
+                for row in range(len(time_series_df)):
+                    time_series_data_row = self.files_format.get_values_time_series_df(time_series_df, row)
+                    time_series_data_row = self.apply_ts.interpolate_df(time_series_data_row)
+                    bands = self.apply_ts.get_bands_from_df(time_series_data_row)
+                    smoothingFilter = SmoothingFilter(time_series_data_row)
+                    smoothingFilter.select(smoothing)
+                    smoothingFilter.apply(bands)
+                    time_series_df['time_series'][row] = smoothingFilter.dataset
             data = self.files_format.format_time_series_df_to_json(time_series_df)
             with open(file_name, 'w') as outfile:
                 json.dump(data, outfile)
         except FileNotFoundError:
             pass
 
-    def generateCSV(self, file_name, time_series, bands_description):
+    def generateCSV(self, file_name, time_series, bands_description, smoothing: None):
         """Generate a CSV file with time series data."""
         try:
+            typed = False
             self.apply_ts.bands_description = bands_description
+            bands = list(bands_description.keys())
             if self.checkResult(time_series):
-                time_series_df = self.files_format.format_time_series_df(time_series, typed=False)
+                time_series_df = self.files_format.format_time_series_df(time_series, typed)
+                if smoothing:
+                    for row in range(len(time_series_df)):
+                        time_series_data_row = self.files_format.get_values_time_series_df(time_series_df, row)
+                        time_series_data_row = self.apply_ts.interpolate_df(time_series_data_row)
+                        smoothingFilter = SmoothingFilter(time_series_data_row)
+                        smoothingFilter.select(smoothing)
+                        smoothingFilter.apply(bands)
+                        time_series_df['time_series'][row] = self.files_format.format_time_series_values_to_json(smoothingFilter.dataset, typed)
                 time_series_df.to_csv(file_name, index=False)
             else:
                 time_series_df = self.files_format.format_time_series_df(time_series)
                 time_series_df = self.files_format.get_values_time_series_df(time_series_df)
                 time_series_df = self.apply_ts.interpolate_df(time_series_df)
+                if smoothing:
+                    smoothingFilter = SmoothingFilter(time_series_df)
+                    smoothingFilter.select(smoothing)
+                    smoothingFilter.apply(bands)
+                    time_series_df = smoothingFilter.dataset
                 time_series_df.to_csv(file_name, index=False)
         except FileNotFoundError:
             pass
@@ -283,7 +311,7 @@ class FilesExport:
         except Exception as e:
             self.alert("error", "Error while generate the image!", str(e))
 
-    def generatePlotFig(self, time_series, select_coverage, bands_description):
+    def generatePlotFig(self, time_series, select_coverage, bands_description, smoothing = None, plot_original: bool = True):
         """Generate an image .JPEG with time series data in a line chart."""
         try:
             self.apply_ts.bands_description = bands_description
@@ -292,15 +320,64 @@ class FilesExport:
                 summarize = time_series.summarize()
                 for band_ in time_series.query.attributes:
                     summarize_formatted = self.files_format.format_summarize_ts(summarize, band_)
-                    fig = plt.figure(figsize = (12, 5))
-                    fig.suptitle(("Coverage {name} Aggregations for {band}").format(
+                    plot_title = ("Coverage {name} Aggregations for {band}").format(
                         name=select_coverage, band=band_
-                    ))
+                    )
+                    if smoothing:
+                        smoothingFilter = SmoothingFilter(summarize_formatted)
+                        smoothingFilter.select(smoothing)
+                        smoothingFilter.apply(selected_aggregations)
+                        for aggregation in selected_aggregations:
+                            smoothingFilter.plot(
+                                title=plot_title,
+                                select_band=aggregation,
+                                original=plot_original
+                            )
+                    else:
+                        fig = plt.figure(figsize = (12, 5))
+                        fig.suptitle(plot_title)
+                        seaborn.set_theme(style="darkgrid")
+                        for aggregation in selected_aggregations:
+                            seaborn.lineplot(
+                                data = summarize_formatted,
+                                x = "Index", y = aggregation, label = aggregation,
+                                markersize = 8, marker = 'o',
+                                linestyle = '-', picker = 10
+                            )
+                        fig.canvas.mpl_connect('pick_event', get_source_from_click)
+                        fig.autofmt_xdate()
+                        plt.xlabel(None)
+                        plt.ylabel(None)
+                        plt.legend(
+                            bbox_to_anchor=(1.01, 1),
+                            loc='upper left',
+                            borderaxespad=0
+                        )
+                        plt.show()
+            else:
+                time_series_df = self.files_format.format_time_series_df(time_series)
+                time_series_df = self.files_format.get_values_time_series_df(time_series_df)
+                time_series_df = self.apply_ts.interpolate_df(time_series_df)
+                bands_to_plot = self.apply_ts.get_bands_from_df(time_series_df)
+                if smoothing:
+                    smoothingFilter = SmoothingFilter(time_series_df)
+                    smoothingFilter.select(smoothing)
+                    smoothingFilter.apply(bands_to_plot)
+                    for band in bands_to_plot:
+                        smoothingFilter.plot(
+                            title=("Time Series for {name}\n{smooth}") \
+                                .format(name = select_coverage, smooth = smoothing.title),
+                            select_band=band,
+                            original=plot_original
+                        )
+                else:
+                    fig = plt.figure(figsize = (12, 5))
+                    fig.suptitle(("Time Series for {name}").format(name = select_coverage))
                     seaborn.set_theme(style="darkgrid")
-                    for aggregation in selected_aggregations:
+                    for band in self.apply_ts.get_bands_from_df(time_series_df):
                         seaborn.lineplot(
-                            data = summarize_formatted,
-                            x = "Index", y = aggregation, label = aggregation,
+                            data = time_series_df,
+                            x = "Index", y = band, label = band,
                             markersize = 8, marker = 'o',
                             linestyle = '-', picker = 10
                         )
@@ -314,29 +391,5 @@ class FilesExport:
                         borderaxespad=0
                     )
                     plt.show()
-            else:
-                time_series_df = self.files_format.format_time_series_df(time_series)
-                time_series_df = self.files_format.get_values_time_series_df(time_series_df)
-                time_series_df = self.apply_ts.interpolate_df(time_series_df)
-                fig = plt.figure(figsize = (12, 5))
-                fig.suptitle(("Time Series for {name}").format(name = select_coverage))
-                seaborn.set_theme(style="darkgrid")
-                for band in self.apply_ts.get_bands_from_df(time_series_df):
-                    seaborn.lineplot(
-                        data = time_series_df,
-                        x = "Index", y = band, label = band,
-                        markersize = 8, marker = 'o',
-                        linestyle = '-', picker = 10
-                    )
-                fig.canvas.mpl_connect('pick_event', get_source_from_click)
-                fig.autofmt_xdate()
-                plt.xlabel(None)
-                plt.ylabel(None)
-                plt.legend(
-                    bbox_to_anchor=(1.01, 1),
-                    loc='upper left',
-                    borderaxespad=0
-                )
-                plt.show()
         except Exception as e:
             self.alert("error", "Error while generate the image!", str(e))

@@ -21,3 +21,5 @@
 from .files_export_helper import FilesExport
 from .pystac_helper import (STAC_ARGS, Channels, get_source_from_click,
                             stac_args)
+from .smoothing_helper import (Gam, MovingAverage, SGolay, SmoothingFilter,
+                               Whittaker, options)

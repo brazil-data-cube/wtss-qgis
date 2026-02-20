@@ -64,7 +64,10 @@ install_requires = [
     'pandas>=2',
     'jsonschema>=3.2',
     'pystac-client>=0.8.3',
-    'wtss==2.0.0a3'
+    'wtss==2.0.0a3',
+    'geopandas==1.1.1',
+    'scipy<=1.17.0',
+    'pygam==0.12.0'
 ]
 
 packages = find_packages()
@@ -95,13 +98,17 @@ setup(
     setup_requires=setup_requires,
     tests_require=tests_require,
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Scientific/Engineering :: GIS',
     ]

@@ -78,8 +78,8 @@ This significantly reduces the reliance on command-line inputs, routines, and sc
 
 The following image presents an overview of the plugin:
 
-.. image:: https://github.com/brazil-data-cube/wtss-qgis/tree/master/wtss_plugin/help/source/assets/screenshots/wtss_plugin.png
-    :target: https://github.com/brazil-data-cube/wtss-qgis/tree/master/wtss_plugin/help/source/assets/screnshots/wtss_plugin.png
+.. image:: ./wtss_plugin/help/source/assets/screenshots/wtss_plugin.png
+    :target: ./wtss_plugin/help/source/assets/screnshots/wtss_plugin.png
     :width: 100%
     :alt: WTSS-PLUGIN
 

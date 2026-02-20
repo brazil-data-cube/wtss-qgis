@@ -18,6 +18,7 @@
 
 """Python QGIS Plugin for WTSS."""
 
+import requests
 from PyQt5.QtCore import QDate
 from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox
 from wtss import WTSS
@@ -86,6 +87,10 @@ class Controls:
             description=str(description_dict.get('description')),
         )
 
+    def is_typed(self, obj, type):
+        """Check if obj belongs to a type."""
+        return isinstance(obj, type) or (obj == type)
+
 class WTSS_Controls:
     """Class for the service storage rule.
 
@@ -117,7 +122,10 @@ class WTSS_Controls:
         """Return a dictionary with the list of available products."""
         coverages_dict = {}
         for coverage in self.wtss.coverages:
-            coverages_dict[dict(self.wtss[coverage])['title']] = coverage
+            try:
+                coverages_dict[dict(self.wtss[coverage])['title']] = coverage
+            except requests.exceptions.HTTPError:
+                continue
         return coverages_dict
 
     def productDescription(self, product):

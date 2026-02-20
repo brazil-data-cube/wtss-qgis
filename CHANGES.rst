@@ -20,6 +20,20 @@
 Changes
 =======
 
+Version 1.2.0 (2026-02-20)
+--------------------------
+
+- Adicionado opções para filtros de suavização nas séries temporais (#121);
+- Resolvido o problema ao realizar a leitura de geometrias apenas como Polygon (#119)
+- Adicionado filtro usando a extensão do canvas no QGIS para listar as geometrias disponíveis (#118);
+- Adicionado o botão de seleção de lat/long que retorna para localização anterior (#105);
+
+Version 1.0.1 (2025-12-23)
+--------------------------
+
+- Problema ao realizar a leitura de geometrias apenas como Polygon (#119);
+- Adicionar filtro usando a extensão do canvas no QGIS para listar as geometrias disponíveis (#118);
+
 Version 1.0.0 (2025-12-03)
 --------------------------
 
