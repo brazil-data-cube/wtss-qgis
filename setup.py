@@ -65,7 +65,7 @@ install_requires = [
     'jsonschema>=3.2',
     'pystac-client>=0.8.3',
     'wtss==2.0.0a3',
-    'geopandas==1.1.1',
+    'geopandas==1.1.2',
     'scipy<=1.17.0',
     'pygam==0.12.0'
 ]
