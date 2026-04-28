@@ -52,12 +52,15 @@ deprecated = False
 server = False
 
 author = INPE
-version = 1.2.0
+version = 1.3.0
 about = Web Time Series Service (WTSS) is a lightweight web service for handling time series data from remote sensing imagery.
     Given a location and a time interval you can retrieve the according time series as a Python list of real values.
     In WTSS a coverage is a three dimensional array associate to spatial and temporal reference systems.
 
-changelog = Version 1.2.0 (2026-02-20)
+changelog = Version 1.3.0 (2026-04-28)
+    - Adicionando requests para o time series search (#124);
+
+    Version 1.2.0 (2026-02-20)
     - Adicionado opções para filtros de suavização nas séries temporais (#121);
     - Resolvido o problema ao realizar a leitura de geometrias apenas como Polygon (#119)
     - Adicionado filtro usando a extensão do canvas no QGIS para listar as geometrias disponíveis (#118);

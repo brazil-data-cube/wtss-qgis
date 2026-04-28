@@ -18,12 +18,16 @@
 
 """Python QGIS Plugin for WTSS."""
 
+import json
+
 import requests
+import shapely
 from PyQt5.QtCore import QDate
 from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox
 from wtss import WTSS
 
 from ..config import Config
+from ..helpers.timeseries_helper import TimeSeriesSearchQGIS
 
 
 class Controls:
@@ -132,15 +136,14 @@ class WTSS_Controls:
         """Return a dictionary with product description."""
         return self.wtss[product]
 
-    def productTimeSeries(self, product, bands, start_date, end_date, geometry):
+    def getTimeSeries(self, product, bands, start_date, end_date, geometry):
         """Return a dictionary with product time series data.
 
         :param product<string>: the product name.
         :param bands<tuple>: the selected bands available on product.
-        :param lon<float>: the point longitude.
-        :param lat<float>: the point latitude.
         :param start_date<string>: start date string with 'yyyy-mm-dd' format.
         :param end_date<string>: end date string with 'yyyy-mm-dd' format.
+        :param geometry<obj>: the geometry.
         """
         try:
             time_series = self.wtss[product].ts(
@@ -148,6 +151,30 @@ class WTSS_Controls:
                 geom=geometry,
                 start_datetime=start_date,
                 end_datetime=end_date
+            )
+            return time_series
+        except:
+            return None
+
+    def productTimeSeries(self, product, bands, start_date, end_date, geometry):
+        """Return a dictionary with product time series data.
+
+        :param product<string>: the product name.
+        :param bands<tuple>: the selected bands available on product.
+        :param start_date<string>: start date string with 'yyyy-mm-dd' format.
+        :param end_date<string>: end date string with 'yyyy-mm-dd' format.
+        :param geometry<obj>: the geometry.
+        """
+        time_series = self.getTimeSeries(product, bands, start_date, end_date, geometry)
+        try:
+            time_series.__class__ = TimeSeriesSearchQGIS
+            time_series.make_request(
+                self.wtss_host, product, params = {
+                    "start_datetime": f"{start_date}T00:00:00Z",
+                    "end_datetime": f"{end_date}T00:00:00Z",
+                    "attributes": bands,
+                    "geom": json.loads(shapely.to_geojson(geometry))
+                }
             )
             return time_series
         except:

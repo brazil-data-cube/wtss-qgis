@@ -20,6 +20,11 @@
 Changes
 =======
 
+Version 1.3.0 (2026-04-28)
+--------------------------
+
+- Adicionando requests para o time series search (#124);
+
 Version 1.2.0 (2026-02-20)
 --------------------------
 

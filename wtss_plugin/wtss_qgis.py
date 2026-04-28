@@ -877,7 +877,7 @@ class WTSSQgis:
         self.addCanvasControlPoint(self.enabled_click)
         if (self.dlg.input_longitude.value() != 0 and self.dlg.input_latitude.value() != 0):
             self.dlg.zoom_selected_point.setEnabled(True)
-            self.draw_point(self.dlg.input_longitude.value(), self.dlg.input_latitude.value())
+            self.display_point(None)
             self.zoom_to_point(
                 self.dlg.input_longitude.value(),
                 self.dlg.input_latitude.value(),

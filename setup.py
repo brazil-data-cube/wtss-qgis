@@ -33,7 +33,7 @@ docs_require = [
 ]
 
 dev_env_require = [
-    'pb-tool>=3.0.0'
+    'pb-tool==3.1.0'
 ]
 
 tests_require = [
